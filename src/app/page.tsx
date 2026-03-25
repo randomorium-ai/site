@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { apps } from '@/data/apps'
+import SoukScene from './SoukScene'
 
 // ─── NPC definitions ────────────────────────────────────────────────────────
 
@@ -412,6 +413,6 @@ export default function Home() {
   const [isSouk, setIsSouk] = useState(false)
 
   return isSouk
-    ? <SoukView onExit={() => setIsSouk(false)} />
+    ? <SoukScene onExit={() => setIsSouk(false)} />
     : <NormalHome onEnter={() => setIsSouk(true)} />
 }
