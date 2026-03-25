@@ -268,7 +268,8 @@ function TodayTab({ sched, config, bank, allLogs, setAllLogs, pbs, setPbs, painL
 
   if (slots.length === 0) {
     return (
-      <div className="flex-1 overflow-y-auto p-5" style={{ backgroundColor: C.bg }}>
+      <div className="flex-1 overflow-y-auto" style={{ backgroundColor: C.bg }}>
+      <div className="max-w-2xl mx-auto w-full p-5">
         <p className="text-xs mb-0.5 font-mono" style={{ color: C.textDim }}>Operation Achilles Rebuild</p>
         <h2 className="text-2xl font-extrabold mb-3" style={{ color: C.text }}>
           {today.toLocaleDateString('en-GB', { weekday: 'long' })}
@@ -286,11 +287,13 @@ function TodayTab({ sched, config, bank, allLogs, setAllLogs, pbs, setPbs, painL
         </div>
         <PainSection todayPain={todayPain} onSet={p => setPainLogs(prev => ({ ...prev, [dk]: p }))} />
       </div>
+      </div>
     )
   }
 
   return (
     <div className="flex-1 overflow-y-auto" style={{ backgroundColor: C.bg }}>
+      <div className="max-w-2xl mx-auto w-full">
       {/* PB flash */}
       {newPbFlash && (
         <div className="fixed top-32 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full text-white text-xs font-bold shadow-lg"
@@ -323,6 +326,7 @@ function TodayTab({ sched, config, bank, allLogs, setAllLogs, pbs, setPbs, painL
 
       <div className="p-4 pb-4">
         {slots.map(slot => {
+
           const { col, bg, bdr } = slotColors(slot.type)
           const exercises = getExFromSlot(slot, cfg, bank)
           const label = slot.cardioName || (slot.type[0].toUpperCase() + slot.type.slice(1))
@@ -419,6 +423,7 @@ function TodayTab({ sched, config, bank, allLogs, setAllLogs, pbs, setPbs, painL
 
         <PainSection todayPain={todayPain} onSet={p => setPainLogs(prev => ({ ...prev, [dk]: p }))} />
       </div>
+      </div>
     </div>
   )
 }
@@ -474,6 +479,7 @@ function WeekTab({ weekOffset, setWeekOffset, sched, setSched, config, allLogs, 
 
   return (
     <div className="flex-1 overflow-y-auto" style={{ backgroundColor: C.bg }}>
+      <div className="max-w-2xl mx-auto w-full">
       <div className="p-4 pb-10">
         {/* Week nav */}
         <div className="flex items-center justify-between mb-3">
@@ -606,6 +612,7 @@ function WeekTab({ weekOffset, setWeekOffset, sched, setSched, config, allLogs, 
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
@@ -624,7 +631,8 @@ function RecordsTab({ pbs, painLogs, allLogs, bank }: {
     : null
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 pb-10" style={{ backgroundColor: C.bg }}>
+    <div className="flex-1 overflow-y-auto" style={{ backgroundColor: C.bg }}>
+      <div className="max-w-2xl mx-auto w-full p-4 pb-10">
 
       {/* Trophies */}
       <div className="mb-6">
@@ -707,6 +715,7 @@ function RecordsTab({ pbs, painLogs, allLogs, bank }: {
           </div>
         )}
       </div>
+      </div>
     </div>
   )
 }
@@ -717,7 +726,8 @@ function PhasesTab() {
   const currentMonth = getCfgMonth(today)
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 pb-10" style={{ backgroundColor: C.bg }}>
+    <div className="flex-1 overflow-y-auto" style={{ backgroundColor: C.bg }}>
+      <div className="max-w-2xl mx-auto w-full p-4 pb-10">
       <h2 className="text-xl font-bold mb-1" style={{ color: C.text }}>Phase schedule</h2>
       <p className="text-sm mb-4 font-mono" style={{ color: C.textDim }}>April – December 2026 · 5km goal</p>
       {MONTHS.map(m => {
@@ -744,6 +754,7 @@ function PhasesTab() {
           </div>
         )
       })}
+      </div>
     </div>
   )
 }
@@ -788,11 +799,58 @@ export default function AchillesApp() {
   const TABS: [TabId, string][] = [['today', 'Today'], ['week', 'Week'], ['records', 'Records'], ['phases', 'Phases']]
 
   return (
-    <div className="flex flex-col mx-auto font-[family-name:var(--font-geist-sans)]"
-      style={{ height: '100dvh', maxWidth: 480, backgroundColor: C.bg }}>
+    <div className="flex flex-col md:flex-row font-[family-name:var(--font-geist-sans)]"
+      style={{ height: '100dvh', backgroundColor: C.bg }}>
 
-      {/* Site nav */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-zinc-100 flex-shrink-0">
+      {/* ── Desktop sidebar ── */}
+      <div className="hidden md:flex flex-col flex-shrink-0 w-56"
+        style={{ backgroundColor: C.surface, borderRight: `1px solid ${C.border}` }}>
+
+        {/* Site nav */}
+        <div className="px-4 py-3 flex items-center justify-between flex-shrink-0"
+          style={{ borderBottom: `1px solid ${C.border}` }}>
+          <Link href="/" className="font-mono text-xs text-zinc-400 hover:text-zinc-600 transition-colors">
+            ← randomorium
+          </Link>
+        </div>
+
+        {/* App identity */}
+        <div className="px-5 py-5 flex-shrink-0" style={{ borderBottom: `1px solid ${C.border}` }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest leading-tight" style={{ color: C.strength }}>
+            Operation<br />Achilles Rebuild
+          </p>
+          <p className="text-lg font-bold mt-2" style={{ color: C.text }}>Matthew Smith</p>
+          <div className="mt-3 inline-flex rounded-xl px-2.5 py-1"
+            style={{ backgroundColor: C.strengthBg, border: `1.5px solid ${C.strengthBorder}` }}>
+            <p className="text-xs font-bold" style={{ color: C.strength }}>🎯 5km · Dec &#39;26</p>
+          </div>
+        </div>
+
+        {/* Vertical tabs */}
+        <nav className="flex-1 p-3 overflow-y-auto">
+          {TABS.map(([id, label]) => (
+            <button key={id} onClick={() => setTab(id)}
+              className="w-full text-left px-4 py-2.5 rounded-xl mb-1 text-sm font-semibold transition-colors"
+              style={{
+                backgroundColor: tab === id ? C.strengthBg : 'transparent',
+                color: tab === id ? C.strength : C.textMid,
+              }}>
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Shop CTA */}
+        <div className="p-4 flex-shrink-0" style={{ borderTop: `1px solid ${C.border}` }}>
+          <a href="https://shop.randomorium.ai" target="_blank" rel="noopener noreferrer"
+            className="block text-center text-xs bg-black text-white px-4 py-2.5 rounded-full hover:bg-zinc-800 transition-colors">
+            buy a hat →
+          </a>
+        </div>
+      </div>
+
+      {/* ── Mobile top nav (hidden on desktop) ── */}
+      <div className="md:hidden flex items-center justify-between px-4 py-2.5 bg-white border-b border-zinc-100 flex-shrink-0">
         <Link href="/" className="font-mono text-xs text-zinc-400 hover:text-zinc-600 transition-colors">
           ← randomorium.ai
         </Link>
@@ -802,8 +860,8 @@ export default function AchillesApp() {
         </a>
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-shrink-0" style={{ backgroundColor: C.surface, borderBottom: `1px solid ${C.border}` }}>
+      {/* ── Mobile horizontal tabs (hidden on desktop) ── */}
+      <div className="md:hidden flex flex-shrink-0" style={{ backgroundColor: C.surface, borderBottom: `1px solid ${C.border}` }}>
         {TABS.map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
             className="flex-1 py-3 text-xs font-semibold transition-colors"
@@ -816,7 +874,7 @@ export default function AchillesApp() {
         ))}
       </div>
 
-      {/* Content */}
+      {/* ── Content ── */}
       <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         {tab === 'today' && (
           <TodayTab sched={sched} config={config} bank={bank}
