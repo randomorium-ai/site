@@ -37,5 +37,14 @@ export const apps: App[] = [
     builtWith: "Next.js",
     hatHook: "This meeting cost more than a hat. Buy the hat instead.",
   },
+  {
+    name: "Sleep Calculator",
+    slug: "sleep",
+    description: "Find the best time to sleep or wake up based on 90-minute sleep cycles",
+    url: "/apps/sleep",
+    author: "harry",
+    builtWith: "Next.js",
+    hatHook: "Can't sleep? Buy a hat instead.",
+  },
   // Add apps here as they launch. Each entry triggers a card on the home page.
 ];
