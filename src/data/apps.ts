@@ -28,5 +28,14 @@ export const apps: App[] = [
     builtWith: "Next.js",
     hatHook: "Complete Phase 1 and you've earned the 'Limping Forward' cap",
   },
+  {
+    name: "Mildly Cursed",
+    slug: "mildly-cursed",
+    description: "The Department of Mild Inconveniences has a message for you",
+    url: "https://mildly-cursed.randomorium.ai",
+    author: "harry",
+    builtWith: "Next.js",
+    hatHook: "The Department recommends a protective hat. Results not guaranteed.",
+  },
   // Add apps here as they launch. Each entry triggers a card on the home page.
 ];
