@@ -46,5 +46,14 @@ export const apps: App[] = [
     builtWith: "Next.js",
     hatHook: "Can't sleep? Buy a hat instead.",
   },
+  {
+    name: "Split the Bill",
+    slug: "split",
+    description: "Split restaurant bills fairly — with items, tip, and no arguments",
+    url: "/apps/split",
+    author: "harry",
+    builtWith: "Next.js",
+    hatHook: "Still arguing about the bill? Buy everyone a hat instead.",
+  },
   // Add apps here as they launch. Each entry triggers a card on the home page.
 ];
