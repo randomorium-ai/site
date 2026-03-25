@@ -29,13 +29,13 @@ export const apps: App[] = [
     hatHook: "Complete Phase 1 and you've earned the 'Limping Forward' cap",
   },
   {
-    name: "Mildly Cursed",
-    slug: "mildly-cursed",
-    description: "The Department of Mild Inconveniences has a message for you",
-    url: "https://mildly-cursed.randomorium.ai",
+    name: "Meeting Price",
+    slug: "meeting-price",
+    description: "Find out what your meetings actually cost — in real time",
+    url: "/apps/meeting-price",
     author: "harry",
     builtWith: "Next.js",
-    hatHook: "The Department recommends a protective hat. Results not guaranteed.",
+    hatHook: "This meeting cost more than a hat. Buy the hat instead.",
   },
   // Add apps here as they launch. Each entry triggers a card on the home page.
 ];
