@@ -55,5 +55,32 @@ export const apps: App[] = [
     builtWith: "Next.js",
     hatHook: "Still arguing about the bill? Buy everyone a hat instead.",
   },
+  {
+    name: "Half-Life",
+    slug: "half-life",
+    description: "Track your caffeine in real time — see your decay curve and when it's safe to sleep",
+    url: "/apps/half-life",
+    author: "harry",
+    builtWith: "Next.js",
+    hatHook: "Still wired? A hat won't help, but it won't hurt either.",
+  },
+  {
+    name: "Worth It?",
+    slug: "worth-it",
+    description: "See what your small daily expenses actually cost you over a year",
+    url: "/apps/worth-it",
+    author: "harry",
+    builtWith: "Next.js",
+    hatHook: "Is a hat worth it? Absolutely. Always.",
+  },
+  {
+    name: "Time Worth",
+    slug: "time-worth",
+    description: "What you earn per second — and what everything costs in hours of your life",
+    url: "/apps/time-worth",
+    author: "harry",
+    builtWith: "Next.js",
+    hatHook: "A hat costs less work than you think. Treat yourself.",
+  },
   // Add apps here as they launch. Each entry triggers a card on the home page.
 ];
