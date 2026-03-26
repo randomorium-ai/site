@@ -45,7 +45,7 @@ export const apps: App[] = [
     url: "/apps/salary",
     author: "harry",
     builtWith: "Next.js",
-    hatHook: "You negotiated a raise. Spend some of it on a hat.",
+    hatHook: "Lord Sralan says: negotiate the salary, then buy the hat.",
   },
   // Add apps here as they launch. Each entry triggers a card on the home page.
 ];
