@@ -13,7 +13,7 @@ export const apps: App[] = [
     name: "Holiday Bazaar",
     slug: "holiday-bazaar",
     description: "Plan a group holiday with a snake charmer salesman",
-    url: "https://holiday-bazaar.randomorium.ai",
+    url: "/apps/holiday-bazaar",
     author: "the lads",
     builtWith: "Next.js",
     hatHook: "Sssalem recommends a holiday hat before you travel",
