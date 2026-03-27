@@ -146,12 +146,16 @@ export default function SalaryResult() {
       if (!res.ok) {
         try {
           const errData = await res.json()
+          console.error("Playbook API error:", res.status, errData)
           if (errData.error === "rate_limit") {
             setStreamError("rate_limit")
+          } else if (errData.error === "api_key_missing") {
+            setStreamError("api_error")
           } else {
             setStreamError("api_error")
           }
         } catch {
+          console.error("Playbook API error: status", res.status)
           setStreamError("api_error")
         }
         return

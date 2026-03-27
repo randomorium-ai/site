@@ -1,6 +1,4 @@
 // ── Salary Negotiator — streaming SSE API route ─────────────────────────────
-export const runtime = "edge"
-
 import { SYSTEM_PROMPT } from "@/lib/salary/prompts"
 
 interface PlaybookRequest {
@@ -44,8 +42,8 @@ export async function POST(request: Request) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 4000,
+        model: "claude-sonnet-4-6",
+        max_tokens: 8000,
         stream: true,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: body.userPrompt }],
@@ -72,7 +70,11 @@ export async function POST(request: Request) {
     }
 
     return new Response(
-      JSON.stringify({ error: "api_error", message: "Claude API returned an error" }),
+      JSON.stringify({
+        error: "api_error",
+        message: "Claude API returned an error",
+        detail: text.slice(0, 500),
+      }),
       { status: 502, headers: { "Content-Type": "application/json" } },
     )
   }
