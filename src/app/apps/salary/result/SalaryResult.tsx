@@ -150,7 +150,7 @@ export default function SalaryResult() {
           if (errData.error === "rate_limit") {
             setStreamError("rate_limit")
           } else if (errData.error === "api_key_missing") {
-            setStreamError("api_error")
+            setStreamError("api_key_missing")
           } else {
             setStreamError("api_error")
           }
@@ -497,18 +497,26 @@ function Stat({
 
 // ── Error Card ──────────────────────────────────────────────────────────────
 function ErrorCard({ type, onRetry }: { type: string; onRetry: () => void }) {
-  const messages: Record<string, { title: string; body: string }> = {
+  const messages: Record<string, { title: string; body: string; showRetry: boolean }> = {
+    api_key_missing: {
+      title: "\"Who forgot to set up the boardroom?\"",
+      body: "The ANTHROPIC_API_KEY environment variable isn't configured on Vercel. Go to Vercel > Settings > Environment Variables, add ANTHROPIC_API_KEY with your Anthropic API key, and redeploy.",
+      showRetry: false,
+    },
     api_error: {
       title: "\"Someone's getting fired for this.\"",
       body: "Lord Sralan's boardroom is temporarily closed. The AI that writes your playbook couldn't be reached. Your score is still valid — hit retry for the full playbook.",
+      showRetry: true,
     },
     rate_limit: {
       title: "\"There's a queue. I don't do queues.\"",
       body: "Too many people in the boardroom right now. Give it a minute and try again. Your score and data are still here.",
+      showRetry: true,
     },
     connection: {
       title: "\"The line's gone dead.\"",
       body: "Couldn't connect to the server. Check your internet and hit retry. Your score is safe.",
+      showRetry: true,
     },
   }
 
@@ -533,15 +541,17 @@ function ErrorCard({ type, onRetry }: { type: string; onRetry: () => void }) {
           {msg.body}
         </p>
       </div>
-      <div className="px-6 py-4 flex justify-end" style={{ background: C.surface }}>
-        <button
-          onClick={onRetry}
-          className="px-6 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer"
-          style={{ background: C.accent, color: "#fff" }}
-        >
-          Retry
-        </button>
-      </div>
+      {msg.showRetry && (
+        <div className="px-6 py-4 flex justify-end" style={{ background: C.surface }}>
+          <button
+            onClick={onRetry}
+            className="px-6 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer"
+            style={{ background: C.accent, color: "#fff" }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
     </div>
   )
 }
