@@ -27,45 +27,39 @@ export function calculateScore(
 
   const marketLow = Math.round(baseLow * locMultiplier * sitMultiplier)
   const marketHigh = Math.round(baseHigh * locMultiplier * sitMultiplier)
+  const marketMid = Math.round((marketLow + marketHigh) / 2)
 
-  // Position score: where salary falls in the adjusted range
-  // Below range floor → low score, above range ceiling → high score
+  // ── Negotiation score ──
+  // Concept: the further below market your offer is, the stronger your
+  // negotiation position (more room and justification to push up).
+  //
+  // Score mapping (continuous, no discontinuities):
+  //   salary <= marketLow - range  → 100 (way below market, very strong case)
+  //   salary = marketLow           → 80  (at market floor, strong case)
+  //   salary = marketMid           → 55  (at midpoint, decent case)
+  //   salary = marketHigh          → 30  (at ceiling, limited room)
+  //   salary >= marketHigh + range → 5   (above market, little to negotiate)
+
   const range = marketHigh - marketLow
-  let positionRatio: number
+  let score: number
 
   if (range === 0) {
-    positionRatio = salary >= marketHigh ? 1 : 0
+    score = salary >= marketHigh ? 20 : 80
   } else if (salary <= marketLow) {
-    // Below market — scale from 5 to 50
-    // The further below, the lower the score
-    const deficit = marketLow - salary
-    const deficitRatio = Math.min(deficit / range, 1)
-    positionRatio = -deficitRatio
-  } else if (salary >= marketHigh) {
-    // Above market — already at top
-    positionRatio = 1 + (salary - marketHigh) / range
+    // Below market floor: 80–100 (capped at 100)
+    const deficit = (marketLow - salary) / range
+    score = Math.round(80 + Math.min(deficit, 1) * 20)
+  } else if (salary <= marketHigh) {
+    // Within market range: 30–80 (linear)
+    const position = (salary - marketLow) / range
+    score = Math.round(80 - position * 50)
   } else {
-    // Within range
-    positionRatio = (salary - marketLow) / range
-  }
-
-  // Map to 5–100 score
-  let score: number
-  if (positionRatio < 0) {
-    // Below market: 5–45 (more below = stronger negotiation position)
-    score = Math.round(45 + positionRatio * 40)
-  } else if (positionRatio <= 1) {
-    // Within range: 30–80
-    score = Math.round(30 + positionRatio * 50)
-  } else {
-    // Above market: 80–100
-    score = Math.round(80 + Math.min((positionRatio - 1) * 20, 20))
+    // Above market ceiling: 5–30 (capped at 5)
+    const surplus = (salary - marketHigh) / range
+    score = Math.round(30 - Math.min(surplus, 1) * 25)
   }
 
   score = Math.max(5, Math.min(100, score))
-
-  // Invert: low salary relative to market = HIGH negotiation score (more room to negotiate)
-  score = 105 - score
 
   // Determine band
   const band = getBand(score)
@@ -76,10 +70,11 @@ export function calculateScore(
   const gapLow = Math.max(0, marketLow - salary)
   const gapHigh = Math.max(0, marketHigh - salary)
 
-  // Chance and typical uplift
+  // Chance and band-dependent uplift
   const chance = getChance(band)
-  const upliftLow = Math.round(salary * 0.05)
-  const upliftHigh = Math.round(salary * 0.11)
+  const [upliftPctLow, upliftPctHigh] = getUpliftRange(band)
+  const upliftLow = Math.round(salary * upliftPctLow)
+  const upliftHigh = Math.round(salary * upliftPctHigh)
 
   return {
     score,
@@ -88,6 +83,7 @@ export function calculateScore(
     bandColor,
     marketLow,
     marketHigh,
+    marketMid,
     gapLow,
     gapHigh,
     chance,
@@ -97,13 +93,16 @@ export function calculateScore(
 }
 
 function fallbackScore(salary: number): ScoreResult {
+  const marketLow = Math.round(salary * 0.9)
+  const marketHigh = Math.round(salary * 1.3)
   return {
     score: 50,
     band: "possible",
-    bandLabel: "Possible",
+    bandLabel: "Worth A Shot",
     bandColor: "#f59e0b",
-    marketLow: Math.round(salary * 0.9),
-    marketHigh: Math.round(salary * 1.3),
+    marketLow,
+    marketHigh,
+    marketMid: Math.round((marketLow + marketHigh) / 2),
     gapLow: 0,
     gapHigh: Math.round(salary * 0.3),
     chance: "MODERATE",
@@ -146,6 +145,16 @@ function getChance(band: string): string {
     case "possible": return "MODERATE"
     case "honest": return "LOW"
     default: return "MODERATE"
+  }
+}
+
+function getUpliftRange(band: string): [number, number] {
+  switch (band) {
+    case "strong": return [0.08, 0.15]
+    case "good": return [0.05, 0.11]
+    case "possible": return [0.03, 0.07]
+    case "honest": return [0.01, 0.04]
+    default: return [0.05, 0.11]
   }
 }
 

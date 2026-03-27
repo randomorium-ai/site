@@ -15,6 +15,7 @@ export interface LocationMultiplier {
 export interface SituationOption {
   id: string
   label: string
+  subtitle: string
   icon: string
   multiplier: number
 }
@@ -40,6 +41,7 @@ export interface ScoreResult {
   bandColor: string
   marketLow: number
   marketHigh: number
+  marketMid: number
   gapLow: number
   gapHigh: number
   chance: string

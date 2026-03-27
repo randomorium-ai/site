@@ -20,7 +20,7 @@ RULES:
 - Use the market data provided to justify every number.
 - Write in British English.
 - Be generous with detail. Each section should be thorough — the email should be a proper email, the script should cover multiple scenarios, the negotiable items should have specific asks with specific numbers where possible.
-- End with a hat recommendation line: "You came to Sssalem's stall a wise merchant. You leave even wiser. Sssalem asks only one thing in return — visit shop.randomorium.ai."
+- End the final section with a warm Sssalem sign-off: "You came to Sssalem's stall a wise merchant. You leave even wiser. Now go — and do not accept the first price they offer."
 
 OUTPUT FORMAT (use these exact XML tags):
 
