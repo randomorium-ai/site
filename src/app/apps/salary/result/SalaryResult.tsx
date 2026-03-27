@@ -6,76 +6,93 @@ import Link from "next/link"
 import type { FormData, ScoreResult, PlaybookSection } from "@/lib/salary/types"
 import { getHatHook } from "@/lib/salary/scoring"
 
-// ── Palette ─────────────────────────────────────────────────────────────────
-const C = {
-  bg: "#FDFBF7",
-  surface: "#f8f7f4",
-  cardBg: "#ffffff",
-  text: "#1a1a2e",
-  textMuted: "#6b7280",
-  border: "#e5e5e5",
-  accent: "#1a1a2e",
-  gold: "#c8a84e",
-  goldLight: "#f5ecd7",
-  introBg: "#0a0a0f",
-  cream: "#F0E8D5",
-  muted: "rgba(255, 255, 255, 0.38)",
+// ── CSS variables + keyframes ────────────────────────────────────────────────
+const globalStyles = `
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap');
+
+:root {
+  --bg: #0C0804;
+  --bg2: #1A0F06;
+  --amber: #F5A623;
+  --amber2: #C47D0E;
+  --teal: #3ABCBD;
+  --teal2: #1A7172;
+  --cream: #F0E4C4;
+  --cream2: #D4C49A;
+  --red: #C23B22;
+  --gold: #D4A843;
+  --gold2: #A07820;
+  --muted: rgba(240,228,196,0.45);
+  --dim: rgba(240,228,196,0.22);
+  --fd: 'Cinzel', serif;
+  --fb: 'Lora', serif;
 }
 
-// ── Lord Sralan verdict lines ───────────────────────────────────────────────
-function getVerdict(band: string): { line: string; subline: string } {
-  switch (band) {
-    case "strong":
-      return {
-        line: "You're being undersold. Badly.",
-        subline: "This isn't a negotiation — it's a correction. You've got serious leverage here.",
-      }
-    case "good":
-      return {
-        line: "There's money on the table. Go get it.",
-        subline: "Decent position. A good negotiator walks away with more. That's what we're going to do.",
-      }
-    case "possible":
-      return {
-        line: "It's not terrible. But it's not right either.",
-        subline: "You've got a case to make, but you'll need to make it well. Follow the playbook exactly.",
-      }
-    case "honest":
-      return {
-        line: "I'm going to be straight with you.",
-        subline: "The numbers are tight. But there's always something to negotiate — if you know what to ask for.",
-      }
-    default:
-      return { line: "Let's have a look.", subline: "" }
-  }
-}
-
-// ── Section definitions ─────────────────────────────────────────────────────
-const SECTION_DEFS = [
-  { id: "counter", title: "Your Counter-Offer", icon: "1" },
-  { id: "negotiable", title: "What's Negotiable", icon: "2" },
-  { id: "email", title: "The Email", icon: "3" },
-  { id: "script", title: "Verbal Script", icon: "4" },
-  { id: "fallback", title: "If They Say No", icon: "5" },
-]
-
-// ── Animations ──────────────────────────────────────────────────────────────
-const animations = `
 @keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scorepop {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes secin {
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.35; }
 }
-@keyframes typing {
-  0%, 100% { opacity: 0.3; }
+@keyframes lpulse {
+  0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
+}
+@keyframes lsw {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
 }
 `
 
-// ── Component ───────────────────────────────────────────────────────────────
+// ── Arabesque background ─────────────────────────────────────────────────────
+const arabesqueBg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cpath d='M40 2 L78 40 L40 78 L2 40 Z' fill='none' stroke='rgba(212,168,67,0.07)' stroke-width='1'/%3E%3Cpath d='M40 14 L66 40 L40 66 L14 40 Z' fill='none' stroke='rgba(212,168,67,0.05)' stroke-width='1'/%3E%3Ccircle cx='40' cy='40' r='6' fill='none' stroke='rgba(212,168,67,0.06)' stroke-width='1'/%3E%3Ccircle cx='2' cy='2' r='2' fill='rgba(212,168,67,0.06)'/%3E%3Ccircle cx='78' cy='2' r='2' fill='rgba(212,168,67,0.06)'/%3E%3Ccircle cx='2' cy='78' r='2' fill='rgba(212,168,67,0.06)'/%3E%3Ccircle cx='78' cy='78' r='2' fill='rgba(212,168,67,0.06)'/%3E%3C/svg%3E")`
+
+// ── Lantern data ─────────────────────────────────────────────────────────────
+const LANTERNS = [
+  { rope: 20, dur: 2.6, delay: 0, svg: `<svg width="22" height="32" viewBox="0 0 22 32" fill="none"><rect x="3" y="4" width="16" height="22" rx="4" fill="#8A3010" opacity=".9"/><rect x="5" y="7" width="5" height="5" fill="#F5A623" opacity=".8" rx="1"/><rect x="12" y="7" width="5" height="5" fill="#F5A623" opacity=".8" rx="1"/><rect x="5" y="15" width="5" height="5" fill="#F5A623" opacity=".7" rx="1"/><rect x="12" y="15" width="5" height="5" fill="#F5A623" opacity=".7" rx="1"/><rect x="1" y="2" width="20" height="4" fill="#6A2008" rx="2"/><rect x="1" y="24" width="20" height="4" fill="#6A2008" rx="2"/></svg>` },
+  { rope: 35, dur: 2.2, delay: 0.55, svg: `<svg width="26" height="38" viewBox="0 0 26 38" fill="none"><rect x="3" y="5" width="20" height="26" rx="5" fill="#1A5A3A" opacity=".9"/><rect x="5" y="9" width="7" height="6" fill="#F5A623" opacity=".8" rx="1"/><rect x="14" y="9" width="7" height="6" fill="#F5A623" opacity=".8" rx="1"/><rect x="5" y="18" width="7" height="6" fill="#F5A623" opacity=".7" rx="1"/><rect x="14" y="18" width="7" height="6" fill="#F5A623" opacity=".65" rx="1"/><rect x="1" y="3" width="24" height="4" fill="#0F3D26" rx="2"/><rect x="1" y="29" width="24" height="5" fill="#0F3D26" rx="2"/></svg>` },
+  { rope: 15, dur: 3.0, delay: 0.2, svg: `<svg width="30" height="44" viewBox="0 0 30 44" fill="none"><rect x="3" y="5" width="24" height="32" rx="6" fill="#7A1A5A" opacity=".9"/><rect x="6" y="9" width="8" height="7" fill="#F5A623" opacity=".85" rx="1.5"/><rect x="16" y="9" width="8" height="7" fill="#F5A623" opacity=".85" rx="1.5"/><rect x="6" y="19" width="8" height="7" fill="#F5A623" opacity=".75" rx="1.5"/><rect x="16" y="19" width="8" height="7" fill="#F5A623" opacity=".75" rx="1.5"/><rect x="1" y="3" width="28" height="5" fill="#5A0A3A" rx="2"/><rect x="1" y="35" width="28" height="6" fill="#5A0A3A" rx="2"/></svg>` },
+  { rope: 28, dur: 2.4, delay: 0.85, svg: `<svg width="22" height="32" viewBox="0 0 22 32" fill="none"><rect x="3" y="4" width="16" height="22" rx="4" fill="#1A3A7A" opacity=".9"/><rect x="5" y="7" width="5" height="5" fill="#F5C040" opacity=".8" rx="1"/><rect x="12" y="7" width="5" height="5" fill="#F5C040" opacity=".8" rx="1"/><rect x="5" y="15" width="5" height="5" fill="#F5C040" opacity=".7" rx="1"/><rect x="12" y="15" width="5" height="5" fill="#F5C040" opacity=".7" rx="1"/><rect x="1" y="2" width="20" height="4" fill="#0A1E4A" rx="2"/><rect x="1" y="24" width="20" height="4" fill="#0A1E4A" rx="2"/></svg>` },
+  { rope: 42, dur: 2.8, delay: 0.4, svg: `<svg width="24" height="36" viewBox="0 0 24 36" fill="none"><rect x="2" y="4" width="20" height="28" rx="5" fill="#8A5500" opacity=".9"/><rect x="5" y="8" width="6" height="6" fill="#F5A623" opacity=".85" rx="1"/><rect x="13" y="8" width="6" height="6" fill="#F5A623" opacity=".85" rx="1"/><rect x="5" y="17" width="6" height="6" fill="#F5A623" opacity=".75" rx="1"/><rect x="13" y="17" width="6" height="6" fill="#F5A623" opacity=".7" rx="1"/><rect x="1" y="2" width="22" height="4" fill="#5A3500" rx="2"/><rect x="1" y="30" width="22" height="5" fill="#5A3500" rx="2"/></svg>` },
+  { rope: 22, dur: 2.1, delay: 1.1, svg: `<svg width="20" height="30" viewBox="0 0 20 30" fill="none"><rect x="2" y="4" width="16" height="20" rx="4" fill="#2A1A7A" opacity=".9"/><rect x="4" y="7" width="5" height="5" fill="#F5D040" opacity=".8" rx="1"/><rect x="11" y="7" width="5" height="5" fill="#F5D040" opacity=".8" rx="1"/><rect x="4" y="15" width="5" height="5" fill="#F5D040" opacity=".7" rx="1"/><rect x="11" y="15" width="5" height="5" fill="#F5D040" opacity=".65" rx="1"/><rect x="1" y="2" width="18" height="4" fill="#1A0A5A" rx="2"/><rect x="1" y="22" width="18" height="4" fill="#1A0A5A" rx="2"/></svg>` },
+]
+
+// ── Sssalem verdict quotes ───────────────────────────────────────────────────
+function getVerdict(band: string): string {
+  switch (band) {
+    case "strong":
+      return "The scales tip heavily in your favour, friend. This merchant has undervalued you. Let Sssalem show you what you are truly worth."
+    case "good":
+      return "A fair position, friend. Worth the conversation. Sssalem has seen far weaker hands win at this table."
+    case "possible":
+      return "The scales are balanced — but every merchant knows, a balanced scale can be tipped with the right words."
+    case "honest":
+      return "Sssalem will not lie to you. The scales are heavy on their side. But there is always something to trade."
+    default:
+      return "The scales have spoken."
+  }
+}
+
+// ── Section definitions ──────────────────────────────────────────────────────
+const SECTION_DEFS = [
+  { id: "counter", eyebrow: "Sssalem's counter-offer", title: "Your number" },
+  { id: "negotiable", eyebrow: "Beyond the base salary", title: "What else is on the table" },
+  { id: "email", eyebrow: "The message", title: "Ready to send" },
+  { id: "script", eyebrow: "The spoken word", title: "Verbal script" },
+  { id: "fallback", eyebrow: "If they say no", title: "Sssalem's fallback" },
+]
+
+// ── Component ────────────────────────────────────────────────────────────────
 export default function SalaryResult() {
   const router = useRouter()
   const [formData, setFormData] = useState<FormData | null>(null)
@@ -87,6 +104,8 @@ export default function SalaryResult() {
   const [streamError, setStreamError] = useState<string | null>(null)
   const [streamDone, setStreamDone] = useState(false)
   const [copied, setCopied] = useState<Record<string, boolean>>({})
+  const [activeTab, setActiveTab] = useState<"email" | "verbal">("email")
+  const [openTiers, setOpenTiers] = useState<Record<string, boolean>>({ high: true })
   const abortRef = useRef<AbortController | null>(null)
 
   // Load from sessionStorage
@@ -240,257 +259,654 @@ export default function SalaryResult() {
       .filter((s) => s.content)
       .map((s) => `${s.title.toUpperCase()}\n${"=".repeat(s.title.length)}\n\n${s.content}`)
       .join("\n\n---\n\n")
-
     await handleCopy("full", fullReport)
   }, [sections, handleCopy])
+
+  const toggleTier = useCallback((tier: string) => {
+    setOpenTiers((prev) => ({ ...prev, [tier]: !prev[tier] }))
+  }, [])
 
   // Don't render until data is loaded
   if (!formData || !scoreResult) {
     return (
-      <div
-        style={{ background: C.bg }}
-        className="min-h-screen flex items-center justify-center"
-      >
-        <p className="text-sm" style={{ color: C.textMuted }}>Loading...</p>
+      <div style={{
+        background: "var(--bg)",
+        minHeight: "100dvh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}>
+        <style dangerouslySetInnerHTML={{ __html: globalStyles }} />
+        <p style={{
+          fontFamily: "var(--fd)",
+          fontSize: 13,
+          letterSpacing: ".14em",
+          textTransform: "uppercase",
+          color: "var(--gold)",
+          animation: "lpulse 1.6s ease-in-out infinite",
+        }}>
+          Consulting the scales
+        </p>
       </div>
     )
   }
 
-  const verdict = getVerdict(scoreResult.band)
   const hatHook = getHatHook(scoreResult.band)
+  const verdictQuote = getVerdict(scoreResult.band)
 
   return (
-    <div style={{ background: C.bg }} className="min-h-screen flex flex-col">
-      <style dangerouslySetInnerHTML={{ __html: animations }} />
+    <div style={{
+      background: "var(--bg)",
+      color: "var(--cream)",
+      fontFamily: "var(--fb)",
+      minHeight: "100dvh",
+      width: "100%",
+      overflowX: "hidden",
+      position: "relative",
+    }}>
+      <style dangerouslySetInnerHTML={{ __html: globalStyles }} />
 
-      {/* Nav */}
-      <header
-        className="px-4 sm:px-6 py-3 flex items-center justify-between"
-        style={{ borderBottom: `1px solid ${C.border}` }}
-      >
-        <Link
-          href="/"
-          className="text-xs font-mono hover:opacity-70 transition-opacity"
-          style={{ color: C.textMuted }}
-        >
-          randomorium.ai
-        </Link>
-        <a
-          href="https://shop.randomorium.ai"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs px-3 py-1.5 rounded-full transition-colors"
-          style={{ background: C.accent, color: "#fff" }}
-        >
-          buy a hat
-        </a>
-      </header>
+      {/* Arabesque background */}
+      <div style={{ position: "fixed", inset: 0, zIndex: 0, backgroundImage: arabesqueBg, pointerEvents: "none" }} />
 
-      <main className="flex-1 flex flex-col items-center px-4 py-8 sm:py-12">
-        <div className="w-full max-w-2xl">
+      {/* Ambient glow */}
+      <div style={{
+        position: "fixed",
+        top: "-20%",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: 700,
+        height: 400,
+        background: "radial-gradient(ellipse, rgba(212,168,67,0.12) 0%, transparent 70%)",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
 
-          {/* ── Score Card ──────────────────────────────────────── */}
+      {/* Lanterns */}
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 80,
+        zIndex: 20,
+        pointerEvents: "none",
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-around",
+      }}>
+        {LANTERNS.map((l, i) => (
           <div
-            className="rounded-2xl overflow-hidden mb-8"
-            style={{ animation: "fadeSlideIn 600ms ease-out" }}
+            key={i}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              animation: `lsw ${l.dur}s ease-in-out ${l.delay}s infinite`,
+              transformOrigin: "top center",
+            }}
           >
-            {/* Dark header */}
-            <div
-              className="px-6 sm:px-8 pt-8 pb-6 text-center"
-              style={{ background: C.introBg }}
-            >
-              <p className="text-xs font-mono tracking-widest uppercase mb-5" style={{ color: C.muted }}>
-                Lord Sralan&apos;s Verdict
-              </p>
+            <div style={{ width: 1.5, height: l.rope, background: "rgba(212,168,67,0.5)" }} />
+            <div dangerouslySetInnerHTML={{ __html: l.svg }} />
+          </div>
+        ))}
+      </div>
 
-              {/* Score */}
-              <div className="mb-3">
-                <span
-                  className="text-7xl sm:text-8xl font-black tabular-nums"
-                  style={{ color: scoreResult.bandColor }}
-                >
-                  {scoreResult.score}
-                </span>
-                <span className="text-2xl font-light" style={{ color: C.muted }}>
-                  /100
-                </span>
+      {/* Main content */}
+      <div style={{
+        position: "relative",
+        zIndex: 10,
+        padding: "90px 20px 80px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}>
+        <div style={{ maxWidth: 500, width: "100%" }}>
+
+          {/* Ornament header */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 20,
+          }}>
+            <div style={{ flex: 1, height: 1, background: "linear-gradient(to right, transparent, rgba(212,168,67,0.5), transparent)" }} />
+            <span style={{
+              fontFamily: "var(--fd)",
+              fontSize: 9,
+              letterSpacing: ".2em",
+              textTransform: "uppercase",
+              color: "var(--gold)",
+              opacity: 0.7,
+            }}>
+              &#10022; SSSALEM&#39;S VERDICT &#10022;
+            </span>
+            <div style={{ flex: 1, height: 1, background: "linear-gradient(to right, transparent, rgba(212,168,67,0.5), transparent)" }} />
+          </div>
+
+          {/* ── Score Card ── */}
+          <div style={{
+            background: "linear-gradient(160deg, #1A0F06, #0D0804)",
+            border: "1px solid rgba(212,168,67,0.25)",
+            borderRadius: 16,
+            overflow: "hidden",
+            marginBottom: 16,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,168,67,0.08)",
+            animation: "fadeSlideIn 0.6s ease-out both",
+          }}>
+            {/* Score top */}
+            <div style={{
+              padding: "28px 24px 20px",
+              textAlign: "center",
+              borderBottom: "1px solid rgba(212,168,67,0.12)",
+            }}>
+              <div style={{
+                fontFamily: "var(--fd)",
+                fontSize: 9,
+                letterSpacing: ".25em",
+                textTransform: "uppercase",
+                color: "var(--gold)",
+                opacity: 0.65,
+                marginBottom: 18,
+              }}>
+                The scales have spoken
               </div>
-
-              <p
-                className="text-xs font-semibold tracking-widest uppercase mb-4"
-                style={{ color: scoreResult.bandColor }}
-              >
+              <div style={{
+                fontFamily: "var(--fd)",
+                fontSize: 96,
+                fontWeight: 900,
+                lineHeight: 0.9,
+                color: scoreResult.bandColor,
+                animation: "scorepop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both",
+              }}>
+                {scoreResult.score}
+              </div>
+              <div style={{
+                fontFamily: "var(--fd)",
+                fontSize: 22,
+                color: "var(--dim)",
+                fontWeight: 400,
+              }}>
+                /100
+              </div>
+              <div style={{
+                fontFamily: "var(--fd)",
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: ".18em",
+                textTransform: "uppercase",
+                margin: "12px 0 10px",
+                color: scoreResult.bandColor,
+              }}>
                 {scoreResult.bandLabel}
-              </p>
-
-              {/* Verdict line */}
-              <p className="text-lg font-semibold mb-1" style={{ color: C.cream }}>
-                &ldquo;{verdict.line}&rdquo;
-              </p>
-              <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-                {verdict.subline}
+              </div>
+              <p style={{
+                fontSize: 15,
+                fontStyle: "italic",
+                color: "var(--cream2)",
+                lineHeight: 1.65,
+                maxWidth: 340,
+                margin: "0 auto",
+              }}>
+                &#8220;{verdictQuote}&#8221;
               </p>
             </div>
 
-            {/* Stats — light bottom */}
-            <div
-              className="px-6 sm:px-8 py-5 grid grid-cols-2 gap-4"
-              style={{ background: C.goldLight, borderTop: `2px solid ${C.gold}` }}
-            >
-              <Stat
-                label="Your offer"
-                value={`\u00A3${formData.salary.toLocaleString("en-GB")}`}
+            {/* Score stats grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+              <ScoreStat label="Your offer" value={`\u00A3${formData.salary.toLocaleString("en-GB")}`} position="tl" />
+              <ScoreStat label="Market range" value={`\u00A3${scoreResult.marketLow.toLocaleString("en-GB")} \u2013 \u00A3${scoreResult.marketHigh.toLocaleString("en-GB")}`} position="tr" />
+              <ScoreStat
+                label="Market position"
+                value={scoreResult.gapLow > 0
+                  ? `\u00A3${scoreResult.gapLow.toLocaleString("en-GB")} below mid`
+                  : "Within or above range"}
+                color={scoreResult.gapLow > 0 ? "var(--red)" : undefined}
+                position="bl"
               />
-              <Stat
-                label="Market range"
-                value={`\u00A3${scoreResult.marketLow.toLocaleString("en-GB")} \u2013 \u00A3${scoreResult.marketHigh.toLocaleString("en-GB")}`}
-              />
-              <Stat
-                label={scoreResult.gapLow > 0 ? "Below market by" : "Market position"}
-                value={
-                  scoreResult.gapLow > 0
-                    ? `\u00A3${scoreResult.gapLow.toLocaleString("en-GB")} \u2013 \u00A3${scoreResult.gapHigh.toLocaleString("en-GB")}`
-                    : "Within or above range"
-                }
-                highlight={scoreResult.gapLow > 0}
-              />
-              <Stat
+              <ScoreStat
                 label="Typical uplift"
                 value={`\u00A3${scoreResult.upliftLow.toLocaleString("en-GB")} \u2013 \u00A3${scoreResult.upliftHigh.toLocaleString("en-GB")}`}
+                color="#22c55e"
+                position="br"
               />
             </div>
           </div>
 
-          {/* ── Error State ─────────────────────────────────────── */}
+          {/* ── Error State ── */}
           {streamError && (
             <ErrorCard type={streamError} onRetry={handleRetry} />
           )}
 
-          {/* ── Playbook Sections ───────────────────────────────── */}
-          {!streamError && (
-            <div className="space-y-4 mb-8">
-              <div className="flex items-baseline justify-between mb-2">
-                <h2 className="text-lg font-bold" style={{ color: C.text }}>
-                  Your Playbook
-                </h2>
-                {!streamDone && (
-                  <span className="text-xs" style={{ color: C.textMuted }}>
-                    Lord Sralan is typing
-                    <span style={{ animation: "typing 1s ease-in-out infinite" }}>.</span>
-                    <span style={{ animation: "typing 1s ease-in-out infinite 0.2s" }}>.</span>
-                    <span style={{ animation: "typing 1s ease-in-out infinite 0.4s" }}>.</span>
-                  </span>
-                )}
-              </div>
-
-              {sections.map((section, i) => (
-                <SectionCard
-                  key={section.id}
-                  section={section}
-                  stepNumber={SECTION_DEFS[i].icon}
-                  onCopy={
-                    (section.id === "email" || section.id === "script") && section.status === "complete"
-                      ? () => handleCopy(section.id, section.content)
-                      : undefined
-                  }
-                  copied={copied[section.id] ?? false}
-                />
-              ))}
+          {/* ── Streaming indicator ── */}
+          {!streamError && !streamDone && (
+            <div style={{
+              textAlign: "center",
+              marginBottom: 16,
+              fontFamily: "var(--fd)",
+              fontSize: 11,
+              letterSpacing: ".12em",
+              textTransform: "uppercase",
+              color: "var(--gold)",
+              animation: "lpulse 1.6s ease-in-out infinite",
+            }}>
+              Sssalem is writing your playbook...
             </div>
           )}
 
-          {/* ── Actions ────────────────────────────────────────── */}
-          {streamDone && !streamError && (
-            <div
-              className="space-y-3 mb-8"
-              style={{ animation: "fadeSlideIn 400ms ease-out" }}
-            >
-              <button
-                onClick={handleCopyFullReport}
-                className="w-full py-3.5 rounded-xl text-sm font-semibold transition-all cursor-pointer"
+          {/* ── Playbook Sections ── */}
+          {!streamError && sections.map((section, i) => {
+            const def = SECTION_DEFS[i]
+            if (section.status === "skeleton" && !streamDone) {
+              return (
+                <div
+                  key={section.id}
+                  style={{
+                    background: "rgba(26,15,6,0.7)",
+                    border: "1px solid rgba(212,168,67,0.15)",
+                    borderRadius: 14,
+                    padding: 22,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div style={{
+                    fontFamily: "var(--fd)",
+                    fontSize: 9,
+                    letterSpacing: ".2em",
+                    textTransform: "uppercase",
+                    color: "var(--gold)",
+                    opacity: 0.65,
+                    marginBottom: 8,
+                  }}>
+                    &#10022; {def.eyebrow}
+                  </div>
+                  <div style={{
+                    fontFamily: "var(--fd)",
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: "var(--cream)",
+                    marginBottom: 14,
+                  }}>
+                    {def.title}
+                  </div>
+                  {/* Skeleton lines */}
+                  {[85, 72, 90, 65].map((w, j) => (
+                    <div
+                      key={j}
+                      style={{
+                        height: 10,
+                        borderRadius: 4,
+                        background: "rgba(212,168,67,0.1)",
+                        width: `${w}%`,
+                        marginBottom: 8,
+                        animation: `pulse 1.5s ease-in-out infinite ${j * 0.15}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )
+            }
+
+            if (!section.content && section.status === "skeleton") return null
+
+            // ── Email section gets tabs ──
+            if (section.id === "email") {
+              const emailSection = sections.find((s) => s.id === "email")
+              const scriptSection = sections.find((s) => s.id === "script")
+              if (!emailSection?.content && !scriptSection?.content) {
+                if (section.status === "skeleton") return null
+              }
+              // Only render the combined tab view on the email section
+              return (
+                <div
+                  key={section.id}
+                  style={{
+                    background: "rgba(26,15,6,0.7)",
+                    border: "1px solid rgba(212,168,67,0.15)",
+                    borderRadius: 14,
+                    padding: 22,
+                    marginBottom: 12,
+                    animation: "secin 0.4s ease both",
+                  }}
+                >
+                  <div style={{
+                    fontFamily: "var(--fd)",
+                    fontSize: 9,
+                    letterSpacing: ".2em",
+                    textTransform: "uppercase",
+                    color: "var(--gold)",
+                    opacity: 0.65,
+                    marginBottom: 8,
+                  }}>
+                    &#10022; The message
+                  </div>
+                  <div style={{
+                    fontFamily: "var(--fd)",
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: "var(--cream)",
+                    marginBottom: 4,
+                  }}>
+                    Ready to send
+                  </div>
+
+                  {/* Tabs */}
+                  <div style={{
+                    display: "flex",
+                    gap: 0,
+                    marginTop: 16,
+                    marginBottom: 16,
+                    border: "1px solid rgba(212,168,67,0.2)",
+                    borderRadius: 8,
+                    overflow: "hidden",
+                  }}>
+                    <button
+                      onClick={() => setActiveTab("email")}
+                      style={{
+                        flex: 1,
+                        padding: 9,
+                        background: activeTab === "email" ? "rgba(245,166,35,0.15)" : "transparent",
+                        border: "none",
+                        fontFamily: "var(--fd)",
+                        fontSize: 9,
+                        letterSpacing: ".12em",
+                        textTransform: "uppercase",
+                        color: activeTab === "email" ? "var(--amber)" : "var(--dim)",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      Email
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("verbal")}
+                      style={{
+                        flex: 1,
+                        padding: 9,
+                        background: activeTab === "verbal" ? "rgba(245,166,35,0.15)" : "transparent",
+                        border: "none",
+                        fontFamily: "var(--fd)",
+                        fontSize: 9,
+                        letterSpacing: ".12em",
+                        textTransform: "uppercase",
+                        color: activeTab === "verbal" ? "var(--amber)" : "var(--dim)",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      Verbal
+                    </button>
+                  </div>
+
+                  {/* Content */}
+                  <div style={{
+                    background: "rgba(12,8,4,0.6)",
+                    borderRadius: 8,
+                    padding: 16,
+                    fontSize: 13,
+                    color: "var(--cream2)",
+                    lineHeight: 1.8,
+                    fontStyle: "italic",
+                    whiteSpace: "pre-wrap",
+                  }}>
+                    {activeTab === "email"
+                      ? (emailSection?.content || "Awaiting the scroll...")
+                      : (scriptSection?.content || "Awaiting the spoken word...")}
+                  </div>
+
+                  {/* Copy button */}
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                    <button
+                      onClick={() => {
+                        const text = activeTab === "email" ? emailSection?.content : scriptSection?.content
+                        if (text) handleCopy(activeTab, text)
+                      }}
+                      style={{
+                        padding: "8px 16px",
+                        background: copied[activeTab] ? "rgba(34,197,94,0.2)" : "rgba(245,166,35,0.15)",
+                        border: `1px solid ${copied[activeTab] ? "rgba(34,197,94,0.4)" : "rgba(245,166,35,0.3)"}`,
+                        borderRadius: 6,
+                        fontFamily: "var(--fd)",
+                        fontSize: 9,
+                        letterSpacing: ".1em",
+                        textTransform: "uppercase",
+                        color: copied[activeTab] ? "#22c55e" : "var(--amber)",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      {copied[activeTab] ? "Copied \u2713" : "Copy \u2192"}
+                    </button>
+                  </div>
+                </div>
+              )
+            }
+
+            // Skip the script section — it's rendered inside the email tabs
+            if (section.id === "script") return null
+
+            // ── Standard section ──
+            return (
+              <div
+                key={section.id}
                 style={{
-                  background: C.accent,
-                  color: "#fff",
-                  minHeight: "48px",
+                  background: "rgba(26,15,6,0.7)",
+                  border: "1px solid rgba(212,168,67,0.15)",
+                  borderRadius: 14,
+                  padding: 22,
+                  marginBottom: 12,
+                  animation: "secin 0.4s ease both",
                 }}
               >
-                {copied.full ? "Copied to clipboard" : "Copy Full Playbook"}
-              </button>
-            </div>
+                <div style={{
+                  fontFamily: "var(--fd)",
+                  fontSize: 9,
+                  letterSpacing: ".2em",
+                  textTransform: "uppercase",
+                  color: "var(--gold)",
+                  opacity: 0.65,
+                  marginBottom: 8,
+                }}>
+                  &#10022; {def.eyebrow}
+                </div>
+                <div style={{
+                  fontFamily: "var(--fd)",
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "var(--cream)",
+                  marginBottom: 4,
+                }}>
+                  {def.title}
+                </div>
+
+                {/* Negotiable section gets tier accordions */}
+                {section.id === "negotiable" && section.content ? (
+                  <NegotiableContent
+                    content={section.content}
+                    openTiers={openTiers}
+                    toggleTier={toggleTier}
+                  />
+                ) : (
+                  <div style={{
+                    fontSize: 14,
+                    color: "var(--muted)",
+                    lineHeight: 1.75,
+                    marginTop: 14,
+                    whiteSpace: "pre-wrap",
+                  }}>
+                    {section.content}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {/* ── Copy full report ── */}
+          {streamDone && !streamError && (
+            <button
+              onClick={handleCopyFullReport}
+              style={{
+                width: "100%",
+                padding: 13,
+                marginBottom: 12,
+                background: copied.full ? "rgba(34,197,94,0.15)" : "rgba(245,166,35,0.15)",
+                border: `1px solid ${copied.full ? "rgba(34,197,94,0.3)" : "rgba(245,166,35,0.3)"}`,
+                borderRadius: 8,
+                fontFamily: "var(--fd)",
+                fontSize: 10,
+                letterSpacing: ".1em",
+                textTransform: "uppercase",
+                color: copied.full ? "#22c55e" : "var(--amber)",
+                cursor: "pointer",
+                transition: "all 0.15s",
+                animation: "secin 0.4s ease both",
+              }}
+            >
+              {copied.full ? "Copied full report \u2713" : "Copy full report \u2192"}
+            </button>
           )}
 
-          {/* ── Hat Hook ───────────────────────────────────────── */}
-          <div
-            className="rounded-xl p-6 mb-6 text-center"
-            style={{
-              background: C.goldLight,
-              border: `1px solid ${C.gold}`,
-            }}
-          >
-            <p className="text-sm mb-1 font-medium" style={{ color: C.text }}>
-              &ldquo;{hatHook.line}&rdquo;
-            </p>
-            <p className="text-xs mb-3" style={{ color: C.textMuted }}>
-              &mdash; Lord Sralan
-            </p>
+          {/* ── Hat Section ── */}
+          <div style={{
+            background: "linear-gradient(135deg, rgba(58,188,189,0.1), rgba(26,113,114,0.08))",
+            border: "1px solid rgba(58,188,189,0.2)",
+            borderRadius: 14,
+            padding: 20,
+            textAlign: "center",
+            marginTop: 8,
+          }}>
+            <div style={{ fontSize: 12, color: "var(--dim)", fontStyle: "italic", marginBottom: 10, lineHeight: 1.6 }}>
+              &#8220;{hatHook.line}&#8221;
+            </div>
+            <div style={{
+              fontFamily: "var(--fd)",
+              fontSize: 20,
+              fontWeight: 700,
+              color: "var(--teal)",
+              marginBottom: 12,
+            }}>
+              {hatHook.hat}
+            </div>
             <a
               href="https://shop.randomorium.ai"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors"
-              style={{ background: C.accent, color: C.cream }}
+              style={{
+                display: "inline-block",
+                padding: "10px 24px",
+                background: "var(--teal2)",
+                color: "var(--cream)",
+                fontFamily: "var(--fd)",
+                fontSize: 10,
+                letterSpacing: ".1em",
+                textTransform: "uppercase",
+                borderRadius: 7,
+                textDecoration: "none",
+                transition: "all 0.15s",
+              }}
             >
-              {hatHook.hat} &rarr;
+              Visit the Shop &rarr;
             </a>
           </div>
 
-          {/* ── Start Over ─────────────────────────────────────── */}
-          <div className="text-center pb-4">
-            <Link
-              href="/apps/salary"
-              className="text-sm transition-opacity hover:opacity-70"
-              style={{ color: C.textMuted }}
-            >
-              &larr; New negotiation
-            </Link>
-          </div>
-        </div>
-      </main>
+          {/* ── Start Over ── */}
+          <Link
+            href="/apps/salary"
+            style={{
+              display: "block",
+              width: "100%",
+              padding: 13,
+              marginTop: 10,
+              background: "transparent",
+              border: "1.5px solid rgba(212,168,67,0.2)",
+              borderRadius: 8,
+              color: "var(--dim)",
+              fontFamily: "var(--fd)",
+              fontSize: 10,
+              letterSpacing: ".1em",
+              textTransform: "uppercase",
+              textAlign: "center",
+              textDecoration: "none",
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+          >
+            &#8617; Start over with a new offer
+          </Link>
 
-      {/* Footer */}
-      <footer
-        className="px-4 sm:px-6 py-4 text-center"
-        style={{ borderTop: `1px solid ${C.border}` }}
-      >
-        <p className="text-[11px]" style={{ color: C.textMuted }}>
-          This is negotiation guidance, not financial or legal advice. Lord Sralan is fictional. Use your judgement.
-        </p>
-      </footer>
+          <div style={{ height: 60 }} />
+        </div>
+      </div>
+
+      {/* Hat footer */}
+      <div style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        background: "rgba(12,8,4,0.95)",
+        borderTop: "1px solid rgba(212,168,67,0.12)",
+        padding: "9px 20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}>
+        <a
+          href="https://shop.randomorium.ai"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            fontSize: 11,
+            color: "var(--dim)",
+            textDecoration: "none",
+            fontFamily: "var(--fd)",
+            letterSpacing: ".06em",
+          }}
+        >
+          Part of <span style={{ color: "var(--teal)" }}>randomorium.ai</span> &middot; Buy a hat &rarr;
+        </a>
+      </div>
     </div>
   )
 }
 
-// ── Stat ─────────────────────────────────────────────────────────────────────
-function Stat({
+// ── Score Stat cell ──────────────────────────────────────────────────────────
+function ScoreStat({
   label,
   value,
-  highlight,
+  color,
+  position,
 }: {
   label: string
   value: string
-  highlight?: boolean
+  color?: string
+  position: "tl" | "tr" | "bl" | "br"
 }) {
   return (
-    <div>
-      <p className="text-[10px] font-mono uppercase tracking-wide mb-0.5" style={{ color: C.textMuted }}>
+    <div style={{
+      padding: "16px 20px",
+      borderRight: position === "tl" || position === "bl" ? "1px solid rgba(212,168,67,0.1)" : "none",
+      borderBottom: position === "tl" || position === "tr" ? "1px solid rgba(212,168,67,0.1)" : "none",
+    }}>
+      <div style={{
+        fontFamily: "var(--fd)",
+        fontSize: 8,
+        letterSpacing: ".15em",
+        textTransform: "uppercase",
+        color: "var(--dim)",
+        marginBottom: 5,
+      }}>
         {label}
-      </p>
-      <p
-        className="text-sm font-semibold"
-        style={{ color: highlight ? "#dc2626" : C.text }}
-      >
+      </div>
+      <div style={{
+        fontFamily: "var(--fd)",
+        fontSize: 16,
+        fontWeight: 700,
+        color: color ?? "var(--cream)",
+      }}>
         {value}
-      </p>
+      </div>
     </div>
   )
 }
@@ -499,23 +915,23 @@ function Stat({
 function ErrorCard({ type, onRetry }: { type: string; onRetry: () => void }) {
   const messages: Record<string, { title: string; body: string; showRetry: boolean }> = {
     api_key_missing: {
-      title: "\"Who forgot to set up the boardroom?\"",
-      body: "The ANTHROPIC_API_KEY environment variable isn't configured on Vercel. Go to Vercel > Settings > Environment Variables, add ANTHROPIC_API_KEY with your Anthropic API key, and redeploy.",
+      title: "The scales cannot be read",
+      body: "The ANTHROPIC_API_KEY is not configured on Vercel. Go to Vercel > Settings > Environment Variables, add ANTHROPIC_API_KEY with your Anthropic API key, and redeploy.",
       showRetry: false,
     },
     api_error: {
-      title: "\"Someone's getting fired for this.\"",
-      body: "Lord Sralan's boardroom is temporarily closed. The AI that writes your playbook couldn't be reached. Your score is still valid — hit retry for the full playbook.",
+      title: "Sssalem's scroll has jammed",
+      body: "The merchant is momentarily unavailable. Your score is still valid \u2014 hit retry for the full playbook.",
       showRetry: true,
     },
     rate_limit: {
-      title: "\"There's a queue. I don't do queues.\"",
-      body: "Too many people in the boardroom right now. Give it a minute and try again. Your score and data are still here.",
+      title: "The bazaar is busy",
+      body: "Too many merchants at the stall. Give it a moment and try again. Your score and data are safe.",
       showRetry: true,
     },
     connection: {
-      title: "\"The line's gone dead.\"",
-      body: "Couldn't connect to the server. Check your internet and hit retry. Your score is safe.",
+      title: "The caravan route is blocked",
+      body: "Could not reach the bazaar. Check your connection and try again. Your score is safe.",
       showRetry: true,
     },
   }
@@ -523,131 +939,206 @@ function ErrorCard({ type, onRetry }: { type: string; onRetry: () => void }) {
   const msg = messages[type] ?? messages.api_error
 
   return (
-    <div
-      className="rounded-xl overflow-hidden mb-8"
-      style={{
-        border: `1px solid ${C.border}`,
-        animation: "fadeSlideIn 400ms ease-out",
-      }}
-    >
-      <div
-        className="px-6 py-5"
-        style={{ background: C.introBg }}
-      >
-        <p className="text-base font-semibold mb-2" style={{ color: C.cream }}>
-          {msg.title}
-        </p>
-        <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-          {msg.body}
-        </p>
+    <div style={{
+      background: "rgba(26,15,6,0.7)",
+      border: "1px solid rgba(194,59,34,0.3)",
+      borderRadius: 14,
+      padding: 22,
+      marginBottom: 12,
+      animation: "secin 0.4s ease both",
+    }}>
+      <div style={{
+        fontFamily: "var(--fd)",
+        fontSize: 16,
+        fontWeight: 700,
+        color: "var(--cream)",
+        marginBottom: 8,
+      }}>
+        {msg.title}
+      </div>
+      <div style={{
+        fontSize: 14,
+        color: "var(--muted)",
+        lineHeight: 1.7,
+        marginBottom: msg.showRetry ? 16 : 0,
+      }}>
+        {msg.body}
       </div>
       {msg.showRetry && (
-        <div className="px-6 py-4 flex justify-end" style={{ background: C.surface }}>
-          <button
-            onClick={onRetry}
-            className="px-6 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer"
-            style={{ background: C.accent, color: "#fff" }}
-          >
-            Retry
-          </button>
-        </div>
+        <button
+          onClick={onRetry}
+          style={{
+            padding: "10px 24px",
+            background: "linear-gradient(135deg, var(--amber), var(--amber2))",
+            border: "none",
+            borderRadius: 8,
+            color: "var(--bg)",
+            fontFamily: "var(--fd)",
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: ".1em",
+            textTransform: "uppercase",
+            cursor: "pointer",
+            transition: "all 0.15s",
+            boxShadow: "0 4px 16px rgba(245,166,35,0.3)",
+          }}
+        >
+          Try again &rarr;
+        </button>
       )}
     </div>
   )
 }
 
-// ── Section Card ────────────────────────────────────────────────────────────
-function SectionCard({
-  section,
-  stepNumber,
-  onCopy,
-  copied,
+// ── Negotiable content with tier accordions ──────────────────────────────────
+function NegotiableContent({
+  content,
+  openTiers,
+  toggleTier,
 }: {
-  section: PlaybookSection
-  stepNumber: string
-  onCopy?: () => void
-  copied: boolean
+  content: string
+  openTiers: Record<string, boolean>
+  toggleTier: (tier: string) => void
 }) {
+  // Try to parse tiers from content
+  const tiers = parseTiers(content)
+
+  if (tiers.length === 0) {
+    return (
+      <div style={{
+        fontSize: 14,
+        color: "var(--muted)",
+        lineHeight: 1.75,
+        marginTop: 14,
+        whiteSpace: "pre-wrap",
+      }}>
+        {content}
+      </div>
+    )
+  }
+
   return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{
-        background: C.cardBg,
-        border: `1px solid ${C.border}`,
-        animation: section.status !== "skeleton" ? "fadeSlideIn 400ms ease-out" : undefined,
-      }}
-    >
-      {/* Header */}
-      <div
-        className="px-5 py-3.5 flex items-center justify-between"
-        style={{ borderBottom: section.content ? `1px solid ${C.border}` : undefined }}
-      >
-        <div className="flex items-center gap-3">
-          <span
-            className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold"
+    <div style={{ marginTop: 14 }}>
+      {tiers.map((tier) => (
+        <div key={tier.id} style={{ marginBottom: 14 }}>
+          <div
+            onClick={() => toggleTier(tier.id)}
             style={{
-              background: section.status === "complete" ? C.accent : section.status === "streaming" ? C.gold : C.border,
-              color: section.status === "skeleton" ? C.textMuted : "#fff",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontFamily: "var(--fd)",
+              fontSize: 9,
+              letterSpacing: ".15em",
+              textTransform: "uppercase",
+              color: "var(--dim)",
+              marginBottom: 8,
+              cursor: "pointer",
             }}
           >
-            {stepNumber}
-          </span>
-          <h3 className="text-sm font-semibold" style={{ color: C.text }}>
-            {section.title}
-          </h3>
-        </div>
-        <div className="flex items-center gap-2">
-          {section.status === "streaming" && (
-            <span
-              className="text-[10px] font-mono"
-              style={{ color: C.gold }}
-            >
-              writing...
+            {tier.icon} {tier.label}
+            <span style={{
+              fontSize: 14,
+              marginLeft: "auto",
+              transition: "transform 0.2s",
+              transform: openTiers[tier.id] ? "rotate(90deg)" : "rotate(0deg)",
+            }}>
+              &rsaquo;
             </span>
-          )}
-          {onCopy && (
-            <button
-              onClick={onCopy}
-              className="text-xs px-3 py-1 rounded-full transition-all cursor-pointer font-medium"
-              style={{
-                background: copied ? "#22c55e" : C.surface,
-                color: copied ? "#fff" : C.textMuted,
-                border: `1px solid ${copied ? "#22c55e" : C.border}`,
-              }}
-            >
-              {copied ? "Copied" : "Copy"}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Content */}
-      {section.status === "skeleton" ? (
-        <div className="px-5 py-5 space-y-2.5">
-          {[85, 72, 90, 65, 50].map((w, i) => (
-            <div
-              key={i}
-              className="h-3 rounded"
-              style={{
-                background: C.border,
-                width: `${w}%`,
-                animation: `pulse 1.5s ease-in-out infinite ${i * 0.15}s`,
-              }}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="px-5 py-5">
-          <div
-            className="text-sm leading-relaxed whitespace-pre-line"
-            style={{ color: C.text }}
-          >
-            {section.content}
           </div>
+          {openTiers[tier.id] && (
+            <div>
+              {tier.items.map((item, j) => (
+                <div
+                  key={j}
+                  style={{
+                    padding: "10px 12px",
+                    borderLeft: "2px solid rgba(212,168,67,0.25)",
+                    marginBottom: 8,
+                  }}
+                >
+                  <div style={{
+                    fontSize: 13,
+                    color: "var(--cream2)",
+                    lineHeight: 1.65,
+                    whiteSpace: "pre-wrap",
+                  }}>
+                    {item}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      ))}
     </div>
   )
+}
+
+// ── Tier parser ──────────────────────────────────────────────────────────────
+interface Tier {
+  id: string
+  icon: string
+  label: string
+  items: string[]
+}
+
+function parseTiers(content: string): Tier[] {
+  const tiers: Tier[] = []
+  const lines = content.split("\n")
+
+  const tierPatterns = [
+    { pattern: /high\s*probability/i, id: "high", icon: "\uD83D\uDFE1", label: "High value / high probability" },
+    { pattern: /medium\s*probability/i, id: "medium", icon: "\uD83D\uDFE0", label: "Worth pursuing / medium probability" },
+    { pattern: /low\s*probability/i, id: "low", icon: "\u26AA", label: "Low probability / zero cost to ask" },
+  ]
+
+  let currentTier: Tier | null = null
+  let currentItem = ""
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+
+    // Check if this line starts a new tier
+    let matched = false
+    for (const tp of tierPatterns) {
+      if (tp.pattern.test(trimmed)) {
+        // Save previous tier
+        if (currentTier) {
+          if (currentItem.trim()) currentTier.items.push(currentItem.trim())
+          tiers.push(currentTier)
+        }
+        currentTier = { id: tp.id, icon: tp.icon, label: tp.label, items: [] }
+        currentItem = ""
+        matched = true
+        break
+      }
+    }
+
+    if (matched) continue
+
+    // If we're in a tier, collect items
+    if (currentTier) {
+      if (trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("\u2022 ")) {
+        if (currentItem.trim()) currentTier.items.push(currentItem.trim())
+        currentItem = trimmed.replace(/^[-*\u2022]\s*/, "")
+      } else if (trimmed === "") {
+        if (currentItem.trim()) currentTier.items.push(currentItem.trim())
+        currentItem = ""
+      } else {
+        if (currentItem) currentItem += "\n" + trimmed
+        else currentItem = trimmed
+      }
+    }
+  }
+
+  // Save last tier
+  if (currentTier) {
+    if (currentItem.trim()) currentTier.items.push(currentItem.trim())
+    tiers.push(currentTier)
+  }
+
+  return tiers
 }
 
 // ── Section Parser ──────────────────────────────────────────────────────────
@@ -686,7 +1177,7 @@ function cleanSectionContent(raw: string, sectionId: string): string {
     counter: ["COUNTER-OFFER", "COUNTER OFFER", "YOUR COUNTER-OFFER"],
     negotiable: ["WHAT'S NEGOTIABLE", "WHATS NEGOTIABLE"],
     email: ["THE EMAIL"],
-    script: ["VERBAL SCRIPT"],
+    script: ["VERBAL SCRIPT", "THE SPOKEN WORD"],
     fallback: ["IF THEY SAY NO"],
   }
 

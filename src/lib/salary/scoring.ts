@@ -152,12 +152,12 @@ function getChance(band: string): string {
 export function getHatHook(band: "strong" | "good" | "possible" | "honest"): HatHook {
   switch (band) {
     case "strong":
-      return { hat: "Definitely Fine", line: "You've got the leverage. Now get the hat." }
+      return { hat: "Definitely Fine", line: "You know your number. You'll be fine." }
     case "good":
-      return { hat: "Locally Sourced", line: "Smart negotiators reward themselves. That's business." }
+      return { hat: "Locally Sourced", line: "Good value, well placed." }
     case "possible":
-      return { hat: "Yacht Poor", line: "Win or lose, you showed up prepared. Hat-worthy behaviour." }
+      return { hat: "Yacht Poor", line: "It's not about the money. It's about the principle." }
     case "honest":
-      return { hat: "Corn Dad", line: "Sometimes the best investment isn't in the salary. It's in the hat." }
+      return { hat: "Corn Dad", line: "Sometimes the best negotiation is knowing when to accept." }
   }
 }
