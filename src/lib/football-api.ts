@@ -58,14 +58,6 @@ export const API_THEMES: ApiTheme[] = [
     getStat: (p) => p.stats.assists,
   },
   {
-    id: "appearances",
-    label: "Appearances this season",
-    unit: "apps",
-    targetMin: 15,
-    targetMax: 90,
-    getStat: (p) => p.stats.appearances,
-  },
-  {
     id: "minutes",
     label: "Minutes played this season",
     unit: "mins",
@@ -74,6 +66,15 @@ export const API_THEMES: ApiTheme[] = [
     getStat: (p) => p.stats.minutesPlayed,
   },
 ]
+
+// ── Career season type ─────────────────────────────────────────────────────
+
+export interface CareerSeason {
+  season: string    // e.g. "2024" = 2024/25
+  teamId: number
+  teamName: string
+  appearances: number
+}
 
 // ── In-memory cache ────────────────────────────────────────────────────────
 
@@ -194,6 +195,8 @@ function normalisePlayerEntry(entry: any): ApiPlayer {
 // ── Public API functions ───────────────────────────────────────────────────
 
 const CURRENT_SEASON = "2024"
+const CAREER_SEASONS = ["2024", "2023", "2022", "2021", "2020"]
+const TTL_24H = 24 * 60 * 60 * 1000
 
 // Top 5 European leagues + Champions League
 const SEARCH_LEAGUES = ["39", "140", "78", "135", "61", "2"]
@@ -237,6 +240,44 @@ export async function getPlayer(id: number): Promise<ApiPlayer | null> {
   const entries = data.response ?? []
   if (entries.length === 0) return null
   return normalisePlayerEntry(entries[0])
+}
+
+export async function getPlayerCareer(playerId: number): Promise<CareerSeason[]> {
+  const cacheKey = `career:${playerId}`
+  const cached = getCached<CareerSeason[]>(cacheKey)
+  if (cached) return cached
+
+  const results = await Promise.allSettled(
+    CAREER_SEASONS.map(season =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      apiFetch<any>("/players", { id: String(playerId), season })
+    )
+  )
+
+  const seen = new Set<string>()
+  const seasons: CareerSeason[] = []
+
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i]
+    if (result.status !== "fulfilled") continue
+    const entries = result.value.response ?? []
+    for (const entry of entries) {
+      const s = entry.statistics?.[0]
+      if (!s?.team?.id) continue
+      const key = `${s.team.id}:${CAREER_SEASONS[i]}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      seasons.push({
+        season: CAREER_SEASONS[i],
+        teamId: s.team.id,
+        teamName: s.team.name ?? "",
+        appearances: extractAppearances(s),
+      })
+    }
+  }
+
+  setCached(cacheKey, seasons, TTL_24H)
+  return seasons
 }
 
 export async function getSquad(teamId: number): Promise<ApiPlayer[]> {

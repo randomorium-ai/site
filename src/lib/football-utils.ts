@@ -102,6 +102,20 @@ const FALLBACK_TIERS: [string, string, string, string, string] = [
   "Premier League Quality",
 ]
 
+// ── Six Degrees score labels ────────────────────────────────────────────────
+
+export function sixDegreesLabel(steps: number): string {
+  const labels: Record<number, string> = {
+    1: "Telepathic",
+    2: "Scout's honour",
+    3: "Solid knowledge",
+    4: "Had to think about it",
+    5: "Grinding it out",
+    6: "Made it. Just.",
+  }
+  return labels[steps] ?? "Couldn't find the connection"
+}
+
 export function scoreLabel(score: number, themeId: string): string {
   const tiers = SCORE_TIERS[themeId] ?? FALLBACK_TIERS
   if (score >= 950) return tiers[4]

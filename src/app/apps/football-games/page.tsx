@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Football Games · randomorium',
-  description: 'Daily football puzzles for people who know too much about football.',
+  title: 'Footballorium · randomorium',
+  description: 'Daily football puzzles for people who watch too much football.',
 }
 
 const GAMES = [
@@ -21,9 +21,9 @@ const GAMES = [
     name: 'Six Degrees',
     slug: 'six-degrees',
     desc: 'Connect two players through shared clubs in 6 transfers or fewer.',
-    status: 'soon' as const,
+    status: 'live' as const,
     accentBorder: 'border-l-blue-500',
-    accentHover: '',
+    accentHover: 'hover:bg-[#f0f4ff]',
   },
   {
     num: 3,
@@ -85,7 +85,7 @@ export default function FootballGamesHub() {
             ← randomorium.ai
           </Link>
           <h1 className="text-4xl font-black tracking-tight leading-none uppercase text-white mb-2">
-            Football<br />Games
+            Footballorium
           </h1>
           <p className="text-white/70 text-sm">
             Puzzles for people who watch too much football.

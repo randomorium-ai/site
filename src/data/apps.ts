@@ -19,9 +19,9 @@ export const apps: App[] = [
     hatHook: "Sssalem recommends a holiday hat before you travel",
   },
   {
-    name: "Football Games",
+    name: "Footballorium",
     slug: "football-games",
-    description: "Daily football puzzles. Pick 3 players whose stats hit a target number. Five games coming.",
+    description: "Daily football puzzles. The Number, Six Degrees, and more — for people who watch too much football.",
     url: "/apps/football-games",
     author: "matt",
     builtWith: "Next.js",

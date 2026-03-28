@@ -95,16 +95,21 @@ export default function TheNumberGame() {
   const [apiError, setApiError] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+  const searchCache = useRef(new Map<string, ApiPlayer[]>())
 
   useEffect(() => { setStorage(getStorage()) }, [])
 
   const runSearch = useCallback(async (q: string) => {
     if (q.length < 2) { setApiResults([]); setIsSearching(false); return }
+    const cacheKey = q.toLowerCase().trim()
+    const cached = searchCache.current.get(cacheKey)
+    if (cached) { setApiResults(cached); setIsSearching(false); return }
     setIsSearching(true); setApiError(false)
     try {
       const res = await fetch(`/api/football/players?search=${encodeURIComponent(q)}`)
       if (!res.ok) throw new Error('api error')
       const { players } = await res.json() as { players: ApiPlayer[] }
+      searchCache.current.set(cacheKey, players)
       setApiResults(players)
     } catch { setApiError(true); setApiResults([]) }
     finally { setIsSearching(false) }
@@ -345,7 +350,7 @@ export default function TheNumberGame() {
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="text-3xl mb-3">⚽</div>
                 <div className="text-[#1a1a1a] font-bold mb-1">No results for &quot;{search}&quot;</div>
-                <div className="text-[#999] text-sm">Try a surname</div>
+                <div className="text-[#999] text-sm">No results — try a different spelling</div>
               </div>
             )}
             {/* Results */}
@@ -488,7 +493,7 @@ function PickSlot({ index, player, onRemove }: {
             <span className="text-sm leading-none">{nationalityFlag(player.nationality)}</span>
           </div>
           <div>
-            <div className="text-[11px] font-bold text-[#1a1a1a] leading-tight truncate">{player.name}</div>
+            <div className="text-[11px] font-bold text-[#1a1a1a] leading-tight line-clamp-2">{player.name}</div>
             <div className="text-[10px] text-[#999] truncate">{player.currentTeam}</div>
           </div>
           <div className="absolute top-1.5 right-1.5 text-[#ccc] group-hover:text-[#999] text-[10px] transition-colors">✕</div>
