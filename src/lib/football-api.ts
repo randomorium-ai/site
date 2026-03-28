@@ -203,18 +203,40 @@ function normalisePlayerEntry(entry: any): ApiPlayer {
 
 const CURRENT_SEASON = "2024"
 
+// Top 5 European leagues + Champions League
+const SEARCH_LEAGUES = ["39", "140", "78", "135", "61", "2"]
+
 export async function searchPlayers(query: string, league?: string): Promise<ApiPlayer[]> {
   if (query.length < 2) return []
 
-  const params: Record<string, string> = {
-    search: query,
-    season: CURRENT_SEASON,
-  }
-  if (league) params.league = league
+  const leagues = league ? [league] : SEARCH_LEAGUES
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = await apiFetch<any>("/players", params)
-  return (data.response ?? []).map(normalisePlayerEntry)
+  // Search all leagues in parallel, deduplicate by player id
+  const results = await Promise.allSettled(
+    leagues.map(l =>
+      apiFetch<{ response: unknown[] }>("/players", {
+        search: query,
+        season: CURRENT_SEASON,
+        league: l,
+      })
+    )
+  )
+
+  const seen = new Set<number>()
+  const players: ApiPlayer[] = []
+
+  for (const result of results) {
+    if (result.status !== "fulfilled") continue
+    for (const entry of result.value.response ?? []) {
+      const p = normalisePlayerEntry(entry)
+      if (!seen.has(p.id)) {
+        seen.add(p.id)
+        players.push(p)
+      }
+    }
+  }
+
+  return players
 }
 
 export async function getPlayer(id: number): Promise<ApiPlayer | null> {
