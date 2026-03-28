@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/holiday-bazaar/supabase";
 import type {
   Trip,
   MemberWithAvailability,
   GuestSession,
+  DateWindow,
 } from "@/lib/holiday-bazaar/types";
+import {
+  scoreWindows,
+  formatWindowDates,
+  windowNightsLabel,
+} from "@/lib/holiday-bazaar/scoring";
 
 // ── Palette ──────────────────────────────────────────────────────────────────
 const C = {
@@ -416,6 +422,167 @@ function MemberCard({
 
 // ── Not found ─────────────────────────────────────────────────────────────────
 
+// ── Window card ───────────────────────────────────────────────────────────────
+
+function WindowCard({
+  window: w,
+  members,
+  rank,
+  canFindFlights,
+}: {
+  window: DateWindow;
+  members: MemberWithAvailability[];
+  rank: number;
+  canFindFlights: boolean;
+}) {
+  const isTop = rank === 0;
+  const isFull = w.quorum === "full";
+  const accentColor = isFull ? C.green : C.amber;
+  const accentDim = isFull ? C.greenDim : C.amberDim;
+  const accentBorder = isFull ? "rgba(74,222,128,0.2)" : "rgba(240,180,40,0.2)";
+
+  const unavailableNames = w.unavailable_member_ids
+    .map((id) => members.find((m) => m.id === id)?.name.split(" ")[0])
+    .filter(Boolean)
+    .join(", ");
+
+  const availableNames = w.available_member_ids
+    .map((id) => members.find((m) => m.id === id)?.name.split(" ")[0])
+    .filter(Boolean)
+    .join(", ");
+
+  return (
+    <div
+      style={{
+        background: isTop ? accentDim : C.surface,
+        border: `1px solid ${isTop ? accentBorder : C.border}`,
+        borderRadius: "14px",
+        padding: "1rem 1.25rem",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Top badge */}
+      {isTop && (
+        <div
+          style={{
+            position: "absolute",
+            top: "0.75rem",
+            right: "0.75rem",
+            background: accentColor,
+            color: "#0D0800",
+            fontSize: "0.6rem",
+            fontFamily: "var(--font-geist-mono)",
+            fontWeight: 700,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            padding: "0.2rem 0.5rem",
+            borderRadius: "100px",
+          }}
+        >
+          best match
+        </div>
+      )}
+
+      {/* Dates + nights */}
+      <div style={{ marginBottom: "0.4rem" }}>
+        <span
+          style={{
+            fontSize: "0.95rem",
+            fontWeight: 700,
+            color: C.cream,
+          }}
+        >
+          {formatWindowDates(w)}
+        </span>
+        <span
+          style={{
+            marginLeft: "0.6rem",
+            fontSize: "0.72rem",
+            color: C.muted,
+            fontFamily: "var(--font-geist-mono)",
+          }}
+        >
+          {windowNightsLabel(w)}
+        </span>
+      </div>
+
+      {/* AL days */}
+      <div
+        style={{
+          fontSize: "0.75rem",
+          color: C.muted,
+          marginBottom: "0.6rem",
+          fontFamily: "var(--font-geist-mono)",
+        }}
+      >
+        {w.al_days_required === 0
+          ? "No AL needed"
+          : `${w.al_days_required} AL day${w.al_days_required === 1 ? "" : "s"} min`}
+      </div>
+
+      {/* Who's in / out */}
+      <div style={{ fontSize: "0.8rem", color: C.muted, lineHeight: 1.5 }}>
+        <span style={{ color: accentColor }}>
+          {availableNames} can make this
+        </span>
+        {unavailableNames && <span> · {unavailableNames} unavailable</span>}
+      </div>
+
+      {/* Quorum pill */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginTop: "0.75rem",
+        }}
+      >
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.3rem",
+            padding: "0.2rem 0.6rem",
+            background: accentDim,
+            border: `1px solid ${accentBorder}`,
+            borderRadius: "100px",
+            fontSize: "0.65rem",
+            fontFamily: "var(--font-geist-mono)",
+            color: accentColor,
+            letterSpacing: "0.05em",
+          }}
+        >
+          {w.attendee_count}/
+          {members.filter((m) => m.al_budget !== null).length} going
+          {isFull && " · everyone"}
+        </div>
+
+        {canFindFlights && (
+          <button
+            style={{
+              padding: "0.35rem 0.9rem",
+              background: C.amber,
+              color: "#0D0800",
+              fontFamily: "var(--font-geist-mono)",
+              fontSize: "0.65rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              border: "none",
+              borderRadius: "100px",
+              cursor: "pointer",
+              minHeight: "32px",
+            }}
+          >
+            flights →
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function NotFound() {
   return (
     <div
@@ -517,6 +684,8 @@ export default function TripView({ slug }: { slug: string }) {
     const interval = setInterval(fetchTrip, 15000);
     return () => clearInterval(interval);
   }, [fetchTrip]);
+
+  const windows = useMemo(() => scoreWindows(members), [members]);
 
   if (loading) {
     return (
@@ -787,15 +956,8 @@ export default function TripView({ slug }: { slug: string }) {
           </div>
         </div>
 
-        {/* Date windows placeholder / find flights CTA */}
-        <div
-          style={{
-            background: C.surface,
-            border: `1px solid ${C.border}`,
-            borderRadius: "14px",
-            padding: "1.25rem",
-          }}
-        >
+        {/* Date suggestions */}
+        <div>
           <p
             style={{
               fontFamily: "var(--font-geist-mono)",
@@ -803,58 +965,72 @@ export default function TripView({ slug }: { slug: string }) {
               letterSpacing: "0.15em",
               textTransform: "uppercase",
               color: C.muted,
-              marginBottom: "0.5rem",
+              marginBottom: "0.75rem",
             }}
           >
             Date suggestions
           </p>
 
           {submittedCount < 2 ? (
-            <p
-              style={{ fontSize: "0.875rem", color: C.muted, lineHeight: 1.6 }}
+            <div
+              style={{
+                background: C.surface,
+                border: `1px solid ${C.border}`,
+                borderRadius: "14px",
+                padding: "1.25rem",
+              }}
             >
-              Waiting for at least 2 people to add availability before surfacing
-              windows.
-              {pendingCount > 0 &&
-                ` Nudge ${pendingCount} more person${pendingCount === 1 ? "" : "s"} to join.`}
-            </p>
-          ) : (
-            <>
               <p
                 style={{
                   fontSize: "0.875rem",
                   color: C.muted,
                   lineHeight: 1.6,
-                  marginBottom: "1rem",
                 }}
               >
-                {submittedCount} of {members.length} people have added
-                availability. Date scoring and flight search coming in the next
-                update.
+                Waiting for at least 2 people to add availability before
+                surfacing windows.
+                {pendingCount > 0 &&
+                  ` Nudge ${pendingCount} more person${pendingCount === 1 ? "" : "s"} to join.`}
               </p>
-              <button
-                disabled={!canFindFlights}
+            </div>
+          ) : windows.length === 0 ? (
+            <div
+              style={{
+                background: C.surface,
+                border: `1px solid ${C.border}`,
+                borderRadius: "14px",
+                padding: "1.25rem",
+              }}
+            >
+              <p
                 style={{
-                  padding: "0.7rem 1.5rem",
-                  background: canFindFlights
-                    ? C.amber
-                    : "rgba(240,180,40,0.15)",
-                  color: canFindFlights ? "#0D0800" : "rgba(240,180,40,0.4)",
-                  fontFamily: "var(--font-geist-mono)",
-                  fontSize: "0.75rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  border: "none",
-                  borderRadius: "100px",
-                  cursor: canFindFlights ? "pointer" : "not-allowed",
-                  minHeight: "44px",
-                  opacity: canFindFlights ? 1 : 0.6,
+                  fontSize: "0.875rem",
+                  color: C.muted,
+                  lineHeight: 1.6,
                 }}
               >
-                Find flights →
-              </button>
-            </>
+                No overlapping windows found yet. Try adding more available date
+                ranges.
+              </p>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.6rem",
+              }}
+            >
+              {windows.map((w: DateWindow, i: number) => (
+                <WindowCard
+                  key={`${w.start_date}-${w.end_date}`}
+                  window={w}
+                  members={members}
+                  rank={i}
+                  canFindFlights={canFindFlights}
+                />
+              ))}
+            </div>
           )}
         </div>
 
