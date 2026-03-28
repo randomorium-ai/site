@@ -874,67 +874,130 @@ function TripViewInner({ slug }: { slug: string }) {
           </button>
         </div>
 
-        {/* Add your availability CTA — shown to new joiners (no session) or members who haven't submitted yet */}
-        {(!session ||
-          members.find(
-            (m) => m.id === session.member_id && !hasSubmittedAvailability(m),
-          )) && (
-          <div
-            style={{
-              background: C.surface,
-              border: `1px solid ${C.border}`,
-              borderRadius: "14px",
-              padding: "1rem 1.25rem",
-            }}
-          >
-            <p
+        {/* Availability CTA */}
+        {(() => {
+          const me = session
+            ? members.find((m) => m.id === session.member_id)
+            : null;
+          const hasSubmitted = me ? hasSubmittedAvailability(me) : false;
+
+          if (!session) {
+            // New visitor — join CTA
+            return (
+              <div
+                style={{
+                  background: C.surface,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: "14px",
+                  padding: "1rem 1.25rem",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "0.875rem",
+                    color: C.cream,
+                    fontWeight: 600,
+                    marginBottom: "0.25rem",
+                  }}
+                >
+                  Join this trip
+                </p>
+                <p
+                  style={{
+                    fontSize: "0.8rem",
+                    color: C.muted,
+                    marginBottom: "1rem",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Add your dates and departure airport so we can find windows
+                  that work for everyone.
+                </p>
+                <a
+                  href={`/apps/holiday-bazaar/trip/${slug}/join`}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    padding: "0.7rem 1.5rem",
+                    background: C.amber,
+                    color: C.bg,
+                    fontFamily: C.fontMono,
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    borderRadius: "100px",
+                    textDecoration: "none",
+                    minHeight: "48px",
+                    boxSizing: "border-box",
+                    WebkitTapHighlightColor: "transparent",
+                    touchAction: "manipulation",
+                  }}
+                >
+                  Join the trip →
+                </a>
+              </div>
+            );
+          }
+
+          // Known member — add or edit
+          return (
+            <div
               style={{
-                fontSize: "0.875rem",
-                color: C.cream,
-                fontWeight: 600,
-                marginBottom: "0.25rem",
+                background: hasSubmitted ? C.surface : C.amberDim,
+                border: `1px solid ${hasSubmitted ? C.border : "rgba(240,180,40,0.2)"}`,
+                borderRadius: "14px",
+                padding: "1rem 1.25rem",
               }}
             >
-              {session ? "Your turn" : "Join this trip"}
-            </p>
-            <p
-              style={{
-                fontSize: "0.8rem",
-                color: C.muted,
-                marginBottom: "1rem",
-                lineHeight: 1.5,
-              }}
-            >
-              {session
-                ? "Add your available dates, departure airport, and how many AL days you're happy to use."
-                : "Add your dates and departure airport so we can find windows that work for everyone."}
-            </p>
-            <a
-              href={`/apps/holiday-bazaar/trip/${slug}/join`}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "0.7rem 1.5rem",
-                background: C.amber,
-                border: "none",
-                color: C.bg,
-                fontFamily: C.fontMono,
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                borderRadius: "100px",
-                textDecoration: "none",
-                minHeight: "48px",
-                boxSizing: "border-box",
-                WebkitTapHighlightColor: "transparent",
-                touchAction: "manipulation",
-              }}
-            >
-              {session ? "Add my dates →" : "Join the trip →"}
-            </a>
-          </div>
-        )}
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: C.cream,
+                  fontWeight: 600,
+                  marginBottom: "0.25rem",
+                }}
+              >
+                {hasSubmitted ? "Your availability" : "Your turn"}
+              </p>
+              <p
+                style={{
+                  fontSize: "0.8rem",
+                  color: C.muted,
+                  marginBottom: "1rem",
+                  lineHeight: 1.5,
+                }}
+              >
+                {hasSubmitted
+                  ? "Update your available weekends, airports, or AL days at any time."
+                  : "Add your available dates, departure airport, and how many AL days you're happy to use."}
+              </p>
+              <a
+                href={`/apps/holiday-bazaar/trip/${slug}/join`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "0.7rem 1.5rem",
+                  background: C.amber,
+                  color: C.bg,
+                  fontFamily: C.fontMono,
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  borderRadius: "100px",
+                  textDecoration: "none",
+                  minHeight: "48px",
+                  boxSizing: "border-box",
+                  WebkitTapHighlightColor: "transparent",
+                  touchAction: "manipulation",
+                }}
+              >
+                {hasSubmitted ? "Edit dates →" : "Add my dates →"}
+              </a>
+            </div>
+          );
+        })()}
 
         {/* Members list */}
         <div>

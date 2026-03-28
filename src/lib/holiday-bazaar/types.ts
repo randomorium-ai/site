@@ -48,6 +48,7 @@ export type ALPatternId =
   | "SAT_SUN"
   | "THU_EVE_SUN"
   | "FRI_MORN_SUN"
+  | "FRI_EVE_SUN"
   | "FRI_EVE_MON"
   | "WED_EVE_SUN"
   | "THU_EVE_MON"

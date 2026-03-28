@@ -561,13 +561,21 @@ function JoinViewInner({ slug }: { slug: string }) {
 
       const members = (membersData as MemberWithAvailability[]) ?? [];
 
-      // Check if the current visitor is the organiser (already a member with no availability)
+      // Pre-populate form if visitor is an existing member
       const session = getGuestSession(slug);
       if (session) {
         const me = members.find((m) => m.id === session.member_id);
         if (me) {
           setIsOrganiser(true);
           setName(me.name);
+          if (me.al_budget !== null) setAlDays(me.al_budget);
+          if (me.departure_airports.length > 0) {
+            const { searchAirports } = await import("@/lib/holiday-bazaar/airports");
+            const populated = me.departure_airports
+              .map((iata) => searchAirports(iata).find((a) => a.iata === iata))
+              .filter(Boolean) as import("@/lib/holiday-bazaar/airports").Airport[];
+            if (populated.length > 0) setAirports(populated);
+          }
         }
         setOtherMembers(members.filter((m) => m.id !== session.member_id));
       } else {
@@ -631,6 +639,7 @@ function JoinViewInner({ slug }: { slug: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           trip_id: slug,
+          member_id: session?.member_id ?? undefined,
           name: name.trim(),
           al_budget: Number(alDays),
           departure_airports: airports.map((a) => a.iata),
@@ -649,12 +658,7 @@ function JoinViewInner({ slug }: { slug: string }) {
         return;
       }
 
-      // Save session — overwrite organiser's if they're filling in their own availability
-      if (!session || isOrganiser) {
-        saveGuestSession(data.member_id, slug);
-      } else {
-        saveGuestSession(data.member_id, slug);
-      }
+      saveGuestSession(data.member_id, slug);
 
       router.push(`/apps/holiday-bazaar/trip/${slug}`);
     } catch {
@@ -903,7 +907,7 @@ function JoinViewInner({ slug }: { slug: string }) {
                   marginBottom: "0.4rem",
                 }}
               >
-                Who are you?
+                {isOrganiser ? "Update your details" : "Who are you?"}
               </h1>
               <p
                 style={{
@@ -912,9 +916,11 @@ function JoinViewInner({ slug }: { slug: string }) {
                   lineHeight: 1.5,
                 }}
               >
-                {otherMembers.length > 0
-                  ? `${otherMembers.map((m) => m.name.split(" ")[0]).join(", ")} ${otherMembers.length === 1 ? "is" : "are"} already in.`
-                  : `You're joining ${trip.name}.`}
+                {isOrganiser
+                  ? "Change your name, airports, AL days, or available weekends."
+                  : otherMembers.length > 0
+                    ? `${otherMembers.map((m) => m.name.split(" ")[0]).join(", ")} ${otherMembers.length === 1 ? "is" : "are"} already in.`
+                    : `You're joining ${trip.name}.`}
               </p>
             </div>
 
@@ -1032,9 +1038,9 @@ function JoinViewInner({ slug }: { slug: string }) {
                 }}
               >
                 {alDays === 0
-                  ? "Weekend only — Sat/Sun flights."
+                  ? "Fri eve → Sun or Sat → Sun. No AL needed."
                   : alDays === 1
-                    ? "1 day — Thu eve or Fri flights out, Sun or Mon back."
+                    ? "1 day — Thu eve → Sun or Fri eve → Mon."
                     : alDays === 2
                       ? "2 days — Wed eve out, Sun back (4 nights) or Thu eve out, Mon back."
                       : `${alDays} days — we'll find the longest trip that fits.`}
