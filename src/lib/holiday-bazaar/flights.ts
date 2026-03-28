@@ -62,6 +62,7 @@ const AL_PATTERNS = [
   { id: "THU_EVE_SUN"  as ALPatternId, al_days: 1, nights: 3, depart_day: 4, return_day: 0 },
   { id: "FRI_MORN_SUN" as ALPatternId, al_days: 1, nights: 2, depart_day: 5, return_day: 0 },
   { id: "FRI_EVE_MON"  as ALPatternId, al_days: 1, nights: 3, depart_day: 5, return_day: 1 },
+  { id: "WED_EVE_SUN"  as ALPatternId, al_days: 2, nights: 4, depart_day: 3, return_day: 0 },
   { id: "THU_EVE_MON"  as ALPatternId, al_days: 2, nights: 4, depart_day: 4, return_day: 1 },
   { id: "FRI_MORN_MON" as ALPatternId, al_days: 2, nights: 3, depart_day: 5, return_day: 1 },
   { id: "WED_EVE_MON"  as ALPatternId, al_days: 3, nights: 5, depart_day: 3, return_day: 1 },
@@ -92,14 +93,6 @@ function formatTime(date: Date, hour: number, minute: number): string {
   const d = new Date(date)
   d.setHours(hour, minute, 0, 0)
   return d.toISOString()
-}
-
-function bestPatternForMember(member: MemberWithAvailability, departDate: Date) {
-  const budget = member.al_budget ?? 0
-  const dow = departDate.getDay()
-  const candidates = AL_PATTERNS.filter(p => p.depart_day === dow && p.al_days <= budget)
-  if (candidates.length === 0) return null
-  return candidates.reduce((a, b) => a.nights >= b.nights ? a : b)
 }
 
 // ── Mock flight leg generator ─────────────────────────────────────────────────
@@ -137,6 +130,7 @@ export interface FlightSearchParams {
 export function mockFlightSearch(params: FlightSearchParams): FlightResult[] {
   const { window_start, members } = params
   const departDate = new Date(window_start)
+  const dow = departDate.getDay()
 
   const submitted = members.filter(
     m => m.date_ranges.length > 0 && m.al_budget !== null && m.departure_airports.length > 0
@@ -144,102 +138,87 @@ export function mockFlightSearch(params: FlightSearchParams): FlightResult[] {
 
   if (submitted.length === 0) return []
 
+  // All patterns whose depart day matches and every member can afford
+  const eligiblePatterns = AL_PATTERNS.filter(
+    p => p.depart_day === dow && submitted.every(m => (m.al_budget ?? 0) >= p.al_days)
+  )
+
   const results: FlightResult[] = []
 
-  for (const dest of DESTINATIONS) {
-    const memberFlights: MemberFlight[] = []
-    let totalCost = 0
-    let groupAlEfficiency = Infinity
-    let allMembersHaveFlight = true
+  for (const pattern of eligiblePatterns) {
+    const returnDate = new Date(departDate)
+    returnDate.setDate(returnDate.getDate() + pattern.nights)
+    const window_end = returnDate.toISOString().split('T')[0]
 
-    for (const member of submitted) {
-      const pattern = bestPatternForMember(member, departDate)
-      if (!pattern) { allMembersHaveFlight = false; break }
+    for (const dest of DESTINATIONS) {
+      const memberFlights: MemberFlight[] = []
+      let totalCost = 0
 
-      const depAirport = member.departure_airports[0]
-      const seed = `${depAirport}-${dest.iata}-${window_start}-${member.id}`
-      const rand = seededRand(seed)
+      for (const member of submitted) {
+        const depAirport = member.departure_airports[0]
+        const seed = `${depAirport}-${dest.iata}-${window_start}-${member.id}-${pattern.id}`
+        const rand = seededRand(seed)
 
-      // Price varies by route distance (rough heuristic by destination region)
-      const isLongHaul = ["TFS", "LPA", "FNC", "CMN", "RAK", "AGA", "AYT", "DLM", "BJV", "IST", "LCA", "PFO"].includes(dest.iata)
-      const isMedium = ["ATH", "SKG", "HER", "RHO", "CFU", "DBV", "SPU", "SOF", "BEG"].includes(dest.iata)
+        const isLongHaul = ["TFS", "LPA", "FNC", "CMN", "RAK", "AGA", "AYT", "DLM", "BJV", "IST", "LCA", "PFO"].includes(dest.iata)
+        const isMedium = ["ATH", "SKG", "HER", "RHO", "CFU", "DBV", "SPU", "SOF", "BEG"].includes(dest.iata)
 
-      const baseMin = isLongHaul ? 120 : isMedium ? 80 : 45
-      const baseMax = isLongHaul ? 320 : isMedium ? 200 : 140
+        const baseMin = isLongHaul ? 120 : isMedium ? 80 : 45
+        const baseMax = isLongHaul ? 320 : isMedium ? 200 : 140
 
-      const outPrice = randomPrice(rand, baseMin, baseMax)
-      const inPrice = randomPrice(rand, baseMin * 0.9, baseMax * 0.9)
-      const legPrice = outPrice + inPrice
+        const outPrice = randomPrice(rand, baseMin, baseMax)
+        const inPrice = randomPrice(rand, baseMin * 0.9, baseMax * 0.9)
+        const legPrice = outPrice + inPrice
 
-      const durationHours = isLongHaul ? 4 : isMedium ? 3 : 2
-      const departHour = pattern.al_days === 0 ? 7 : pattern.id.includes("EVE") ? 19 : 8
-      const airlines = ["FR", "U2", "BA", "EZY", "VY", "W6"]
-      const airline = airlines[Math.floor(rand() * airlines.length)]
-      const flightNum = `${airline}${Math.floor(1000 + rand() * 8999)}`
-      const returnFlightNum = `${airline}${Math.floor(1000 + rand() * 8999)}`
+        const durationHours = isLongHaul ? 4 : isMedium ? 3 : 2
+        const departHour = pattern.id.includes("EVE") ? 19 : 7
+        const airlines = ["FR", "U2", "BA", "EZY", "VY", "W6"]
+        const airline = airlines[Math.floor(rand() * airlines.length)]
+        const flightNum = `${airline}${Math.floor(1000 + rand() * 8999)}`
+        const returnFlightNum = `${airline}${Math.floor(1000 + rand() * 8999)}`
 
-      const returnDate = new Date(departDate)
-      returnDate.setDate(returnDate.getDate() + pattern.nights)
+        const outbound = mockLeg(depAirport, dest.iata, departDate, departHour, durationHours, outPrice, flightNum)
+        const inbound = mockLeg(dest.iata, depAirport, returnDate, 14, durationHours, inPrice, returnFlightNum)
 
-      const outbound = mockLeg(depAirport, dest.iata, departDate, departHour, durationHours, outPrice, flightNum)
-      const inbound = mockLeg(dest.iata, depAirport, returnDate, 14, durationHours, inPrice, returnFlightNum)
+        memberFlights.push({
+          member_id: member.id,
+          outbound,
+          inbound,
+          al_days_used: pattern.al_days,
+          price_gbp: legPrice,
+          al_pattern: pattern.id,
+        })
 
-      const alEfficiency = pattern.al_days === 0
-        ? pattern.nights
-        : pattern.nights / pattern.al_days
+        totalCost += legPrice
+      }
 
-      if (alEfficiency < groupAlEfficiency) groupAlEfficiency = alEfficiency
-
-      memberFlights.push({
-        member_id: member.id,
-        outbound,
-        inbound,
-        al_days_used: pattern.al_days,
-        price_gbp: legPrice,
-        al_pattern: pattern.id,
+      results.push({
+        destination_iata: dest.iata,
+        destination_name: dest.name,
+        destination_country: dest.country,
+        destination_flag: dest.flag,
+        window_start,
+        window_end,
+        nights: pattern.nights,
+        al_days_required: pattern.al_days,
+        per_member_flights: memberFlights,
+        total_cost_gbp: Math.round(totalCost * 100) / 100,
+        value_label: "standard",
       })
-
-      totalCost += legPrice
     }
-
-    if (!allMembersHaveFlight || memberFlights.length === 0) continue
-
-    if (groupAlEfficiency === Infinity) groupAlEfficiency = 0
-
-    results.push({
-      destination_iata: dest.iata,
-      destination_name: dest.name,
-      destination_country: dest.country,
-      destination_flag: dest.flag,
-      window_start,
-      window_end: params.window_end,
-      per_member_flights: memberFlights,
-      total_cost_gbp: Math.round(totalCost * 100) / 100,
-      al_efficiency_score: Math.round(groupAlEfficiency * 100) / 100,
-      value_label: "standard", // computed below
-    })
   }
 
-  // ── Value labels (spec Section 6.3) ──────────────────────────────────────
+  // Value labels based on price percentiles
   const prices = results.map(r => r.total_cost_gbp).sort((a, b) => a - b)
   const p25 = prices[Math.floor(prices.length * 0.25)] ?? Infinity
   const p50 = prices[Math.floor(prices.length * 0.5)] ?? Infinity
 
   for (const r of results) {
-    if (r.total_cost_gbp <= p25 && r.al_efficiency_score >= 2.5) {
-      r.value_label = "great"
-    } else if (r.total_cost_gbp <= p50 || r.al_efficiency_score >= 2.0) {
-      r.value_label = "good"
-    } else {
-      r.value_label = "standard"
-    }
+    if (r.total_cost_gbp <= p25) r.value_label = "great"
+    else if (r.total_cost_gbp <= p50) r.value_label = "good"
   }
 
-  // Sort: price ascending, AL efficiency descending as tiebreak
-  results.sort((a, b) => {
-    if (a.total_cost_gbp !== b.total_cost_gbp) return a.total_cost_gbp - b.total_cost_gbp
-    return b.al_efficiency_score - a.al_efficiency_score
-  })
+  // Sort by price ascending
+  results.sort((a, b) => a.total_cost_gbp - b.total_cost_gbp)
 
   return results
 }

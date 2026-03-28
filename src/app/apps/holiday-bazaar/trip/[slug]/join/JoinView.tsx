@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/holiday-bazaar/supabase";
 import { searchAirports } from "@/lib/holiday-bazaar/airports";
@@ -47,176 +47,240 @@ function toISODate(d: Date): string {
   return d.toISOString().split("T")[0];
 }
 
-// ── AL patterns (mirrors scoring.ts) ─────────────────────────────────────────
-// depart_day: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+// ── Weekend calendar ──────────────────────────────────────────────────────────
 
-const AL_PATTERNS = [
-  {
-    id: "SAT_SUN",
-    al_days: 0,
-    nights: 2,
-    depart_day: 6,
-    label: "Sat → Sun",
-    note: "Weekend — no AL needed",
-  },
-  {
-    id: "FRI_MORN_SUN",
-    al_days: 1,
-    nights: 2,
-    depart_day: 5,
-    label: "Fri → Sun",
-    note: "1 AL day · Fri off",
-  },
-  {
-    id: "FRI_EVE_MON",
-    al_days: 1,
-    nights: 3,
-    depart_day: 5,
-    label: "Fri eve → Mon",
-    note: "1 AL day · Fri after work + Mon off",
-  },
-  {
-    id: "THU_EVE_SUN",
-    al_days: 1,
-    nights: 3,
-    depart_day: 4,
-    label: "Thu eve → Sun",
-    note: "1 AL day · Thu after work",
-  },
-  {
-    id: "FRI_MORN_MON",
-    al_days: 2,
-    nights: 3,
-    depart_day: 5,
-    label: "Fri → Mon",
-    note: "2 AL days · Fri + Mon off",
-  },
-  {
-    id: "THU_EVE_MON",
-    al_days: 2,
-    nights: 4,
-    depart_day: 4,
-    label: "Thu eve → Mon",
-    note: "2 AL days · Thu after work + Mon off",
-  },
-  {
-    id: "WED_EVE_MON",
-    al_days: 3,
-    nights: 5,
-    depart_day: 3,
-    label: "Wed eve → Mon",
-    note: "3 AL days · Wed after work + Mon off",
-  },
-] as const;
-
-interface TripWindow {
-  key: string;
-  start_date: string;
-  end_date: string;
-  pattern_label: string;
-  pattern_note: string;
-  al_days: number;
-  nights: number;
-  group_overlap: "full" | "partial" | "none";
+// Returns ISO date string for the Sunday following a given Saturday ISO string
+function satToSun(satISO: string): string {
+  const sat = new Date(satISO);
+  sat.setDate(sat.getDate() + 1);
+  return toISODate(sat);
 }
 
-function generateWindows(
-  alBudget: number,
-  otherMembers: MemberWithAvailability[],
-  lookAheadDays = 180,
-): TripWindow[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const windows: TripWindow[] = [];
-  const seen = new Set<string>();
+function WeekendCalendar({
+  selected,
+  onToggle,
+  otherMembers,
+}: {
+  selected: Set<string>; // set of Saturday ISO dates
+  onToggle: (satISO: string) => void;
+  otherMembers: MemberWithAvailability[];
+}) {
+  const { C } = useTheme();
 
-  const validPatterns = AL_PATTERNS.filter((p) => p.al_days <= alBudget);
-
-  for (let i = 1; i < lookAheadDays; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
-    const dow = d.getDay();
-
-    for (const pattern of validPatterns) {
-      if (pattern.depart_day !== dow) continue;
-
-      const end = new Date(d);
-      end.setDate(end.getDate() + pattern.nights);
-      const startISO = toISODate(d);
-      const endISO = toISODate(end);
-      const key = `${startISO}__${endISO}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-
-      // Group overlap
-      let availCount = 0;
-      for (const m of otherMembers) {
-        const hasRange = m.date_ranges.some(
-          (r) => r.start_date <= startISO && r.end_date >= endISO,
-        );
-        if (hasRange) availCount++;
-      }
-      const ratio =
-        otherMembers.length > 0 ? availCount / otherMembers.length : 0;
-      const group_overlap: TripWindow["group_overlap"] =
-        otherMembers.length === 0
-          ? "none"
-          : ratio >= 0.8
-            ? "full"
-            : ratio >= 0.4
-              ? "partial"
-              : "none";
-
-      windows.push({
-        key,
-        start_date: startISO,
-        end_date: endISO,
-        pattern_label: pattern.label,
-        pattern_note: pattern.note,
-        al_days: pattern.al_days,
-        nights: pattern.nights,
-        group_overlap,
-      });
+  const months = useMemo(() => {
+    const result: Date[] = [];
+    const now = new Date();
+    for (let m = 0; m < 12; m++) {
+      result.push(new Date(now.getFullYear(), now.getMonth() + m, 1));
     }
-  }
+    return result;
+  }, []);
 
-  // Sort: group overlap first, then chronologically
-  windows.sort((a, b) => {
-    const overlapScore = { full: 2, partial: 1, none: 0 };
-    const scoreDiff =
-      overlapScore[b.group_overlap] - overlapScore[a.group_overlap];
-    if (scoreDiff !== 0) return scoreDiff;
-    return a.start_date.localeCompare(b.start_date);
-  });
+  const getOverlap = useCallback(
+    (satISO: string): "full" | "partial" | "none" => {
+      if (otherMembers.length === 0) return "none";
+      const sunISO = satToSun(satISO);
+      let count = 0;
+      for (const m of otherMembers) {
+        if (
+          m.date_ranges.some(
+            (r) => r.start_date <= satISO && r.end_date >= sunISO,
+          )
+        )
+          count++;
+      }
+      if (count === otherMembers.length) return "full";
+      if (count > 0) return "partial";
+      return "none";
+    },
+    [otherMembers],
+  );
 
-  return windows;
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+      {months.map((monthDate) => {
+        const year = monthDate.getFullYear();
+        const month = monthDate.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        // Mon=0 … Sun=6
+        const firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
+
+        const cells: (number | null)[] = [
+          ...Array(firstDow).fill(null),
+          ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+        ];
+        while (cells.length % 7 !== 0) cells.push(null);
+
+        const weeks: (number | null)[][] = [];
+        for (let i = 0; i < cells.length; i += 7)
+          weeks.push(cells.slice(i, i + 7));
+
+        const hasWeekend = weeks.some((w) => w[5] != null || w[6] != null);
+        if (!hasWeekend) return null;
+
+        const monthLabel = monthDate.toLocaleDateString("en-GB", {
+          month: "long",
+          year: "numeric",
+        });
+
+        return (
+          <div key={`${year}-${month}`}>
+            <p
+              style={{
+                fontFamily: C.fontMono,
+                fontSize: "0.65rem",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: C.muted,
+                marginBottom: "0.5rem",
+              }}
+            >
+              {monthLabel}
+            </p>
+
+            {/* Day headers */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(7, 1fr)",
+                marginBottom: "2px",
+              }}
+            >
+              {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                <div
+                  key={i}
+                  style={{
+                    textAlign: "center",
+                    fontSize: "0.6rem",
+                    fontFamily: C.fontMono,
+                    color: i >= 5 ? C.amber : C.muted,
+                    opacity: i >= 5 ? 0.9 : 0.4,
+                    padding: "0.2rem 0",
+                  }}
+                >
+                  {d}
+                </div>
+              ))}
+            </div>
+
+            {/* Weeks */}
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "2px" }}
+            >
+              {weeks.map((week, wi) => (
+                <div
+                  key={wi}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(7, 1fr)",
+                    gap: "2px",
+                  }}
+                >
+                  {week.map((day, di) => {
+                    const isSat = di === 5;
+                    const isSun = di === 6;
+                    const isWeekend = isSat || isSun;
+
+                    if (!day) return <div key={di} />;
+
+                    const pad = (n: number) => String(n).padStart(2, "0");
+                    const dateISO = `${year}-${pad(month + 1)}-${pad(day)}`;
+
+                    // Derive the Saturday key for this cell
+                    let satISO: string | null = null;
+                    if (isSat) {
+                      satISO = dateISO;
+                    } else if (isSun) {
+                      const sat = new Date(year, month, day - 1);
+                      satISO = `${sat.getFullYear()}-${pad(sat.getMonth() + 1)}-${pad(sat.getDate())}`;
+                    }
+
+                    const isSelected = satISO ? selected.has(satISO) : false;
+                    const isPast = new Date(year, month, day) < today;
+                    const overlap =
+                      isSat && satISO ? getOverlap(satISO) : "none";
+
+                    if (!isWeekend) {
+                      return (
+                        <div
+                          key={di}
+                          style={{
+                            textAlign: "center",
+                            padding: "0.65rem 0",
+                            fontSize: "0.8rem",
+                            color: C.muted,
+                            opacity: 0.3,
+                          }}
+                        >
+                          {day}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={di}
+                        onClick={() =>
+                          satISO && !isPast && onToggle(satISO)
+                        }
+                        disabled={isPast}
+                        style={{
+                          padding: "0.5rem 0",
+                          textAlign: "center",
+                          fontSize: "0.875rem",
+                          fontWeight: isSelected ? 700 : 400,
+                          background: isSelected ? C.amberDim : "transparent",
+                          border: `1px solid ${isSelected ? C.borderActive : "transparent"}`,
+                          borderRadius: "8px",
+                          color: isPast
+                            ? C.muted
+                            : isSelected
+                              ? C.amber
+                              : C.text,
+                          cursor: isPast ? "default" : "pointer",
+                          opacity: isPast ? 0.3 : 1,
+                          transition: "all 0.1s",
+                          WebkitTapHighlightColor: "transparent",
+                          minHeight: "44px",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "3px",
+                        }}
+                      >
+                        {day}
+                        {isSat && overlap !== "none" && !isPast && (
+                          <div
+                            style={{
+                              width: "4px",
+                              height: "4px",
+                              borderRadius: "50%",
+                              background:
+                                overlap === "full" ? C.green : C.amber,
+                            }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
-function formatWindowDate(iso: string, includeWeekday = true): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    weekday: includeWeekday ? "short" : undefined,
-    day: "numeric",
-    month: "short",
-  });
-}
-
-function groupWindowsByMonth(
-  windows: TripWindow[],
-): { month: string; windows: TripWindow[] }[] {
-  const map = new Map<string, TripWindow[]>();
-  for (const w of windows) {
-    const month = new Date(w.start_date).toLocaleDateString("en-GB", {
-      month: "long",
-      year: "numeric",
-    });
-    if (!map.has(month)) map.set(month, []);
-    map.get(month)!.push(w);
-  }
-  return Array.from(map.entries()).map(([month, windows]) => ({
-    month,
-    windows,
-  }));
-}
+// ── (removed AL patterns — AL is now derived from flight results, not user input) ──
 
 // ── Step indicator ────────────────────────────────────────────────────────────
 
@@ -446,203 +510,6 @@ function AirportPicker({
   );
 }
 
-// ── Calendar ──────────────────────────────────────────────────────────────────
-
-// ── Window picker ─────────────────────────────────────────────────────────────
-
-function WindowPicker({
-  alBudget,
-  selected,
-  onToggle,
-  otherMembers,
-}: {
-  alBudget: number;
-  selected: Set<string>;
-  onToggle: (key: string) => void;
-  otherMembers: MemberWithAvailability[];
-}) {
-  const { C } = useTheme();
-  const windows = useMemo(
-    () => generateWindows(alBudget, otherMembers),
-    [alBudget, otherMembers],
-  );
-
-  const grouped = useMemo(() => groupWindowsByMonth(windows), [windows]);
-
-  if (windows.length === 0) {
-    return (
-      <p style={{ fontSize: "0.875rem", color: C.muted, lineHeight: 1.6 }}>
-        No valid windows found for your AL budget in the next 6 months.
-      </p>
-    );
-  }
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      {/* Legend */}
-      {otherMembers.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            gap: "1rem",
-            fontSize: "0.7rem",
-            color: C.muted,
-            fontFamily: C.fontMono,
-          }}
-        >
-          <span
-            style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}
-          >
-            <span
-              style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                background: C.green,
-                display: "inline-block",
-              }}
-            />
-            group free
-          </span>
-          <span
-            style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}
-          >
-            <span
-              style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                background: C.amber,
-                display: "inline-block",
-              }}
-            />
-            some free
-          </span>
-        </div>
-      )}
-
-      {grouped.map(({ month, windows: mw }) => (
-        <div key={month}>
-          {/* Month header */}
-          <p
-            style={{
-              fontFamily: C.fontMono,
-              fontSize: "0.65rem",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: C.muted,
-              marginBottom: "0.5rem",
-            }}
-          >
-            {month}
-          </p>
-
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}
-          >
-            {mw.map((w) => {
-              const isSelected = selected.has(w.key);
-              const dotColor =
-                w.group_overlap === "full"
-                  ? C.green
-                  : w.group_overlap === "partial"
-                    ? C.amber
-                    : null;
-
-              return (
-                <button
-                  key={w.key}
-                  onClick={() => onToggle(w.key)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    padding: "0.75rem 1rem",
-                    background: isSelected ? C.amberDim : C.surface,
-                    border: `1px solid ${isSelected ? C.borderActive : C.border}`,
-                    borderRadius: "12px",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    width: "100%",
-                    transition: "all 0.12s",
-                    minHeight: "56px",
-                  }}
-                >
-                  {/* Checkmark */}
-                  <div
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      borderRadius: "50%",
-                      border: `2px solid ${isSelected ? C.amber : C.border}`,
-                      background: isSelected ? C.amber : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      transition: "all 0.12s",
-                      fontSize: "0.7rem",
-                      color: C.bg,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {isSelected ? "✓" : ""}
-                  </div>
-
-                  {/* Dates + pattern */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        marginBottom: "0.15rem",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "0.9rem",
-                          fontWeight: 600,
-                          color: isSelected ? C.amber : C.cream,
-                        }}
-                      >
-                        {formatWindowDate(w.start_date)} →{" "}
-                        {formatWindowDate(w.end_date)}
-                      </span>
-                      {dotColor && (
-                        <span
-                          style={{
-                            width: "6px",
-                            height: "6px",
-                            borderRadius: "50%",
-                            background: dotColor,
-                            display: "inline-block",
-                            flexShrink: 0,
-                          }}
-                        />
-                      )}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "0.72rem",
-                        color: C.muted,
-                        fontFamily: C.fontMono,
-                      }}
-                    >
-                      {w.pattern_note} · {w.nights} night
-                      {w.nights === 1 ? "" : "s"}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 type Step = "name" | "al" | "airports" | "calendar" | "submitting";
@@ -664,7 +531,7 @@ function JoinViewInner({ slug }: { slug: string }) {
   const [name, setName] = useState("");
   const [alDays, setAlDays] = useState<number | "">("");
   const [airports, setAirports] = useState<Airport[]>([]);
-  const [selectedWindowKeys, setSelectedWindowKeys] = useState<Set<string>>(
+  const [selectedWeekends, setSelectedWeekends] = useState<Set<string>>(
     new Set(),
   );
   const [step, setStep] = useState<Step>("name");
@@ -731,12 +598,11 @@ function JoinViewInner({ slug }: { slug: string }) {
 
   function validateCurrentStep(): string | null {
     if (step === "name" && !name.trim()) return "What should we call you?";
-    if (step === "al" && alDays === "")
-      return "Enter a number between 0 and 10.";
+    if (step === "al" && alDays === "") return "Enter a number between 0 and 5.";
     if (step === "airports" && airports.length === 0)
       return "Pick at least one departure airport.";
-    if (step === "calendar" && selectedWindowKeys.size === 0)
-      return "Pick at least one window you could make.";
+    if (step === "calendar" && selectedWeekends.size === 0)
+      return "Pick at least one weekend you could make.";
     return null;
   }
 
@@ -768,10 +634,10 @@ function JoinViewInner({ slug }: { slug: string }) {
           name: name.trim(),
           al_budget: Number(alDays),
           departure_airports: airports.map((a) => a.iata),
-          date_ranges: Array.from(selectedWindowKeys).map((key) => {
-            const [start_date, end_date] = key.split("__");
-            return { start_date, end_date };
-          }),
+          date_ranges: Array.from(selectedWeekends).map((satISO) => ({
+            start_date: satISO,
+            end_date: satToSun(satISO),
+          })),
         }),
       });
 
@@ -1026,7 +892,7 @@ function JoinViewInner({ slug }: { slug: string }) {
                   marginBottom: "0.4rem",
                 }}
               >
-                step 1 of 4
+                step 1 of 3
               </p>
               <h1
                 style={{
@@ -1121,23 +987,10 @@ function JoinViewInner({ slug }: { slug: string }) {
                   lineHeight: 1.5,
                 }}
               >
-                How many days of annual leave are you happy to use?
-              </p>
-              <p
-                style={{
-                  fontSize: "0.8rem",
-                  color: C.muted,
-                  lineHeight: 1.5,
-                  marginTop: "0.25rem",
-                  opacity: 0.7,
-                }}
-              >
-                We&apos;ll use this to find flights that stretch your time away.
-                Enter 0 for weekends only.
+                How many days are you happy to take off around a weekend?
               </p>
             </div>
 
-            {/* AL day buttons */}
             <div
               style={{
                 display: "grid",
@@ -1161,27 +1014,7 @@ function JoinViewInner({ slug }: { slug: string }) {
                     cursor: "pointer",
                     minHeight: "52px",
                     transition: "all 0.12s",
-                  }}
-                >
-                  {n}
-                </button>
-              ))}
-              {[6, 7, 8, 9, 10].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setAlDays(n)}
-                  style={{
-                    padding: "0.9rem 0.5rem",
-                    background: alDays === n ? C.amberDim : C.surface,
-                    border: `1px solid ${alDays === n ? C.borderActive : C.border}`,
-                    borderRadius: "12px",
-                    color: alDays === n ? C.amber : C.text,
-                    fontFamily: C.fontMono,
-                    fontSize: "1.1rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    minHeight: "52px",
-                    transition: "all 0.12s",
+                    WebkitTapHighlightColor: "transparent",
                   }}
                 >
                   {n}
@@ -1199,8 +1032,12 @@ function JoinViewInner({ slug }: { slug: string }) {
                 }}
               >
                 {alDays === 0
-                  ? "Weekend trips only — Fri evening to Mon morning."
-                  : `Up to ${alDays} AL day${alDays === 1 ? "" : "s"} — we'll find the best pattern.`}
+                  ? "Weekend only — Sat/Sun flights."
+                  : alDays === 1
+                    ? "1 day — Thu eve or Fri flights out, Sun or Mon back."
+                    : alDays === 2
+                      ? "2 days — Wed eve out, Sun back (4 nights) or Thu eve out, Mon back."
+                      : `${alDays} days — we'll find the longest trip that fits.`}
               </p>
             )}
           </div>
@@ -1288,24 +1125,23 @@ function JoinViewInner({ slug }: { slug: string }) {
                   lineHeight: 1.5,
                 }}
               >
-                Tap any windows that work for you.
-                {selectedWindowKeys.size > 0 && (
+                Tap the weekends you could make.
+                {selectedWeekends.size > 0 && (
                   <span style={{ color: C.amber }}>
                     {" "}
-                    {selectedWindowKeys.size} selected
+                    {selectedWeekends.size} selected
                   </span>
                 )}
                 {otherMembers.length > 0 && " Dots show when others are free."}
               </p>
             </div>
-            <WindowPicker
-              alBudget={Number(alDays)}
-              selected={selectedWindowKeys}
-              onToggle={(key) => {
-                const next = new Set(selectedWindowKeys);
-                if (next.has(key)) next.delete(key);
-                else next.add(key);
-                setSelectedWindowKeys(next);
+            <WeekendCalendar
+              selected={selectedWeekends}
+              onToggle={(satISO) => {
+                const next = new Set(selectedWeekends);
+                if (next.has(satISO)) next.delete(satISO);
+                else next.add(satISO);
+                setSelectedWeekends(next);
               }}
               otherMembers={otherMembers}
             />
@@ -1379,7 +1215,7 @@ function JoinViewInner({ slug }: { slug: string }) {
             right: 0,
             padding: "0.75rem 1.25rem",
             paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
-            background: "rgba(13, 8, 0, 0.92)",
+            background: C.bg + "eb",
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
             borderTop: `1px solid ${C.border}`,
@@ -1389,7 +1225,7 @@ function JoinViewInner({ slug }: { slug: string }) {
             zIndex: 50,
           }}
         >
-          {selectedWindowKeys.size > 0 && (
+          {selectedWeekends.size > 0 && (
             <p
               style={{
                 fontSize: "0.72rem",
@@ -1399,8 +1235,8 @@ function JoinViewInner({ slug }: { slug: string }) {
                 margin: 0,
               }}
             >
-              {selectedWindowKeys.size} window
-              {selectedWindowKeys.size === 1 ? "" : "s"} selected
+              {selectedWeekends.size} weekend
+              {selectedWeekends.size === 1 ? "" : "s"} selected
             </p>
           )}
           <button
