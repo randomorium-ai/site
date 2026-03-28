@@ -2,9 +2,6 @@
 
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { DayPicker } from "react-day-picker";
-import type { DateRange } from "react-day-picker";
-import "react-day-picker/src/style.css";
 import { supabase } from "@/lib/holiday-bazaar/supabase";
 import { searchAirports } from "@/lib/holiday-bazaar/airports";
 import type { Airport } from "@/lib/holiday-bazaar/airports";
@@ -67,27 +64,175 @@ function toISODate(d: Date): string {
   return d.toISOString().split("T")[0];
 }
 
-// Compute group availability overlay colours for a given date
-function getDayColour(
-  date: Date,
-  members: MemberWithAvailability[],
-): "green" | "amber" | "none" {
-  if (members.length === 0) return "none";
-  const iso = toISODate(date);
-  let available = 0;
-  for (const m of members) {
-    for (const r of m.date_ranges) {
-      if (iso >= r.start_date && iso <= r.end_date) {
-        available++;
-        break;
+// ── AL patterns (mirrors scoring.ts) ─────────────────────────────────────────
+// depart_day: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+
+const AL_PATTERNS = [
+  {
+    id: "SAT_SUN",
+    al_days: 0,
+    nights: 2,
+    depart_day: 6,
+    label: "Sat → Sun",
+    note: "Weekend — no AL needed",
+  },
+  {
+    id: "FRI_MORN_SUN",
+    al_days: 1,
+    nights: 2,
+    depart_day: 5,
+    label: "Fri → Sun",
+    note: "1 AL day · Fri off",
+  },
+  {
+    id: "FRI_EVE_MON",
+    al_days: 1,
+    nights: 3,
+    depart_day: 5,
+    label: "Fri eve → Mon",
+    note: "1 AL day · Fri after work + Mon off",
+  },
+  {
+    id: "THU_EVE_SUN",
+    al_days: 1,
+    nights: 3,
+    depart_day: 4,
+    label: "Thu eve → Sun",
+    note: "1 AL day · Thu after work",
+  },
+  {
+    id: "FRI_MORN_MON",
+    al_days: 2,
+    nights: 3,
+    depart_day: 5,
+    label: "Fri → Mon",
+    note: "2 AL days · Fri + Mon off",
+  },
+  {
+    id: "THU_EVE_MON",
+    al_days: 2,
+    nights: 4,
+    depart_day: 4,
+    label: "Thu eve → Mon",
+    note: "2 AL days · Thu after work + Mon off",
+  },
+  {
+    id: "WED_EVE_MON",
+    al_days: 3,
+    nights: 5,
+    depart_day: 3,
+    label: "Wed eve → Mon",
+    note: "3 AL days · Wed after work + Mon off",
+  },
+] as const;
+
+interface TripWindow {
+  key: string;
+  start_date: string;
+  end_date: string;
+  pattern_label: string;
+  pattern_note: string;
+  al_days: number;
+  nights: number;
+  group_overlap: "full" | "partial" | "none";
+}
+
+function generateWindows(
+  alBudget: number,
+  otherMembers: MemberWithAvailability[],
+  lookAheadDays = 180,
+): TripWindow[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const windows: TripWindow[] = [];
+  const seen = new Set<string>();
+
+  const validPatterns = AL_PATTERNS.filter((p) => p.al_days <= alBudget);
+
+  for (let i = 1; i < lookAheadDays; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const dow = d.getDay();
+
+    for (const pattern of validPatterns) {
+      if (pattern.depart_day !== dow) continue;
+
+      const end = new Date(d);
+      end.setDate(end.getDate() + pattern.nights);
+      const startISO = toISODate(d);
+      const endISO = toISODate(end);
+      const key = `${startISO}__${endISO}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      // Group overlap
+      let availCount = 0;
+      for (const m of otherMembers) {
+        const hasRange = m.date_ranges.some(
+          (r) => r.start_date <= startISO && r.end_date >= endISO,
+        );
+        if (hasRange) availCount++;
       }
+      const ratio =
+        otherMembers.length > 0 ? availCount / otherMembers.length : 0;
+      const group_overlap: TripWindow["group_overlap"] =
+        otherMembers.length === 0
+          ? "none"
+          : ratio >= 0.8
+            ? "full"
+            : ratio >= 0.4
+              ? "partial"
+              : "none";
+
+      windows.push({
+        key,
+        start_date: startISO,
+        end_date: endISO,
+        pattern_label: pattern.label,
+        pattern_note: pattern.note,
+        al_days: pattern.al_days,
+        nights: pattern.nights,
+        group_overlap,
+      });
     }
   }
-  if (available === 0) return "none";
-  const ratio = available / members.length;
-  if (ratio >= 0.8) return "green";
-  if (ratio >= 0.5) return "amber";
-  return "none";
+
+  // Sort: group overlap first, then chronologically
+  windows.sort((a, b) => {
+    const overlapScore = { full: 2, partial: 1, none: 0 };
+    const scoreDiff =
+      overlapScore[b.group_overlap] - overlapScore[a.group_overlap];
+    if (scoreDiff !== 0) return scoreDiff;
+    return a.start_date.localeCompare(b.start_date);
+  });
+
+  return windows;
+}
+
+function formatWindowDate(iso: string, includeWeekday = true): string {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    weekday: includeWeekday ? "short" : undefined,
+    day: "numeric",
+    month: "short",
+  });
+}
+
+function groupWindowsByMonth(
+  windows: TripWindow[],
+): { month: string; windows: TripWindow[] }[] {
+  const map = new Map<string, TripWindow[]>();
+  for (const w of windows) {
+    const month = new Date(w.start_date).toLocaleDateString("en-GB", {
+      month: "long",
+      year: "numeric",
+    });
+    if (!map.has(month)) map.set(month, []);
+    map.get(month)!.push(w);
+  }
+  return Array.from(map.entries()).map(([month, windows]) => ({
+    month,
+    windows,
+  }));
 }
 
 // ── Step indicator ────────────────────────────────────────────────────────────
@@ -319,116 +464,42 @@ function AirportPicker({
 
 // ── Calendar ──────────────────────────────────────────────────────────────────
 
-function GroupCalendar({
-  ranges,
-  onRangesChange,
+// ── Window picker ─────────────────────────────────────────────────────────────
+
+function WindowPicker({
+  alBudget,
+  selected,
+  onToggle,
   otherMembers,
 }: {
-  ranges: DateRange[];
-  onRangesChange: (ranges: DateRange[]) => void;
+  alBudget: number;
+  selected: Set<string>;
+  onToggle: (key: string) => void;
   otherMembers: MemberWithAvailability[];
 }) {
-  const [pendingRange, setPendingRange] = useState<DateRange | undefined>(
-    undefined,
+  const windows = useMemo(
+    () => generateWindows(alBudget, otherMembers),
+    [alBudget, otherMembers],
   );
 
-  function handleSelect(range: DateRange | undefined) {
-    setPendingRange(range);
-    // If range is complete (has both from and to), add it to the list
-    if (range?.from && range?.to) {
-      onRangesChange([...ranges, { from: range.from, to: range.to }]);
-      setPendingRange(undefined);
-    }
-  }
+  const grouped = useMemo(() => groupWindowsByMonth(windows), [windows]);
 
-  function removeRange(idx: number) {
-    onRangesChange(ranges.filter((_, i) => i !== idx));
-  }
-
-  // Build modifiers for group availability overlay
-  const groupAvailModifiers: Record<string, Date[]> = {
-    groupGreen: [],
-    groupAmber: [],
-  };
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  // Build a set of candidate days (next 6 months)
-  if (otherMembers.length > 0) {
-    for (let i = 0; i < 180; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() + i);
-      const colour = getDayColour(d, otherMembers);
-      if (colour === "green") groupAvailModifiers.groupGreen.push(new Date(d));
-      else if (colour === "amber")
-        groupAvailModifiers.groupAmber.push(new Date(d));
-    }
+  if (windows.length === 0) {
+    return (
+      <p style={{ fontSize: "0.875rem", color: C.muted, lineHeight: 1.6 }}>
+        No valid windows found for your AL budget in the next 6 months.
+      </p>
+    );
   }
 
   return (
-    <div>
-      {/* Added ranges */}
-      {ranges.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.4rem",
-            marginBottom: "1rem",
-          }}
-        >
-          {ranges.map((r, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0.5rem 0.75rem",
-                background: C.greenDim,
-                border: `1px solid rgba(74,222,128,0.2)`,
-                borderRadius: "8px",
-                fontSize: "0.8rem",
-                color: C.green,
-                fontFamily: "var(--font-geist-mono)",
-              }}
-            >
-              <span>
-                {r.from?.toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "short",
-                })}
-                {" → "}
-                {r.to?.toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "short",
-                })}
-              </span>
-              <button
-                onClick={() => removeRange(i)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: C.muted,
-                  cursor: "pointer",
-                  fontSize: "1rem",
-                  padding: "0 0 0 0.5rem",
-                  lineHeight: 1,
-                }}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
       {/* Legend */}
       {otherMembers.length > 0 && (
         <div
           style={{
             display: "flex",
             gap: "1rem",
-            marginBottom: "0.75rem",
             fontSize: "0.7rem",
             color: C.muted,
             fontFamily: "var(--font-geist-mono)",
@@ -439,22 +510,22 @@ function GroupCalendar({
           >
             <span
               style={{
-                width: "10px",
-                height: "10px",
+                width: "8px",
+                height: "8px",
                 borderRadius: "50%",
                 background: C.green,
                 display: "inline-block",
               }}
             />
-            most free
+            group free
           </span>
           <span
             style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}
           >
             <span
               style={{
-                width: "10px",
-                height: "10px",
+                width: "8px",
+                height: "8px",
                 borderRadius: "50%",
                 background: C.amber,
                 display: "inline-block",
@@ -465,71 +536,124 @@ function GroupCalendar({
         </div>
       )}
 
-      {/* Calendar */}
-      <div
-        style={{
-          background: C.surface,
-          border: `1px solid ${C.border}`,
-          borderRadius: "16px",
-          padding: "0.5rem",
-          overflowX: "auto",
-        }}
-      >
-        <style>{`
-          .rdp-root {
-            --rdp-accent-color: ${C.amber};
-            --rdp-accent-background-color: rgba(240,180,40,0.15);
-            --rdp-range_start-color: #0D0800;
-            --rdp-range_end-color: #0D0800;
-            --rdp-range_middle-color: ${C.cream};
-            --rdp-range_start-date-background-color: ${C.amber};
-            --rdp-range_end-date-background-color: ${C.amber};
-            --rdp-today-color: ${C.amber};
-            --rdp-day-height: 40px;
-            --rdp-day-width: 40px;
-            --rdp-day_button-height: 38px;
-            --rdp-day_button-width: 38px;
-            color: ${C.text};
-            font-family: var(--font-geist-sans);
-            font-size: 0.875rem;
-            width: 100%;
-          }
-          .rdp-months { width: 100%; }
-          .rdp-month { width: 100%; }
-          .rdp-month_grid { width: 100%; }
-          .rdp-caption_label { color: ${C.cream}; font-size: 0.95rem; }
-          .rdp-chevron { fill: ${C.amber} !important; }
-          .rdp-weekday { color: ${C.muted}; }
-          .rdp-day_button:hover:not(:disabled) { background: rgba(240,180,40,0.15); }
-          .rdp-day.groupGreen .rdp-day_button { box-shadow: inset 0 -2px 0 ${C.green}; }
-          .rdp-day.groupAmber .rdp-day_button { box-shadow: inset 0 -2px 0 ${C.amber}; }
-        `}</style>
-        <DayPicker
-          mode="range"
-          selected={pendingRange}
-          onSelect={handleSelect}
-          disabled={{ before: new Date() }}
-          modifiers={groupAvailModifiers}
-          modifiersClassNames={{
-            groupGreen: "groupGreen",
-            groupAmber: "groupAmber",
-          }}
-          numberOfMonths={1}
-          showOutsideDays={false}
-        />
-      </div>
+      {grouped.map(({ month, windows: mw }) => (
+        <div key={month}>
+          {/* Month header */}
+          <p
+            style={{
+              fontFamily: "var(--font-geist-mono)",
+              fontSize: "0.65rem",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: C.muted,
+              marginBottom: "0.5rem",
+            }}
+          >
+            {month}
+          </p>
 
-      <p
-        style={{
-          fontSize: "0.72rem",
-          color: C.muted,
-          marginTop: "0.6rem",
-          lineHeight: 1.5,
-        }}
-      >
-        Tap a start date then an end date to add a window. Add as many windows
-        as you like.
-      </p>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}
+          >
+            {mw.map((w) => {
+              const isSelected = selected.has(w.key);
+              const dotColor =
+                w.group_overlap === "full"
+                  ? C.green
+                  : w.group_overlap === "partial"
+                    ? C.amber
+                    : null;
+
+              return (
+                <button
+                  key={w.key}
+                  onClick={() => onToggle(w.key)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    padding: "0.75rem 1rem",
+                    background: isSelected ? C.amberDim : C.surface,
+                    border: `1px solid ${isSelected ? C.borderActive : C.border}`,
+                    borderRadius: "12px",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    width: "100%",
+                    transition: "all 0.12s",
+                    minHeight: "56px",
+                  }}
+                >
+                  {/* Checkmark */}
+                  <div
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "50%",
+                      border: `2px solid ${isSelected ? C.amber : C.border}`,
+                      background: isSelected ? C.amber : "transparent",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      transition: "all 0.12s",
+                      fontSize: "0.7rem",
+                      color: "#0D0800",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {isSelected ? "✓" : ""}
+                  </div>
+
+                  {/* Dates + pattern */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        marginBottom: "0.15rem",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "0.9rem",
+                          fontWeight: 600,
+                          color: isSelected ? C.amber : C.cream,
+                        }}
+                      >
+                        {formatWindowDate(w.start_date)} →{" "}
+                        {formatWindowDate(w.end_date)}
+                      </span>
+                      {dotColor && (
+                        <span
+                          style={{
+                            width: "6px",
+                            height: "6px",
+                            borderRadius: "50%",
+                            background: dotColor,
+                            display: "inline-block",
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.72rem",
+                        color: C.muted,
+                        fontFamily: "var(--font-geist-mono)",
+                      }}
+                    >
+                      {w.pattern_note} · {w.nights} night
+                      {w.nights === 1 ? "" : "s"}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -554,7 +678,9 @@ export default function JoinView({ slug }: { slug: string }) {
   const [name, setName] = useState("");
   const [alDays, setAlDays] = useState<number | "">("");
   const [airports, setAirports] = useState<Airport[]>([]);
-  const [dateRanges, setDateRanges] = useState<DateRange[]>([]);
+  const [selectedWindowKeys, setSelectedWindowKeys] = useState<Set<string>>(
+    new Set(),
+  );
   const [step, setStep] = useState<Step>("name");
   const [error, setError] = useState("");
 
@@ -622,8 +748,8 @@ export default function JoinView({ slug }: { slug: string }) {
       return "Enter a number between 0 and 10.";
     if (step === "airports" && airports.length === 0)
       return "Pick at least one departure airport.";
-    if (step === "calendar" && dateRanges.length === 0)
-      return "Add at least one available window.";
+    if (step === "calendar" && selectedWindowKeys.size === 0)
+      return "Pick at least one window you could make.";
     return null;
   }
 
@@ -655,12 +781,10 @@ export default function JoinView({ slug }: { slug: string }) {
           name: name.trim(),
           al_budget: Number(alDays),
           departure_airports: airports.map((a) => a.iata),
-          date_ranges: dateRanges
-            .filter((r) => r.from && r.to)
-            .map((r) => ({
-              start_date: toISODate(r.from!),
-              end_date: toISODate(r.to!),
-            })),
+          date_ranges: Array.from(selectedWindowKeys).map((key) => {
+            const [start_date, end_date] = key.split("__");
+            return { start_date, end_date };
+          }),
         }),
       });
 
@@ -1155,7 +1279,7 @@ export default function JoinView({ slug }: { slug: string }) {
                   marginBottom: "0.4rem",
                 }}
               >
-                When are you free?
+                When could you go?
               </h1>
               <p
                 style={{
@@ -1164,14 +1288,25 @@ export default function JoinView({ slug }: { slug: string }) {
                   lineHeight: 1.5,
                 }}
               >
-                Select your available date windows.
-                {otherMembers.length > 0 &&
-                  " Coloured dots show when others are free."}
+                Tap any windows that work for you.
+                {selectedWindowKeys.size > 0 && (
+                  <span style={{ color: C.amber }}>
+                    {" "}
+                    {selectedWindowKeys.size} selected
+                  </span>
+                )}
+                {otherMembers.length > 0 && " Dots show when others are free."}
               </p>
             </div>
-            <GroupCalendar
-              ranges={dateRanges}
-              onRangesChange={setDateRanges}
+            <WindowPicker
+              alBudget={Number(alDays)}
+              selected={selectedWindowKeys}
+              onToggle={(key) => {
+                const next = new Set(selectedWindowKeys);
+                if (next.has(key)) next.delete(key);
+                else next.add(key);
+                setSelectedWindowKeys(next);
+              }}
               otherMembers={otherMembers}
             />
           </div>
