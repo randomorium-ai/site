@@ -429,11 +429,13 @@ function WindowCard({
   members,
   rank,
   canFindFlights,
+  slug,
 }: {
   window: DateWindow;
   members: MemberWithAvailability[];
   rank: number;
   canFindFlights: boolean;
+  slug: string;
 }) {
   const isTop = rank === 0;
   const isFull = w.quorum === "full";
@@ -559,7 +561,8 @@ function WindowCard({
         </div>
 
         {canFindFlights && (
-          <button
+          <a
+            href={`/apps/holiday-bazaar/trip/${slug}/flights?window_start=${w.start_date}&window_end=${w.end_date}`}
             style={{
               padding: "0.35rem 0.9rem",
               background: C.amber,
@@ -569,14 +572,19 @@ function WindowCard({
               fontWeight: 700,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              border: "none",
               borderRadius: "100px",
-              cursor: "pointer",
+              textDecoration: "none",
               minHeight: "32px",
+              display: "flex",
+              alignItems: "center",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              window.location.href = `/apps/holiday-bazaar/trip/${slug}/flights?window_start=${w.start_date}&window_end=${w.end_date}`;
             }}
           >
             flights →
-          </button>
+          </a>
         )}
       </div>
     </div>
@@ -1028,6 +1036,7 @@ export default function TripView({ slug }: { slug: string }) {
                   members={members}
                   rank={i}
                   canFindFlights={canFindFlights}
+                  slug={slug}
                 />
               ))}
             </div>
