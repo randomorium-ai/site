@@ -945,7 +945,7 @@ function TripViewInner({ slug }: { slug: string }) {
             <div
               style={{
                 background: hasSubmitted ? C.surface : C.amberDim,
-                border: `1px solid ${hasSubmitted ? C.border : "rgba(240,180,40,0.2)"}`,
+                border: `1px solid ${hasSubmitted ? C.border : C.amberBorder}`,
                 borderRadius: "14px",
                 padding: "1rem 1.25rem",
               }}
