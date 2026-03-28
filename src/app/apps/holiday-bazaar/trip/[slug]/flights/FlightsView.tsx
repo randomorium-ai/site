@@ -4,23 +4,7 @@ import { useEffect, useState } from "react";
 import type { FlightResult, MemberFlight } from "@/lib/holiday-bazaar/types";
 import { supabase } from "@/lib/holiday-bazaar/supabase";
 import type { MemberWithAvailability } from "@/lib/holiday-bazaar/types";
-
-// ── Palette ───────────────────────────────────────────────────────────────────
-const C = {
-  bg: "#0D0800",
-  surface: "rgba(255, 255, 255, 0.04)",
-  border: "rgba(255, 255, 255, 0.09)",
-  amber: "#F0B429",
-  amberDim: "rgba(240, 180, 40, 0.12)",
-  amberBorder: "rgba(240, 180, 40, 0.25)",
-  green: "#4ADE80",
-  greenDim: "rgba(74, 222, 128, 0.10)",
-  greenBorder: "rgba(74, 222, 128, 0.25)",
-  cream: "#F0E8D5",
-  text: "rgba(255, 255, 255, 0.88)",
-  muted: "rgba(255, 255, 255, 0.42)",
-  danger: "#E85D5D",
-};
+import { ThemeProvider, ThemeToggle, useTheme } from "../../../theme";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -43,12 +27,10 @@ function formatPrice(n: number): string {
   return `£${n.toFixed(0)}`;
 }
 
-function valueLabelStyle(label: FlightResult["value_label"]): {
-  bg: string;
-  border: string;
-  color: string;
-  text: string;
-} {
+function valueLabelStyle(
+  label: FlightResult["value_label"],
+  C: ReturnType<typeof useTheme>["C"],
+): { bg: string; border: string; color: string; text: string } {
   if (label === "great")
     return {
       bg: C.greenDim,
@@ -80,6 +62,7 @@ function MemberFlightRow({
   flight: MemberFlight;
   memberName: string;
 }) {
+  const { C } = useTheme();
   return (
     <div
       style={{
@@ -111,7 +94,7 @@ function MemberFlightRow({
           <span
             style={{
               fontSize: "0.7rem",
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
               color: C.muted,
             }}
           >
@@ -124,7 +107,7 @@ function MemberFlightRow({
               fontSize: "0.875rem",
               fontWeight: 700,
               color: C.amber,
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
             }}
           >
             {formatPrice(flight.price_gbp)}
@@ -140,7 +123,7 @@ function MemberFlightRow({
           gap: "0.4rem",
           fontSize: "0.78rem",
           color: C.muted,
-          fontFamily: "var(--font-geist-mono)",
+          fontFamily: C.fontMono,
           flexWrap: "wrap",
         }}
       >
@@ -163,7 +146,7 @@ function MemberFlightRow({
           gap: "0.4rem",
           fontSize: "0.78rem",
           color: C.muted,
-          fontFamily: "var(--font-geist-mono)",
+          fontFamily: C.fontMono,
           flexWrap: "wrap",
         }}
       >
@@ -192,8 +175,9 @@ function DestinationCard({
   members: MemberWithAvailability[];
   rank: number;
 }) {
+  const { C } = useTheme();
   const [expanded, setExpanded] = useState(rank === 0);
-  const vStyle = valueLabelStyle(result.value_label);
+  const vStyle = valueLabelStyle(result.value_label, C);
   const isTop = rank === 0;
 
   return (
@@ -247,7 +231,7 @@ function DestinationCard({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#0D0800",
+                color: C.bg,
                 fontWeight: 700,
               }}
             >
@@ -283,7 +267,7 @@ function DestinationCard({
             style={{
               fontSize: "0.72rem",
               color: C.muted,
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
             }}
           >
             {formatDate(result.window_start)} → {formatDate(result.window_end)}
@@ -305,7 +289,7 @@ function DestinationCard({
               fontSize: "1.1rem",
               fontWeight: 700,
               color: C.amber,
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
             }}
           >
             {formatPrice(result.total_cost_gbp)}
@@ -317,7 +301,7 @@ function DestinationCard({
               border: `1px solid ${vStyle.border}`,
               borderRadius: "100px",
               fontSize: "0.6rem",
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
               color: vStyle.color,
               letterSpacing: "0.05em",
               textTransform: "uppercase",
@@ -358,7 +342,7 @@ function DestinationCard({
               padding: "0.6rem 0",
               fontSize: "0.75rem",
               color: C.muted,
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
             }}
           >
             <span>AL efficiency:</span>
@@ -394,7 +378,7 @@ function DestinationCard({
               <div
                 style={{
                   fontSize: "0.65rem",
-                  fontFamily: "var(--font-geist-mono)",
+                  fontFamily: C.fontMono,
                   color: C.muted,
                   textTransform: "uppercase",
                   letterSpacing: "0.1em",
@@ -408,7 +392,7 @@ function DestinationCard({
                   fontSize: "1.25rem",
                   fontWeight: 700,
                   color: C.amber,
-                  fontFamily: "var(--font-geist-mono)",
+                  fontFamily: C.fontMono,
                 }}
               >
                 {formatPrice(result.total_cost_gbp)}
@@ -422,8 +406,8 @@ function DestinationCard({
               style={{
                 padding: "0.75rem 1.5rem",
                 background: C.amber,
-                color: "#0D0800",
-                fontFamily: "var(--font-geist-mono)",
+                color: C.bg,
+                fontFamily: C.fontMono,
                 fontSize: "0.8rem",
                 fontWeight: 700,
                 letterSpacing: "0.08em",
@@ -448,7 +432,7 @@ function DestinationCard({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function FlightsView({
+function FlightsViewInner({
   slug,
   windowStart,
   windowEnd,
@@ -457,6 +441,7 @@ export default function FlightsView({
   windowStart: string;
   windowEnd: string;
 }) {
+  const { C } = useTheme();
   const [results, setResults] = useState<FlightResult[]>([]);
   const [members, setMembers] = useState<MemberWithAvailability[]>([]);
   const [loading, setLoading] = useState(true);
@@ -521,7 +506,7 @@ export default function FlightsView({
           style={{
             fontSize: "0.875rem",
             color: C.muted,
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
           }}
         >
           Checking 50 destinations…
@@ -563,7 +548,7 @@ export default function FlightsView({
           href={`/apps/holiday-bazaar/trip/${slug}`}
           style={{
             fontSize: "0.8rem",
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
             color: C.amber,
             textDecoration: "none",
           }}
@@ -584,9 +569,9 @@ export default function FlightsView({
     <div
       style={{
         minHeight: "100svh",
-        background: `radial-gradient(ellipse 80% 40% at 50% 0%, rgba(240,180,40,0.08) 0%, transparent 60%), ${C.bg}`,
+        background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${C.gradientAccent} 0%, transparent 60%), ${C.bg}`,
         color: C.text,
-        fontFamily: "var(--font-geist-sans)",
+        fontFamily: C.fontDisplay,
       }}
     >
       {/* Header */}
@@ -604,7 +589,7 @@ export default function FlightsView({
           href={`/apps/holiday-bazaar/trip/${slug}`}
           style={{
             fontSize: "0.8rem",
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
             color: C.muted,
             textDecoration: "none",
             letterSpacing: "0.05em",
@@ -612,17 +597,20 @@ export default function FlightsView({
         >
           ← trip
         </a>
-        <span
-          style={{
-            fontSize: "0.65rem",
-            fontFamily: "var(--font-geist-mono)",
-            color: C.muted,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-          }}
-        >
-          {dateLabel}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <ThemeToggle />
+          <span
+            style={{
+              fontSize: "0.65rem",
+              fontFamily: C.fontMono,
+              color: C.muted,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            {dateLabel}
+          </span>
+        </div>
       </div>
 
       <div
@@ -639,7 +627,7 @@ export default function FlightsView({
         <div>
           <p
             style={{
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
               fontSize: "0.65rem",
               letterSpacing: "0.18em",
               textTransform: "uppercase",
@@ -673,7 +661,7 @@ export default function FlightsView({
             gap: "0.75rem",
             flexWrap: "wrap",
             fontSize: "0.7rem",
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
           }}
         >
           {(
@@ -772,5 +760,17 @@ export default function FlightsView({
         </a>
       </div>
     </div>
+  );
+}
+
+export default function FlightsView(props: {
+  slug: string;
+  windowStart: string;
+  windowEnd: string;
+}) {
+  return (
+    <ThemeProvider>
+      <FlightsViewInner {...props} />
+    </ThemeProvider>
   );
 }
