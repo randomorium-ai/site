@@ -81,7 +81,7 @@ function candidateDepartDates(
   end.setHours(0, 0, 0, 0)
 
   while (cursor <= end) {
-    if (validDows.has(dayOfWeek(cursor))) {
+    if (validDows.has(dayOfWeek(cursor) as 3 | 4 | 5 | 6)) {
       dates.push(new Date(cursor))
     }
     cursor.setDate(cursor.getDate() + 1)

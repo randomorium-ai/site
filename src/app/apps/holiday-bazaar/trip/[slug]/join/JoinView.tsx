@@ -291,7 +291,6 @@ function AirportPicker({
     if (selected.length >= 2) return;
     onChange([...selected, airport]);
     setQuery("");
-    setResults([]);
     inputRef.current?.focus();
   }
 

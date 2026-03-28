@@ -308,7 +308,7 @@ function ShareSheet({
           </a>
 
           {/* Native share (mobile) */}
-          {typeof window !== "undefined" && navigator.share && (
+          {typeof window !== "undefined" && !!navigator.share && (
             <button
               onClick={nativeShare}
               style={{
