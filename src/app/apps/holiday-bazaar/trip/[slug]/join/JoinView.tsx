@@ -1038,9 +1038,9 @@ function JoinViewInner({ slug }: { slug: string }) {
                 }}
               >
                 {alDays === 0
-                  ? "Fri eve → Mon or Sat → Sun. No AL needed."
+                  ? "Fri eve → Sun or Sat → Sun. No AL needed."
                   : alDays === 1
-                    ? "1 day — Thu eve out, Sun back (Fri off)."
+                    ? "1 day — Thu eve → Sun or Fri eve → Mon."
                     : alDays === 2
                       ? "2 days — Wed eve out, Sun back (4 nights) or Thu eve out, Mon back."
                       : `${alDays} days — we'll find the longest trip that fits.`}
