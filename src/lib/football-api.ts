@@ -73,14 +73,6 @@ export const API_THEMES: ApiTheme[] = [
     targetMax: 2500,
     getStat: (p) => p.stats.minutesPlayed,
   },
-  {
-    id: "age",
-    label: "Combined age",
-    unit: "years",
-    targetMin: 60,
-    targetMax: 120,
-    getStat: (p) => p.age,
-  },
 ]
 
 // ── In-memory cache ────────────────────────────────────────────────────────
