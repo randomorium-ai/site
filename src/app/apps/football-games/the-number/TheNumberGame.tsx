@@ -1,19 +1,18 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import {
-  players, getDailyPuzzle, getStat, calcScore, scoreLabel,
-  type Player, type StatKey,
-} from '@/data/players'
+import { API_THEMES, type ApiPlayer, type ApiTheme } from '@/lib/football-api'
+import { FALLBACK_PLAYERS } from '@/data/football-fallback'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PICKS_PER_PLAYER = 3
 const STORAGE_KEY = 'nf_the_number_v1'
+const SEARCH_DEBOUNCE_MS = 400
 
 const POS_COLOR: Record<string, string> = {
-  GK: 'bg-amber-600',
+  GK:  'bg-amber-600',
   DEF: 'bg-blue-700',
   MID: 'bg-emerald-700',
   ATT: 'bg-red-700',
@@ -36,7 +35,50 @@ interface GameStorage {
   history: StoredEntry[]
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+interface DailyPuzzle {
+  theme: ApiTheme
+  target: number
+  dateStr: string
+}
+
+// ─── Daily puzzle ─────────────────────────────────────────────────────────────
+
+function getDailyPuzzle(): DailyPuzzle {
+  const now = new Date()
+  const dateStr = now.toISOString().split('T')[0]
+  let s = parseInt(dateStr.replace(/-/g, ''), 10)
+
+  // LCG hash
+  s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0)
+  s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0)
+
+  const themeIdx = s % API_THEMES.length
+  const theme = API_THEMES[themeIdx]
+
+  s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0)
+  const range = theme.targetMax - theme.targetMin
+  const target = theme.targetMin + (s % range)
+
+  return { theme, target, dateStr }
+}
+
+// ─── Score helpers ────────────────────────────────────────────────────────────
+
+function calcScore(total: number, target: number): number {
+  const diff = Math.abs(total - target)
+  return Math.max(0, Math.round(1000 * (1 - diff / target)))
+}
+
+function scoreLabel(score: number): string {
+  if (score === 1000) return 'PERFECT!'
+  if (score >= 900)   return 'Elite'
+  if (score >= 700)   return 'Class'
+  if (score >= 500)   return 'Decent'
+  if (score >= 300)   return 'Close-ish'
+  return 'Swing and a miss'
+}
+
+// ─── Storage ──────────────────────────────────────────────────────────────────
 
 function getStorage(): GameStorage {
   if (typeof window === 'undefined') return { streak: 0, lastDate: '', history: [] }
@@ -49,14 +91,14 @@ function saveStorage(data: GameStorage) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
-function updateStreak(dateStr: string, score: number): GameStorage {
+function updateStreak(dateStr: string, score: number, mode: Mode): GameStorage {
   const stored = getStorage()
   const prev = new Date(stored.lastDate || '2000-01-01')
   const today = new Date(dateStr)
   const diffDays = Math.round((today.getTime() - prev.getTime()) / 86400000)
 
   const streak = diffDays === 1 ? stored.streak + 1 : diffDays === 0 ? stored.streak : 1
-  const entry: StoredEntry = { score, mode: 'solo', dateStr }
+  const entry: StoredEntry = { score, mode, dateStr }
   const history = [entry, ...stored.history.filter(e => e.dateStr !== dateStr)].slice(0, 30)
 
   const next = { streak, lastDate: dateStr, history }
@@ -76,18 +118,17 @@ function timeUntilMidnight(): string {
 
 function buildShareText(
   dateStr: string,
-  theme: string,
+  theme: ApiTheme,
   target: number,
-  picks: Player[],
+  picks: ApiPlayer[],
   total: number,
   score: number,
-  stat: StatKey,
 ): string {
   const lines = [
     `⚽ THE NUMBER — ${dateStr}`,
-    `Theme: ${theme} | Target: ${target}`,
+    `Theme: ${theme.label} | Target: ${target}`,
     '',
-    ...picks.map(p => `  ${p.flag} ${p.name}: ${getStat(p, stat)}`),
+    ...picks.map(p => `  ${p.position} ${p.name} (${p.currentTeam}): ${theme.getStat(p)} ${theme.unit}`),
     '',
     `Total: ${total} | Score: ${score}/1000`,
     'randomorium.ai/apps/football-games/the-number',
@@ -103,42 +144,75 @@ export default function TheNumberGame() {
 
   const [phase, setPhase] = useState<Phase>('setup')
   const [mode, setMode] = useState<Mode>('solo')
-  const [p1Picks, setP1Picks] = useState<Player[]>([])
-  const [p2Picks, setP2Picks] = useState<Player[]>([])
-  const [turnIdx, setTurnIdx] = useState(0) // 0-5 in 2p, 0-2 in solo
+  const [p1Picks, setP1Picks] = useState<ApiPlayer[]>([])
+  const [p2Picks, setP2Picks] = useState<ApiPlayer[]>([])
+  const [turnIdx, setTurnIdx] = useState(0)
   const [search, setSearch] = useState('')
   const [posFilter, setPosFilter] = useState<string>('ALL')
   const [storage, setStorage] = useState<GameStorage>({ streak: 0, lastDate: '', history: [] })
   const [copied, setCopied] = useState(false)
+  const [apiResults, setApiResults] = useState<ApiPlayer[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [apiError, setApiError] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { setStorage(getStorage()) }, [])
+
+  // Debounced player search
+  const runSearch = useCallback(async (q: string) => {
+    if (q.length < 2) { setApiResults([]); setIsSearching(false); return }
+    setIsSearching(true)
+    setApiError(false)
+    try {
+      const res = await fetch(`/api/football/players?search=${encodeURIComponent(q)}`)
+      if (!res.ok) throw new Error('api error')
+      const { players } = await res.json() as { players: ApiPlayer[] }
+      setApiResults(players)
+    } catch {
+      setApiError(true)
+      setApiResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (search.length < 2) { setApiResults([]); setIsSearching(false); return }
+    setIsSearching(true)
+    debounceRef.current = setTimeout(() => runSearch(search), SEARCH_DEBOUNCE_MS)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [search, runSearch])
 
   // Derived state
   const isSolo = mode === 'solo'
   const currentP = isSolo ? 1 : (turnIdx % 2 === 0 ? 1 : 2)
   const myPicks = isSolo ? p1Picks : currentP === 1 ? p1Picks : p2Picks
-  const picksComplete = isSolo ? p1Picks.length === PICKS_PER_PLAYER : (p1Picks.length === PICKS_PER_PLAYER && p2Picks.length === PICKS_PER_PLAYER)
+  const picksComplete = isSolo
+    ? p1Picks.length === PICKS_PER_PLAYER
+    : (p1Picks.length === PICKS_PER_PLAYER && p2Picks.length === PICKS_PER_PLAYER)
   const allPickedIds = new Set([...p1Picks.map(p => p.id), ...p2Picks.map(p => p.id)])
 
-  const p1Total = p1Picks.reduce((s, p) => s + getStat(p, theme.stat), 0)
-  const p2Total = p2Picks.reduce((s, p) => s + getStat(p, theme.stat), 0)
+  const p1Total = p1Picks.reduce((s, p) => s + theme.getStat(p), 0)
+  const p2Total = p2Picks.reduce((s, p) => s + theme.getStat(p), 0)
   const p1Score = calcScore(p1Total, target)
   const p2Score = calcScore(p2Total, target)
 
-  // Filtered player list
-  const filteredPlayers = useMemo(() => {
-    const q = search.toLowerCase()
-    return players.filter(p =>
+  // Players to show in the grid
+  const displayPlayers = useMemo((): ApiPlayer[] => {
+    const base = search.length >= 2
+      ? (apiError ? FALLBACK_PLAYERS : apiResults)
+      : FALLBACK_PLAYERS
+    return base.filter(p =>
       !allPickedIds.has(p.id) &&
-      (posFilter === 'ALL' || p.position === posFilter) &&
-      (q === '' || p.name.toLowerCase().includes(q) || p.currentClub.toLowerCase().includes(q) || p.nationality.toLowerCase().includes(q))
+      (posFilter === 'ALL' || p.position === posFilter)
     )
-  }, [search, posFilter, allPickedIds])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, apiResults, apiError, posFilter, p1Picks, p2Picks])
 
-  function pick(player: Player) {
+  function pick(player: ApiPlayer) {
     if (phase !== 'picking') return
     if (allPickedIds.has(player.id)) return
-
     if (isSolo) {
       if (p1Picks.length >= PICKS_PER_PLAYER) return
       setP1Picks(prev => [...prev, player])
@@ -151,7 +225,7 @@ export default function TheNumberGame() {
     }
   }
 
-  function unpick(playerId: string, fromP1: boolean) {
+  function unpick(playerId: number, fromP1: boolean) {
     if (phase !== 'picking') return
     if (fromP1) setP1Picks(prev => prev.filter(p => p.id !== playerId))
     else setP2Picks(prev => prev.filter(p => p.id !== playerId))
@@ -161,7 +235,7 @@ export default function TheNumberGame() {
     if (!picksComplete) return
     setPhase('revealed')
     if (isSolo) {
-      const next = updateStreak(dateStr, p1Score)
+      const next = updateStreak(dateStr, p1Score, 'solo')
       setStorage(next)
     }
   }
@@ -170,10 +244,11 @@ export default function TheNumberGame() {
     setPhase('setup')
     setP1Picks([]); setP2Picks([])
     setTurnIdx(0); setSearch(''); setPosFilter('ALL')
+    setApiResults([])
   }
 
   async function share() {
-    const text = buildShareText(dateStr, theme.label, target, p1Picks, p1Total, p1Score, theme.stat)
+    const text = buildShareText(dateStr, theme, target, p1Picks, p1Total, p1Score)
     try {
       if (navigator.share) await navigator.share({ text })
       else { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000) }
@@ -204,7 +279,9 @@ export default function TheNumberGame() {
           <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-6 mb-6 text-left">
             <p className="text-xs text-[#666] font-mono uppercase tracking-widest mb-1">How to play</p>
             <p className="text-[#bbb] text-sm leading-relaxed">
-              Pick <strong className="text-white">3 footballers</strong>. Their combined <strong className="text-white">{theme.label.toLowerCase()}</strong> should get as close to <strong className="text-white">{target}</strong> as possible. No hints — just your football brain.
+              Pick <strong className="text-white">3 footballers</strong>. Their combined{' '}
+              <strong className="text-white">{theme.label.toLowerCase()}</strong> should get as close to{' '}
+              <strong className="text-white">{target}</strong> as possible. Search for any player — no hints, just your football brain.
             </p>
           </div>
         </div>
@@ -240,10 +317,13 @@ export default function TheNumberGame() {
   // ── Render: Picking ──
   if (phase === 'picking') {
     const runningTotal = isSolo
-      ? p1Picks.reduce((s, p) => s + getStat(p, theme.stat), 0)
+      ? p1Picks.reduce((s, p) => s + theme.getStat(p), 0)
       : currentP === 1
-        ? p1Picks.reduce((s, p) => s + getStat(p, theme.stat), 0)
-        : p2Picks.reduce((s, p) => s + getStat(p, theme.stat), 0)
+        ? p1Picks.reduce((s, p) => s + theme.getStat(p), 0)
+        : p2Picks.reduce((s, p) => s + theme.getStat(p), 0)
+
+    const showEmpty = search.length >= 2 && !isSearching && displayPlayers.length === 0
+    const showHint = search.length === 0 || search.length === 1
 
     return (
       <div className="flex flex-col h-[100dvh]">
@@ -270,16 +350,21 @@ export default function TheNumberGame() {
             <div className="max-w-xl mx-auto px-4 py-2 space-y-1.5">
               {!isSolo && (
                 <div className="grid grid-cols-2 gap-2">
-                  {[{picks: p1Picks, label:'P1', color:'text-blue-400'}, {picks: p2Picks, label:'P2', color:'text-rose-400'}].map(({picks, label, color}) => (
+                  {([
+                    { picks: p1Picks, label: 'P1', color: 'text-blue-400', isP1: true },
+                    { picks: p2Picks, label: 'P2', color: 'text-rose-400', isP1: false },
+                  ] as const).map(({ picks, label, color, isP1 }) => (
                     <div key={label}>
-                      <div className={`text-[10px] font-mono mb-1 ${color}`}>{label} — {picks.reduce((s,p)=>s+getStat(p,theme.stat),0)}</div>
+                      <div className={`text-[10px] font-mono mb-1 ${color}`}>
+                        {label} — {picks.reduce((s, p) => s + theme.getStat(p), 0)}
+                      </div>
                       {picks.map(p => (
                         <div key={p.id} className="flex items-center justify-between text-xs text-[#aaa] bg-[#1a1a1a] rounded px-2 py-1 mb-1">
-                          <span>{p.flag} {p.name}</span>
-                          <button onClick={() => unpick(p.id, label==='P1')} className="text-[#555] hover:text-white ml-2">✕</button>
+                          <span className="truncate">{p.name}</span>
+                          <button onClick={() => unpick(p.id, isP1)} className="text-[#555] hover:text-white ml-2 flex-shrink-0">✕</button>
                         </div>
                       ))}
-                      {Array.from({length: PICKS_PER_PLAYER - picks.length}).map((_,i) => (
+                      {Array.from({ length: PICKS_PER_PLAYER - picks.length }).map((_, i) => (
                         <div key={i} className="text-xs text-[#333] bg-[#161616] rounded px-2 py-1 mb-1 font-mono">pick {picks.length + i + 1}</div>
                       ))}
                     </div>
@@ -290,12 +375,11 @@ export default function TheNumberGame() {
                 <div className="flex items-center gap-2 flex-wrap">
                   {p1Picks.map(p => (
                     <div key={p.id} className="flex items-center gap-1 bg-[#1a1a1a] border border-[#333] rounded-lg px-2 py-1 text-xs">
-                      <span>{p.flag}</span>
                       <span className="text-white">{p.name}</span>
                       <button onClick={() => unpick(p.id, true)} className="text-[#555] hover:text-white ml-1">✕</button>
                     </div>
                   ))}
-                  {Array.from({length: PICKS_PER_PLAYER - p1Picks.length}).map((_,i) => (
+                  {Array.from({ length: PICKS_PER_PLAYER - p1Picks.length }).map((_, i) => (
                     <div key={i} className="text-[#333] border border-[#222] rounded-lg px-2 py-1 text-xs font-mono">pick {p1Picks.length + i + 1}</div>
                   ))}
                   <div className="ml-auto text-xs font-mono text-[#888]">
@@ -310,15 +394,20 @@ export default function TheNumberGame() {
         {/* Search + filter */}
         <div className="border-b border-[#222] flex-shrink-0 px-4 py-2">
           <div className="max-w-xl mx-auto flex gap-2">
-            <input
-              type="text"
-              placeholder="Search player, club, nation…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="flex-1 bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white placeholder-[#555] outline-none focus:border-[#555]"
-            />
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Search any player…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white placeholder-[#555] outline-none focus:border-[#555]"
+              />
+              {isSearching && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555] text-xs font-mono">...</div>
+              )}
+            </div>
             <div className="flex gap-1">
-              {['ALL','GK','DEF','MID','ATT'].map(pos => (
+              {['ALL', 'GK', 'DEF', 'MID', 'ATT'].map(pos => (
                 <button
                   key={pos}
                   onClick={() => setPosFilter(pos)}
@@ -334,10 +423,20 @@ export default function TheNumberGame() {
         {/* Player grid — scrollable */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-xl mx-auto px-4 py-2">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pb-4">
-              {filteredPlayers.map(player => {
-                const isMyPick = isSolo ? p1Picks.some(p=>p.id===player.id) : myPicks.some(p=>p.id===player.id)
-                const full = isSolo ? p1Picks.length >= PICKS_PER_PLAYER : myPicks.length >= PICKS_PER_PLAYER
+            {showHint && (
+              <p className="text-center text-[#555] text-xs font-mono pt-2 pb-1">
+                Showing top players · type a name to search anyone
+              </p>
+            )}
+            {apiError && search.length >= 2 && (
+              <p className="text-center text-amber-600 text-xs font-mono pt-2 pb-1">
+                Search unavailable · showing local players
+              </p>
+            )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pb-4 pt-2">
+              {displayPlayers.map(player => {
+                const isMyPick = myPicks.some(p => p.id === player.id)
+                const full = myPicks.length >= PICKS_PER_PLAYER
                 return (
                   <button
                     key={player.id}
@@ -346,17 +445,16 @@ export default function TheNumberGame() {
                     className={`text-left p-3 rounded-xl border transition-all ${isMyPick ? 'border-white bg-[#1e1e1e]' : full ? 'border-[#1e1e1e] opacity-40 cursor-not-allowed' : 'border-[#2a2a2a] bg-[#161616] hover:border-[#444] hover:bg-[#1c1c1c]'}`}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
-                      <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${POS_COLOR[player.position]} text-white`}>{player.position}</span>
-                      <span className="text-base leading-none">{player.flag}</span>
+                      <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${POS_COLOR[player.position] ?? 'bg-zinc-700'} text-white`}>{player.position}</span>
                     </div>
                     <div className="text-xs font-semibold text-white leading-tight">{player.name}</div>
-                    <div className="text-[10px] text-[#666] mt-0.5 truncate">{player.currentClub}</div>
+                    <div className="text-[10px] text-[#666] mt-0.5 truncate">{player.currentTeam}</div>
                   </button>
                 )
               })}
-              {filteredPlayers.length === 0 && (
+              {showEmpty && !isSearching && (
                 <div className="col-span-2 sm:col-span-3 text-center text-[#555] text-sm py-10">
-                  No players match. Try a different search.
+                  No players found for &quot;{search}&quot;
                 </div>
               )}
             </div>
@@ -396,29 +494,31 @@ export default function TheNumberGame() {
       <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-4 mb-6 text-center">
         <div className="text-[10px] text-[#666] font-mono uppercase tracking-widest mb-1">{theme.label}</div>
         <div className="text-4xl font-bold tabular-nums mb-1">{target}</div>
-        <div className="text-xs text-[#666]">{theme.description}</div>
+        <div className="text-xs text-[#666]">{theme.unit}</div>
       </div>
 
-      {/* P1 picks */}
+      {/* P1 picks — solo */}
       {isSolo && (
         <div className="mb-6">
-          <PicksReveal picks={p1Picks} stat={theme.stat} unit={theme.unit} total={p1Total} target={target} score={p1Score} />
+          <PicksReveal picks={p1Picks} theme={theme} total={p1Total} target={target} score={p1Score} />
         </div>
       )}
 
       {/* 2P picks */}
       {!isSolo && (
         <div className="grid grid-cols-2 gap-3 mb-6">
-          {[{picks: p1Picks, total: p1Total, score: p1Score, label:'Player 1', isWinner: winner==='P1'},
-            {picks: p2Picks, total: p2Total, score: p2Score, label:'Player 2', isWinner: winner==='P2'}].map(({picks, total, score, label, isWinner}) => (
+          {([
+            { picks: p1Picks, total: p1Total, score: p1Score, label: 'Player 1', isWinner: winner === 'P1' },
+            { picks: p2Picks, total: p2Total, score: p2Score, label: 'Player 2', isWinner: winner === 'P2' },
+          ] as const).map(({ picks, total, score, label, isWinner }) => (
             <div key={label} className={`border rounded-xl p-3 ${isWinner ? 'border-[#6aaa64] bg-[#0d1f0d]' : 'border-[#2a2a2a] bg-[#1a1a1a]'}`}>
               <div className={`text-[10px] font-mono uppercase tracking-widest mb-2 ${isWinner ? 'text-[#6aaa64]' : 'text-[#666]'}`}>
                 {label} {isWinner && '🏆'}
               </div>
               {picks.map(p => (
                 <div key={p.id} className="flex justify-between items-center mb-1.5">
-                  <div className="text-xs text-[#bbb] truncate pr-2">{p.flag} {p.name}</div>
-                  <div className="text-xs font-bold text-white tabular-nums flex-shrink-0">{getStat(p, theme.stat)}</div>
+                  <div className="text-xs text-[#bbb] truncate pr-2">{p.name}</div>
+                  <div className="text-xs font-bold text-white tabular-nums flex-shrink-0">{theme.getStat(p)}</div>
                 </div>
               ))}
               <div className="border-t border-[#333] pt-2 mt-2 flex justify-between">
@@ -431,7 +531,7 @@ export default function TheNumberGame() {
         </div>
       )}
 
-      {/* Score / result */}
+      {/* Score — solo */}
       {isSolo && (
         <div className="text-center mb-6">
           <div className="text-4xl font-bold mb-1">{p1Score}<span className="text-xl text-[#666] font-normal">/1000</span></div>
@@ -443,7 +543,7 @@ export default function TheNumberGame() {
         <div className="text-center text-lg font-bold mb-6">🤝 Draw</div>
       )}
 
-      {/* Time until next */}
+      {/* Next puzzle timer */}
       <div className="text-center text-[#555] text-xs font-mono mb-6">
         Next puzzle in {timeUntilMidnight()}
       </div>
@@ -469,26 +569,30 @@ export default function TheNumberGame() {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function PicksReveal({
-  picks, stat, unit, total, target, score,
+  picks, theme, total, target, score,
 }: {
-  picks: Player[]; stat: StatKey; unit: string; total: number; target: number; score: number
+  picks: ApiPlayer[]
+  theme: ApiTheme
+  total: number
+  target: number
+  score: number
 }) {
   const diff = total - target
   return (
     <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl overflow-hidden">
       {picks.map((p, i) => {
-        const val = getStat(p, stat)
+        const val = theme.getStat(p)
         return (
           <div key={p.id} className={`flex items-center gap-3 px-4 py-3 ${i < picks.length - 1 ? 'border-b border-[#222]' : ''}`}>
-            <div className={`w-7 h-7 rounded-lg ${POS_COLOR[p.position]} flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0`}>
+            <div className={`w-7 h-7 rounded-lg ${POS_COLOR[p.position] ?? 'bg-zinc-700'} flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0`}>
               {p.position}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-white truncate">{p.flag} {p.name}</div>
-              <div className="text-[10px] text-[#666]">{p.currentClub}</div>
+              <div className="text-sm font-semibold text-white truncate">{p.name}</div>
+              <div className="text-[10px] text-[#666]">{p.currentTeam}</div>
             </div>
             <div className="text-xl font-bold tabular-nums text-white">{val}</div>
-            <div className="text-[10px] text-[#555] w-6">{unit}</div>
+            <div className="text-[10px] text-[#555] w-8">{theme.unit}</div>
           </div>
         )
       })}
