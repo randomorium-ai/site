@@ -5,6 +5,7 @@ export async function POST(req: NextRequest) {
   try {
     const {
       trip_id,
+      member_id,
       name,
       al_budget,
       departure_airports,
@@ -39,24 +40,55 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Trip not found" }, { status: 404 })
     }
 
-    // Insert member
-    const memberId = crypto.randomUUID()
-    const { error: memberError } = await supabase.from("members").insert({
-      id: memberId,
-      trip_id,
-      name: name.trim(),
-      al_budget,
-      departure_airports,
-    })
+    let resolvedMemberId: string
 
-    if (memberError) {
-      console.error("members insert error", memberError)
-      return NextResponse.json({ error: "Failed to add member" }, { status: 500 })
+    if (member_id) {
+      // Update existing member — verify it belongs to this trip
+      const { data: existing, error: lookupErr } = await supabase
+        .from("members")
+        .select("id")
+        .eq("id", member_id)
+        .eq("trip_id", trip_id)
+        .single()
+
+      if (lookupErr || !existing) {
+        return NextResponse.json({ error: "Member not found" }, { status: 404 })
+      }
+
+      const { error: updateErr } = await supabase
+        .from("members")
+        .update({ name: name.trim(), al_budget, departure_airports })
+        .eq("id", member_id)
+
+      if (updateErr) {
+        console.error("members update error", updateErr)
+        return NextResponse.json({ error: "Failed to update member" }, { status: 500 })
+      }
+
+      // Replace date ranges
+      await supabase.from("date_ranges").delete().eq("member_id", member_id)
+
+      resolvedMemberId = member_id
+    } else {
+      // Insert new member
+      resolvedMemberId = crypto.randomUUID()
+      const { error: memberError } = await supabase.from("members").insert({
+        id: resolvedMemberId,
+        trip_id,
+        name: name.trim(),
+        al_budget,
+        departure_airports,
+      })
+
+      if (memberError) {
+        console.error("members insert error", memberError)
+        return NextResponse.json({ error: "Failed to add member" }, { status: 500 })
+      }
     }
 
     // Insert date ranges
     const rangeRows = date_ranges.map((r: { start_date: string; end_date: string }) => ({
-      member_id: memberId,
+      member_id: resolvedMemberId,
       start_date: r.start_date,
       end_date: r.end_date,
     }))
@@ -65,12 +97,13 @@ export async function POST(req: NextRequest) {
 
     if (rangesError) {
       console.error("date_ranges insert error", rangesError)
-      // Best effort rollback
-      await supabase.from("members").delete().eq("id", memberId)
+      if (!member_id) {
+        await supabase.from("members").delete().eq("id", resolvedMemberId)
+      }
       return NextResponse.json({ error: "Failed to save date ranges" }, { status: 500 })
     }
 
-    return NextResponse.json({ member_id: memberId })
+    return NextResponse.json({ member_id: resolvedMemberId })
   } catch (err) {
     console.error("members route error", err)
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 })
