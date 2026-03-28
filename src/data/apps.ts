@@ -19,6 +19,15 @@ export const apps: App[] = [
     hatHook: "Sssalem recommends a holiday hat before you travel",
   },
   {
+    name: "Football Games",
+    slug: "football-games",
+    description: "Daily football puzzles. Pick 3 players whose stats hit a target number. Five games coming.",
+    url: "/apps/football-games",
+    author: "matt",
+    builtWith: "Next.js",
+    hatHook: "Win The Number and you've earned the 'Educated Guess' cap",
+  },
+  {
     name: "Achilles Rebuild",
     slug: "achilles",
     description:
