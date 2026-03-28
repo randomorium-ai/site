@@ -8,6 +8,7 @@ const AL_PATTERNS = [
   { id: "THU_EVE_SUN",  al_days: 1, nights: 3, depart_day: 4, return_day: 0 },
   { id: "FRI_MORN_SUN", al_days: 1, nights: 2, depart_day: 5, return_day: 0 },
   { id: "FRI_EVE_MON",  al_days: 1, nights: 3, depart_day: 5, return_day: 1 },
+  { id: "WED_EVE_SUN",  al_days: 2, nights: 4, depart_day: 3, return_day: 0 },
   { id: "THU_EVE_MON",  al_days: 2, nights: 4, depart_day: 4, return_day: 1 },
   { id: "FRI_MORN_MON", al_days: 2, nights: 3, depart_day: 5, return_day: 1 },
   { id: "WED_EVE_MON",  al_days: 3, nights: 5, depart_day: 3, return_day: 1 },

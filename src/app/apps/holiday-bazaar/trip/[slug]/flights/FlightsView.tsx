@@ -333,21 +333,26 @@ function DestinationCard({
             borderTop: `1px solid ${C.border}`,
           }}
         >
-          {/* AL efficiency */}
+          {/* Trip summary */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "0.4rem",
+              gap: "0.75rem",
               padding: "0.6rem 0",
               fontSize: "0.75rem",
               color: C.muted,
               fontFamily: C.fontMono,
             }}
           >
-            <span>AL efficiency:</span>
             <span style={{ color: C.cream, fontWeight: 600 }}>
-              {result.al_efficiency_score.toFixed(1)} nights / day
+              {result.nights} night{result.nights === 1 ? "" : "s"}
+            </span>
+            <span>·</span>
+            <span>
+              {result.al_days_required === 0
+                ? "no AL needed"
+                : `${result.al_days_required} AL day${result.al_days_required === 1 ? "" : "s"}`}
             </span>
           </div>
 

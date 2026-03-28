@@ -49,6 +49,7 @@ export type ALPatternId =
   | "THU_EVE_SUN"
   | "FRI_MORN_SUN"
   | "FRI_EVE_MON"
+  | "WED_EVE_SUN"
   | "THU_EVE_MON"
   | "FRI_MORN_MON"
   | "WED_EVE_MON"
@@ -89,9 +90,10 @@ export interface FlightResult {
   destination_flag: string
   window_start: string
   window_end: string
+  nights: number
+  al_days_required: number // AL days every member needs for this result
   per_member_flights: MemberFlight[]
   total_cost_gbp: number
-  al_efficiency_score: number // group score = min individual score
   value_label: "great" | "good" | "standard"
 }
 
