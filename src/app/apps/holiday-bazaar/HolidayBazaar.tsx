@@ -119,7 +119,9 @@ function LandingScreen({ onStart }: { onStart: () => void }) {
           cursor: "pointer",
           boxShadow: `0 0 32px rgba(240,180,40,0.35)`,
           transition: "transform 0.15s, box-shadow 0.15s",
-          minHeight: "48px",
+          minHeight: "52px",
+          WebkitTapHighlightColor: "transparent",
+          touchAction: "manipulation",
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLButtonElement).style.transform =
@@ -372,7 +374,9 @@ function NewTripScreen({ onBack }: { onBack: () => void }) {
               borderRadius: "12px",
               cursor: canSubmit && !loading ? "pointer" : "not-allowed",
               transition: "background 0.15s, color 0.15s",
-              minHeight: "52px",
+              minHeight: "56px",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
             }}
           >
             {loading ? "Opening the bazaar…" : "Create trip →"}

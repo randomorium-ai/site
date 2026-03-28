@@ -83,11 +83,11 @@ function MemberFlightRow({
   return (
     <div
       style={{
-        padding: "0.75rem 0",
+        padding: "0.875rem 0",
         borderBottom: `1px solid ${C.border}`,
         display: "flex",
         flexDirection: "column",
-        gap: "0.35rem",
+        gap: "0.4rem",
       }}
     >
       {/* Member name + AL days + price */}
@@ -138,9 +138,10 @@ function MemberFlightRow({
           display: "flex",
           alignItems: "center",
           gap: "0.4rem",
-          fontSize: "0.75rem",
+          fontSize: "0.78rem",
           color: C.muted,
           fontFamily: "var(--font-geist-mono)",
+          flexWrap: "wrap",
         }}
       >
         <span style={{ color: C.text }}>
@@ -160,9 +161,10 @@ function MemberFlightRow({
           display: "flex",
           alignItems: "center",
           gap: "0.4rem",
-          fontSize: "0.75rem",
+          fontSize: "0.78rem",
           color: C.muted,
           fontFamily: "var(--font-geist-mono)",
+          flexWrap: "wrap",
         }}
       >
         <span style={{ color: C.text }}>
@@ -216,6 +218,9 @@ function DestinationCard({
           cursor: "pointer",
           textAlign: "left",
           gap: "0.75rem",
+          minHeight: "72px",
+          WebkitTapHighlightColor: "transparent",
+          touchAction: "manipulation",
         }}
       >
         {/* Flag + rank */}
@@ -415,19 +420,21 @@ function DestinationCard({
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                padding: "0.65rem 1.25rem",
+                padding: "0.75rem 1.5rem",
                 background: C.amber,
                 color: "#0D0800",
                 fontFamily: "var(--font-geist-mono)",
-                fontSize: "0.75rem",
+                fontSize: "0.8rem",
                 fontWeight: 700,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
                 borderRadius: "100px",
                 textDecoration: "none",
-                minHeight: "40px",
+                minHeight: "48px",
                 display: "flex",
                 alignItems: "center",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
               }}
             >
               Search flights →

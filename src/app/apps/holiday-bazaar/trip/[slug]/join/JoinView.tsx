@@ -729,6 +729,7 @@ export default function JoinView({ slug }: { slug: string }) {
   // Step helpers
   const STEPS: Step[] = ["name", "al", "airports", "calendar"];
   const stepIndex = STEPS.indexOf(step);
+  const stickyBottom = step === "calendar";
 
   function nextStep() {
     setError("");
@@ -928,9 +929,11 @@ export default function JoinView({ slug }: { slug: string }) {
     fontSize: "1rem",
     fontFamily: "var(--font-geist-sans)",
     outline: "none",
-    minHeight: "48px",
+    minHeight: "52px",
     boxSizing: "border-box",
     transition: "border-color 0.15s",
+    WebkitTapHighlightColor: "transparent",
+    touchAction: "manipulation",
   };
 
   const labelStyle: React.CSSProperties = {
@@ -952,6 +955,9 @@ export default function JoinView({ slug }: { slug: string }) {
         background: `radial-gradient(ellipse 80% 40% at 50% 0%, rgba(240,180,40,0.08) 0%, transparent 60%), ${C.bg}`,
         color: C.text,
         fontFamily: "var(--font-geist-sans)",
+        // Extra bottom padding when CTA is sticky so content isn't hidden under it
+        paddingBottom: stickyBottom ? "96px" : 0,
+        boxSizing: "border-box",
       }}
     >
       {/* Header */}
@@ -979,7 +985,12 @@ export default function JoinView({ slug }: { slug: string }) {
             cursor: "pointer",
             fontFamily: "var(--font-geist-mono)",
             letterSpacing: "0.05em",
-            padding: 0,
+            padding: "0.5rem 0",
+            minHeight: "44px",
+            display: "flex",
+            alignItems: "center",
+            WebkitTapHighlightColor: "transparent",
+            touchAction: "manipulation",
           }}
         >
           ← {stepIndex > 0 ? "back" : "trip"}
@@ -1319,30 +1330,34 @@ export default function JoinView({ slug }: { slug: string }) {
           </p>
         )}
 
-        {/* Continue button */}
-        <button
-          onClick={handleNext}
-          disabled={!canContinue}
-          style={{
-            width: "100%",
-            padding: "0.9rem",
-            marginTop: "1.75rem",
-            background: canContinue ? C.amber : "rgba(240,180,40,0.2)",
-            color: canContinue ? "#0D0800" : "rgba(240,180,40,0.4)",
-            fontFamily: "var(--font-geist-mono)",
-            fontSize: "0.8rem",
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            border: "none",
-            borderRadius: "12px",
-            cursor: canContinue ? "pointer" : "not-allowed",
-            minHeight: "52px",
-            transition: "background 0.15s, color 0.15s",
-          }}
-        >
-          {step === "calendar" ? "Add me to the trip →" : "Continue →"}
-        </button>
+        {/* Continue button — inline (non-calendar steps) */}
+        {!stickyBottom && (
+          <button
+            onClick={handleNext}
+            disabled={!canContinue}
+            style={{
+              width: "100%",
+              padding: "0.9rem",
+              marginTop: "1.75rem",
+              background: canContinue ? C.amber : "rgba(240,180,40,0.2)",
+              color: canContinue ? "#0D0800" : "rgba(240,180,40,0.4)",
+              fontFamily: "var(--font-geist-mono)",
+              fontSize: "0.85rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              border: "none",
+              borderRadius: "12px",
+              cursor: canContinue ? "pointer" : "not-allowed",
+              minHeight: "56px",
+              transition: "background 0.15s, color 0.15s",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            Continue →
+          </button>
+        )}
 
         {/* Hat banner */}
         <a
@@ -1357,12 +1372,74 @@ export default function JoinView({ slug }: { slug: string }) {
             paddingTop: "1rem",
             marginTop: "2rem",
             textAlign: "center",
+            display: "block",
           }}
         >
           Part of randomorium.ai &nbsp;·&nbsp;{" "}
           <span style={{ color: C.amber }}>Buy a travel hat →</span>
         </a>
       </div>
+
+      {/* Sticky bottom CTA — calendar step only */}
+      {stickyBottom && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: "0.75rem 1.25rem",
+            paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
+            background: "rgba(13, 8, 0, 0.92)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            borderTop: `1px solid ${C.border}`,
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.4rem",
+            zIndex: 50,
+          }}
+        >
+          {selectedWindowKeys.size > 0 && (
+            <p
+              style={{
+                fontSize: "0.72rem",
+                color: C.amber,
+                fontFamily: "var(--font-geist-mono)",
+                textAlign: "center",
+                margin: 0,
+              }}
+            >
+              {selectedWindowKeys.size} window
+              {selectedWindowKeys.size === 1 ? "" : "s"} selected
+            </p>
+          )}
+          <button
+            onClick={handleNext}
+            disabled={!canContinue}
+            style={{
+              width: "100%",
+              padding: "0.9rem",
+              background: canContinue ? C.amber : "rgba(240,180,40,0.2)",
+              color: canContinue ? "#0D0800" : "rgba(240,180,40,0.4)",
+              fontFamily: "var(--font-geist-mono)",
+              fontSize: "0.85rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              border: "none",
+              borderRadius: "12px",
+              cursor: canContinue ? "pointer" : "not-allowed",
+              minHeight: "56px",
+              transition: "background 0.15s, color 0.15s",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            Add me to the trip →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -564,19 +564,21 @@ function WindowCard({
           <a
             href={`/apps/holiday-bazaar/trip/${slug}/flights?window_start=${w.start_date}&window_end=${w.end_date}`}
             style={{
-              padding: "0.35rem 0.9rem",
+              padding: "0.5rem 1.1rem",
               background: C.amber,
               color: "#0D0800",
               fontFamily: "var(--font-geist-mono)",
-              fontSize: "0.65rem",
+              fontSize: "0.7rem",
               fontWeight: 700,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
               borderRadius: "100px",
               textDecoration: "none",
-              minHeight: "32px",
+              minHeight: "44px",
               display: "flex",
               alignItems: "center",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -871,7 +873,9 @@ export default function TripView({ slug }: { slug: string }) {
               border: "none",
               borderRadius: "100px",
               cursor: "pointer",
-              minHeight: "44px",
+              minHeight: "48px",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
             }}
           >
             Share link →
@@ -915,7 +919,8 @@ export default function TripView({ slug }: { slug: string }) {
               <a
                 href={`/apps/holiday-bazaar/trip/${slug}/join`}
                 style={{
-                  display: "inline-block",
+                  display: "inline-flex",
+                  alignItems: "center",
                   padding: "0.7rem 1.5rem",
                   background: C.surface,
                   border: `1px solid ${C.border}`,
@@ -927,9 +932,10 @@ export default function TripView({ slug }: { slug: string }) {
                   textTransform: "uppercase",
                   borderRadius: "100px",
                   textDecoration: "none",
-                  minHeight: "44px",
-                  lineHeight: "28px",
+                  minHeight: "48px",
                   boxSizing: "border-box",
+                  WebkitTapHighlightColor: "transparent",
+                  touchAction: "manipulation",
                 }}
               >
                 Add my dates →
