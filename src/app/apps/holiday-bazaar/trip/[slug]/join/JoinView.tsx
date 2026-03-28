@@ -10,24 +10,7 @@ import type {
   MemberWithAvailability,
   GuestSession,
 } from "@/lib/holiday-bazaar/types";
-
-// ── Palette ──────────────────────────────────────────────────────────────────
-const C = {
-  bg: "#0D0800",
-  surface: "rgba(255, 255, 255, 0.04)",
-  surfaceHover: "rgba(255, 255, 255, 0.08)",
-  border: "rgba(255, 255, 255, 0.09)",
-  borderActive: "rgba(240, 180, 40, 0.6)",
-  amber: "#F0B429",
-  amberDim: "rgba(240, 180, 40, 0.12)",
-  green: "#4ADE80",
-  greenDim: "rgba(74, 222, 128, 0.12)",
-  cream: "#F0E8D5",
-  text: "rgba(255, 255, 255, 0.88)",
-  muted: "rgba(255, 255, 255, 0.42)",
-  border2: "rgba(255, 255, 255, 0.06)",
-  danger: "#E85D5D",
-};
+import { ThemeProvider, ThemeToggle, useTheme } from "../../../theme";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -238,6 +221,7 @@ function groupWindowsByMonth(
 // ── Step indicator ────────────────────────────────────────────────────────────
 
 function StepDots({ step, total }: { step: number; total: number }) {
+  const { C } = useTheme();
   return (
     <div
       style={{
@@ -277,6 +261,7 @@ function AirportPicker({
   selected: Airport[];
   onChange: (airports: Airport[]) => void;
 }) {
+  const { C } = useTheme();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -325,7 +310,7 @@ function AirportPicker({
                 borderRadius: "100px",
                 fontSize: "0.8rem",
                 color: C.amber,
-                fontFamily: "var(--font-geist-mono)",
+                fontFamily: C.fontMono,
               }}
             >
               <span>{a.iata}</span>
@@ -333,7 +318,7 @@ function AirportPicker({
                 style={{
                   fontSize: "0.7rem",
                   color: C.muted,
-                  fontFamily: "var(--font-geist-sans)",
+                  fontFamily: C.fontDisplay,
                 }}
               >
                 {a.city}
@@ -381,7 +366,7 @@ function AirportPicker({
             borderRadius: "12px",
             color: C.text,
             fontSize: "1rem",
-            fontFamily: "var(--font-geist-sans)",
+            fontFamily: C.fontDisplay,
             outline: "none",
             minHeight: "48px",
             boxSizing: "border-box",
@@ -398,7 +383,7 @@ function AirportPicker({
             top: "calc(100% + 6px)",
             left: 0,
             right: 0,
-            background: "#1A1200",
+            background: C.surfaceElevated,
             border: `1px solid ${C.border}`,
             borderRadius: "12px",
             overflow: "hidden",
@@ -429,7 +414,7 @@ function AirportPicker({
               >
                 <span
                   style={{
-                    fontFamily: "var(--font-geist-mono)",
+                    fontFamily: C.fontMono,
                     fontSize: "0.8rem",
                     color: C.amber,
                     minWidth: "36px",
@@ -476,6 +461,7 @@ function WindowPicker({
   onToggle: (key: string) => void;
   otherMembers: MemberWithAvailability[];
 }) {
+  const { C } = useTheme();
   const windows = useMemo(
     () => generateWindows(alBudget, otherMembers),
     [alBudget, otherMembers],
@@ -501,7 +487,7 @@ function WindowPicker({
             gap: "1rem",
             fontSize: "0.7rem",
             color: C.muted,
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
           }}
         >
           <span
@@ -540,7 +526,7 @@ function WindowPicker({
           {/* Month header */}
           <p
             style={{
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
               fontSize: "0.65rem",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
@@ -596,7 +582,7 @@ function WindowPicker({
                       flexShrink: 0,
                       transition: "all 0.12s",
                       fontSize: "0.7rem",
-                      color: "#0D0800",
+                      color: C.bg,
                       fontWeight: 700,
                     }}
                   >
@@ -640,7 +626,7 @@ function WindowPicker({
                       style={{
                         fontSize: "0.72rem",
                         color: C.muted,
-                        fontFamily: "var(--font-geist-mono)",
+                        fontFamily: C.fontMono,
                       }}
                     >
                       {w.pattern_note} · {w.nights} night
@@ -661,8 +647,9 @@ function WindowPicker({
 
 type Step = "name" | "al" | "airports" | "calendar" | "submitting";
 
-export default function JoinView({ slug }: { slug: string }) {
+function JoinViewInner({ slug }: { slug: string }) {
   const router = useRouter();
+  const { C } = useTheme();
 
   // Trip + existing members
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -827,7 +814,7 @@ export default function JoinView({ slug }: { slug: string }) {
           style={{
             fontSize: "0.8rem",
             color: C.muted,
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
           }}
         >
           Opening the bazaar…
@@ -876,7 +863,7 @@ export default function JoinView({ slug }: { slug: string }) {
           style={{
             marginTop: "1.5rem",
             fontSize: "0.8rem",
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
             color: C.amber,
             textDecoration: "none",
           }}
@@ -907,7 +894,7 @@ export default function JoinView({ slug }: { slug: string }) {
           style={{
             fontSize: "0.875rem",
             color: C.muted,
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
           }}
         >
           Adding you to the group…
@@ -926,7 +913,7 @@ export default function JoinView({ slug }: { slug: string }) {
     borderRadius: "12px",
     color: C.text,
     fontSize: "1rem",
-    fontFamily: "var(--font-geist-sans)",
+    fontFamily: C.fontDisplay,
     outline: "none",
     minHeight: "52px",
     boxSizing: "border-box",
@@ -937,7 +924,7 @@ export default function JoinView({ slug }: { slug: string }) {
 
   const labelStyle: React.CSSProperties = {
     display: "block",
-    fontFamily: "var(--font-geist-mono)",
+    fontFamily: C.fontMono,
     fontSize: "0.65rem",
     letterSpacing: "0.15em",
     textTransform: "uppercase",
@@ -951,9 +938,9 @@ export default function JoinView({ slug }: { slug: string }) {
     <div
       style={{
         minHeight: "100svh",
-        background: `radial-gradient(ellipse 80% 40% at 50% 0%, rgba(240,180,40,0.08) 0%, transparent 60%), ${C.bg}`,
+        background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${C.gradientAccent} 0%, transparent 60%), ${C.bg}`,
         color: C.text,
-        fontFamily: "var(--font-geist-sans)",
+        fontFamily: C.fontDisplay,
         // Extra bottom padding when CTA is sticky so content isn't hidden under it
         paddingBottom: stickyBottom ? "96px" : 0,
         boxSizing: "border-box",
@@ -982,7 +969,7 @@ export default function JoinView({ slug }: { slug: string }) {
             color: C.muted,
             fontSize: "0.8rem",
             cursor: "pointer",
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
             letterSpacing: "0.05em",
             padding: "0.5rem 0",
             minHeight: "44px",
@@ -994,17 +981,20 @@ export default function JoinView({ slug }: { slug: string }) {
         >
           ← {stepIndex > 0 ? "back" : "trip"}
         </button>
-        <span
-          style={{
-            fontSize: "0.65rem",
-            fontFamily: "var(--font-geist-mono)",
-            color: C.muted,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-          }}
-        >
-          {trip.name}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <ThemeToggle />
+          <span
+            style={{
+              fontSize: "0.65rem",
+              fontFamily: C.fontMono,
+              color: C.muted,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            {trip.name}
+          </span>
+        </div>
       </div>
 
       <div
@@ -1027,7 +1017,7 @@ export default function JoinView({ slug }: { slug: string }) {
             <div>
               <p
                 style={{
-                  fontFamily: "var(--font-geist-mono)",
+                  fontFamily: C.fontMono,
                   fontSize: "0.65rem",
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
@@ -1102,7 +1092,7 @@ export default function JoinView({ slug }: { slug: string }) {
             <div>
               <p
                 style={{
-                  fontFamily: "var(--font-geist-mono)",
+                  fontFamily: C.fontMono,
                   fontSize: "0.65rem",
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
@@ -1165,7 +1155,7 @@ export default function JoinView({ slug }: { slug: string }) {
                     border: `1px solid ${alDays === n ? C.borderActive : C.border}`,
                     borderRadius: "12px",
                     color: alDays === n ? C.amber : C.text,
-                    fontFamily: "var(--font-geist-mono)",
+                    fontFamily: C.fontMono,
                     fontSize: "1.1rem",
                     fontWeight: 700,
                     cursor: "pointer",
@@ -1186,7 +1176,7 @@ export default function JoinView({ slug }: { slug: string }) {
                     border: `1px solid ${alDays === n ? C.borderActive : C.border}`,
                     borderRadius: "12px",
                     color: alDays === n ? C.amber : C.text,
-                    fontFamily: "var(--font-geist-mono)",
+                    fontFamily: C.fontMono,
                     fontSize: "1.1rem",
                     fontWeight: 700,
                     cursor: "pointer",
@@ -1224,7 +1214,7 @@ export default function JoinView({ slug }: { slug: string }) {
             <div>
               <p
                 style={{
-                  fontFamily: "var(--font-geist-mono)",
+                  fontFamily: C.fontMono,
                   fontSize: "0.65rem",
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
@@ -1269,7 +1259,7 @@ export default function JoinView({ slug }: { slug: string }) {
             <div>
               <p
                 style={{
-                  fontFamily: "var(--font-geist-mono)",
+                  fontFamily: C.fontMono,
                   fontSize: "0.65rem",
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
@@ -1339,8 +1329,8 @@ export default function JoinView({ slug }: { slug: string }) {
               padding: "0.9rem",
               marginTop: "1.75rem",
               background: canContinue ? C.amber : "rgba(240,180,40,0.2)",
-              color: canContinue ? "#0D0800" : "rgba(240,180,40,0.4)",
-              fontFamily: "var(--font-geist-mono)",
+              color: canContinue ? C.bg : "rgba(240,180,40,0.4)",
+              fontFamily: C.fontMono,
               fontSize: "0.85rem",
               fontWeight: 700,
               letterSpacing: "0.08em",
@@ -1404,7 +1394,7 @@ export default function JoinView({ slug }: { slug: string }) {
               style={{
                 fontSize: "0.72rem",
                 color: C.amber,
-                fontFamily: "var(--font-geist-mono)",
+                fontFamily: C.fontMono,
                 textAlign: "center",
                 margin: 0,
               }}
@@ -1420,8 +1410,8 @@ export default function JoinView({ slug }: { slug: string }) {
               width: "100%",
               padding: "0.9rem",
               background: canContinue ? C.amber : "rgba(240,180,40,0.2)",
-              color: canContinue ? "#0D0800" : "rgba(240,180,40,0.4)",
-              fontFamily: "var(--font-geist-mono)",
+              color: canContinue ? C.bg : "rgba(240,180,40,0.4)",
+              fontFamily: C.fontMono,
               fontSize: "0.85rem",
               fontWeight: 700,
               letterSpacing: "0.08em",
@@ -1440,5 +1430,13 @@ export default function JoinView({ slug }: { slug: string }) {
         </div>
       )}
     </div>
+  );
+}
+
+export default function JoinView({ slug }: { slug: string }) {
+  return (
+    <ThemeProvider>
+      <JoinViewInner slug={slug} />
+    </ThemeProvider>
   );
 }

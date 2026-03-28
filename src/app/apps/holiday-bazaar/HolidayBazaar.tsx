@@ -2,21 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-// ── Palette — matches the souk dark theme ────────────────────────────────────
-const C = {
-  bg: "#0D0800",
-  surface: "rgba(255, 255, 255, 0.04)",
-  surfaceHover: "rgba(255, 255, 255, 0.07)",
-  border: "rgba(255, 255, 255, 0.09)",
-  borderActive: "rgba(240, 180, 40, 0.6)",
-  amber: "#F0B429",
-  amberDim: "rgba(240, 180, 40, 0.15)",
-  cream: "#F0E8D5",
-  text: "rgba(255, 255, 255, 0.88)",
-  muted: "rgba(255, 255, 255, 0.42)",
-  danger: "#E85D5D",
-};
+import { ThemeProvider, ThemeToggle, useTheme } from "./theme";
 
 type Screen = "landing" | "new-trip" | "creating";
 
@@ -36,6 +22,7 @@ function saveGuestSession(memberId: string, tripId: string) {
 // ── Landing screen ───────────────────────────────────────────────────────────
 
 function LandingScreen({ onStart }: { onStart: () => void }) {
+  const { C } = useTheme();
   return (
     <div
       style={{
@@ -46,9 +33,14 @@ function LandingScreen({ onStart }: { onStart: () => void }) {
         minHeight: "100svh",
         padding: "2rem 1.5rem 4rem",
         textAlign: "center",
-        background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(240,180,40,0.12) 0%, transparent 70%), ${C.bg}`,
+        background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${C.gradientAccent} 0%, transparent 70%), ${C.bg}`,
       }}
     >
+      {/* Theme toggle — top right */}
+      <div style={{ position: "absolute", top: "1.25rem", right: "1.25rem" }}>
+        <ThemeToggle />
+      </div>
+
       {/* Lanterns */}
       <div
         style={{ fontSize: "2.5rem", marginBottom: "1.5rem", lineHeight: 1 }}
@@ -59,7 +51,7 @@ function LandingScreen({ onStart }: { onStart: () => void }) {
       {/* Eyebrow */}
       <p
         style={{
-          fontFamily: "var(--font-geist-mono)",
+          fontFamily: C.fontMono,
           fontSize: "0.65rem",
           letterSpacing: "0.18em",
           textTransform: "uppercase",
@@ -76,6 +68,7 @@ function LandingScreen({ onStart }: { onStart: () => void }) {
         style={{
           fontSize: "clamp(2rem, 8vw, 3rem)",
           fontWeight: 700,
+          fontFamily: C.fontDisplay,
           color: C.cream,
           lineHeight: 1.15,
           marginBottom: "0.75rem",
@@ -108,8 +101,8 @@ function LandingScreen({ onStart }: { onStart: () => void }) {
         style={{
           padding: "0.9rem 2.5rem",
           background: C.amber,
-          color: "#0D0800",
-          fontFamily: "var(--font-geist-mono)",
+          color: C.bg,
+          fontFamily: C.fontMono,
           fontSize: "0.8rem",
           fontWeight: 700,
           letterSpacing: "0.08em",
@@ -186,6 +179,7 @@ function LandingScreen({ onStart }: { onStart: () => void }) {
 
 function NewTripScreen({ onBack }: { onBack: () => void }) {
   const router = useRouter();
+  const { C } = useTheme();
   const [tripName, setTripName] = useState("");
   const [yourName, setYourName] = useState("");
   const [error, setError] = useState("");
@@ -229,7 +223,7 @@ function NewTripScreen({ onBack }: { onBack: () => void }) {
     borderRadius: "12px",
     color: C.text,
     fontSize: "1rem",
-    fontFamily: "var(--font-geist-sans)",
+    fontFamily: C.fontDisplay,
     outline: "none",
     transition: "border-color 0.15s",
     minHeight: "48px",
@@ -238,7 +232,7 @@ function NewTripScreen({ onBack }: { onBack: () => void }) {
 
   const labelStyle: React.CSSProperties = {
     display: "block",
-    fontFamily: "var(--font-geist-mono)",
+    fontFamily: C.fontMono,
     fontSize: "0.65rem",
     letterSpacing: "0.15em",
     textTransform: "uppercase",
@@ -255,7 +249,7 @@ function NewTripScreen({ onBack }: { onBack: () => void }) {
         justifyContent: "center",
         minHeight: "100svh",
         padding: "2rem 1.5rem 4rem",
-        background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(240,180,40,0.10) 0%, transparent 70%), ${C.bg}`,
+        background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${C.gradientAccent} 0%, transparent 70%), ${C.bg}`,
       }}
     >
       <div style={{ width: "100%", maxWidth: "380px" }}>
@@ -269,7 +263,7 @@ function NewTripScreen({ onBack }: { onBack: () => void }) {
             fontSize: "0.8rem",
             cursor: "pointer",
             padding: "0 0 1.5rem",
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
             letterSpacing: "0.05em",
           }}
         >
@@ -280,7 +274,7 @@ function NewTripScreen({ onBack }: { onBack: () => void }) {
         <div style={{ marginBottom: "2rem" }}>
           <p
             style={{
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
               fontSize: "0.65rem",
               letterSpacing: "0.18em",
               textTransform: "uppercase",
@@ -364,8 +358,8 @@ function NewTripScreen({ onBack }: { onBack: () => void }) {
               padding: "0.9rem",
               background:
                 canSubmit && !loading ? C.amber : "rgba(240,180,40,0.25)",
-              color: canSubmit && !loading ? "#0D0800" : "rgba(240,180,40,0.5)",
-              fontFamily: "var(--font-geist-mono)",
+              color: canSubmit && !loading ? C.bg : "rgba(240,180,40,0.5)",
+              fontFamily: C.fontMono,
               fontSize: "0.8rem",
               fontWeight: 700,
               letterSpacing: "0.08em",
@@ -401,7 +395,7 @@ function NewTripScreen({ onBack }: { onBack: () => void }) {
 
 // ── Root ─────────────────────────────────────────────────────────────────────
 
-export default function HolidayBazaar() {
+function HolidayBazaarInner() {
   const [screen, setScreen] = useState<Screen>("landing");
 
   if (screen === "landing") {
@@ -409,4 +403,12 @@ export default function HolidayBazaar() {
   }
 
   return <NewTripScreen onBack={() => setScreen("landing")} />;
+}
+
+export default function HolidayBazaar() {
+  return (
+    <ThemeProvider>
+      <HolidayBazaarInner />
+    </ThemeProvider>
+  );
 }

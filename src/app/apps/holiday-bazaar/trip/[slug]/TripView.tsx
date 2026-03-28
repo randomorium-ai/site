@@ -13,24 +13,7 @@ import {
   formatWindowDates,
   windowNightsLabel,
 } from "@/lib/holiday-bazaar/scoring";
-
-// ── Palette ──────────────────────────────────────────────────────────────────
-const C = {
-  bg: "#0D0800",
-  surface: "rgba(255, 255, 255, 0.04)",
-  surfaceHover: "rgba(255, 255, 255, 0.07)",
-  border: "rgba(255, 255, 255, 0.09)",
-  borderActive: "rgba(240, 180, 40, 0.6)",
-  amber: "#F0B429",
-  amberDim: "rgba(240, 180, 40, 0.12)",
-  green: "#4ADE80",
-  greenDim: "rgba(74, 222, 128, 0.12)",
-  cream: "#F0E8D5",
-  text: "rgba(255, 255, 255, 0.88)",
-  muted: "rgba(255, 255, 255, 0.42)",
-  subtle: "rgba(255, 255, 255, 0.18)",
-  danger: "#E85D5D",
-};
+import { ThemeProvider, ThemeToggle, useTheme } from "../../theme";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -78,6 +61,7 @@ function Avatar({
   isYou: boolean;
   hasAvailability: boolean;
 }) {
+  const { C } = useTheme();
   return (
     <div
       style={{
@@ -100,7 +84,7 @@ function Avatar({
           fontSize: "0.75rem",
           fontWeight: 700,
           color: isYou ? C.amber : hasAvailability ? C.green : C.muted,
-          fontFamily: "var(--font-geist-mono)",
+          fontFamily: C.fontMono,
           flexShrink: 0,
           position: "relative",
         }}
@@ -125,7 +109,7 @@ function Avatar({
         style={{
           fontSize: "0.65rem",
           color: isYou ? C.amber : C.muted,
-          fontFamily: "var(--font-geist-mono)",
+          fontFamily: C.fontMono,
           maxWidth: "52px",
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -150,6 +134,7 @@ function ShareSheet({
   tripName: string;
   onClose: () => void;
 }) {
+  const { C } = useTheme();
   const [copied, setCopied] = useState(false);
   const url = `${typeof window !== "undefined" ? window.location.origin : "https://randomorium.ai"}/apps/holiday-bazaar/trip/${tripId}`;
   const waText = encodeURIComponent(
@@ -192,7 +177,7 @@ function ShareSheet({
     >
       <div
         style={{
-          background: "#1A1200",
+          background: C.surfaceElevated,
           border: `1px solid ${C.border}`,
           borderRadius: "20px 20px 0 0",
           padding: "1.5rem 1.5rem 2rem",
@@ -214,7 +199,7 @@ function ShareSheet({
 
         <p
           style={{
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
             fontSize: "0.65rem",
             letterSpacing: "0.15em",
             textTransform: "uppercase",
@@ -245,7 +230,7 @@ function ShareSheet({
             marginBottom: "1rem",
             fontSize: "0.75rem",
             color: C.muted,
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
             wordBreak: "break-all",
           }}
         >
@@ -266,7 +251,7 @@ function ShareSheet({
               border: `1px solid ${copied ? C.green : C.borderActive}`,
               borderRadius: "12px",
               color: copied ? C.green : C.amber,
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
               fontSize: "0.8rem",
               fontWeight: 700,
               letterSpacing: "0.08em",
@@ -292,7 +277,7 @@ function ShareSheet({
               border: "1px solid rgba(37, 211, 102, 0.3)",
               borderRadius: "12px",
               color: "#25D366",
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
               fontSize: "0.8rem",
               fontWeight: 700,
               letterSpacing: "0.08em",
@@ -318,7 +303,7 @@ function ShareSheet({
                 border: `1px solid ${C.border}`,
                 borderRadius: "12px",
                 color: C.muted,
-                fontFamily: "var(--font-geist-mono)",
+                fontFamily: C.fontMono,
                 fontSize: "0.8rem",
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
@@ -344,6 +329,7 @@ function MemberCard({
   member: MemberWithAvailability;
   isYou: boolean;
 }) {
+  const { C } = useTheme();
   const submitted = hasSubmittedAvailability(member);
   return (
     <div
@@ -370,7 +356,7 @@ function MemberCard({
           fontSize: "0.7rem",
           fontWeight: 700,
           color: isYou ? C.amber : submitted ? C.green : C.muted,
-          fontFamily: "var(--font-geist-mono)",
+          fontFamily: C.fontMono,
           flexShrink: 0,
         }}
       >
@@ -386,7 +372,7 @@ function MemberCard({
             <span
               style={{
                 fontSize: "0.6rem",
-                fontFamily: "var(--font-geist-mono)",
+                fontFamily: C.fontMono,
                 color: C.amber,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
@@ -408,7 +394,7 @@ function MemberCard({
       <div
         style={{
           fontSize: "0.65rem",
-          fontFamily: "var(--font-geist-mono)",
+          fontFamily: C.fontMono,
           color: submitted ? C.green : C.muted,
           letterSpacing: "0.05em",
           flexShrink: 0,
@@ -437,6 +423,7 @@ function WindowCard({
   canFindFlights: boolean;
   slug: string;
 }) {
+  const { C } = useTheme();
   const isTop = rank === 0;
   const isFull = w.quorum === "full";
   const accentColor = isFull ? C.green : C.amber;
@@ -472,9 +459,9 @@ function WindowCard({
             top: "0.75rem",
             right: "0.75rem",
             background: accentColor,
-            color: "#0D0800",
+            color: C.bg,
             fontSize: "0.6rem",
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
             fontWeight: 700,
             letterSpacing: "0.1em",
             textTransform: "uppercase",
@@ -502,7 +489,7 @@ function WindowCard({
             marginLeft: "0.6rem",
             fontSize: "0.72rem",
             color: C.muted,
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
           }}
         >
           {windowNightsLabel(w)}
@@ -515,7 +502,7 @@ function WindowCard({
           fontSize: "0.75rem",
           color: C.muted,
           marginBottom: "0.6rem",
-          fontFamily: "var(--font-geist-mono)",
+          fontFamily: C.fontMono,
         }}
       >
         {w.al_days_required === 0
@@ -550,7 +537,7 @@ function WindowCard({
             border: `1px solid ${accentBorder}`,
             borderRadius: "100px",
             fontSize: "0.65rem",
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
             color: accentColor,
             letterSpacing: "0.05em",
           }}
@@ -566,8 +553,8 @@ function WindowCard({
             style={{
               padding: "0.5rem 1.1rem",
               background: C.amber,
-              color: "#0D0800",
-              fontFamily: "var(--font-geist-mono)",
+              color: C.bg,
+              fontFamily: C.fontMono,
               fontSize: "0.7rem",
               fontWeight: 700,
               letterSpacing: "0.08em",
@@ -594,6 +581,7 @@ function WindowCard({
 }
 
 function NotFound() {
+  const { C } = useTheme();
   return (
     <div
       style={{
@@ -633,7 +621,7 @@ function NotFound() {
         style={{
           marginTop: "1.5rem",
           fontSize: "0.8rem",
-          fontFamily: "var(--font-geist-mono)",
+          fontFamily: C.fontMono,
           color: C.amber,
           textDecoration: "none",
           letterSpacing: "0.08em",
@@ -647,7 +635,8 @@ function NotFound() {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function TripView({ slug }: { slug: string }) {
+function TripViewInner({ slug }: { slug: string }) {
+  const { C } = useTheme();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [members, setMembers] = useState<MemberWithAvailability[]>([]);
   const [loading, setLoading] = useState(true);
@@ -712,7 +701,7 @@ export default function TripView({ slug }: { slug: string }) {
           style={{
             fontSize: "0.8rem",
             color: C.muted,
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
           }}
         >
           Opening the bazaar…
@@ -731,9 +720,9 @@ export default function TripView({ slug }: { slug: string }) {
     <div
       style={{
         minHeight: "100svh",
-        background: `radial-gradient(ellipse 80% 40% at 50% 0%, rgba(240,180,40,0.08) 0%, transparent 60%), ${C.bg}`,
+        background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${C.gradientAccent} 0%, transparent 60%), ${C.bg}`,
         color: C.text,
-        fontFamily: "var(--font-geist-sans)",
+        fontFamily: C.fontDisplay,
       }}
     >
       {/* Header */}
@@ -751,7 +740,7 @@ export default function TripView({ slug }: { slug: string }) {
           href="/apps/holiday-bazaar"
           style={{
             fontSize: "0.75rem",
-            fontFamily: "var(--font-geist-mono)",
+            fontFamily: C.fontMono,
             color: C.muted,
             textDecoration: "none",
             letterSpacing: "0.05em",
@@ -759,17 +748,20 @@ export default function TripView({ slug }: { slug: string }) {
         >
           ← bazaar
         </a>
-        <span
-          style={{
-            fontSize: "0.65rem",
-            fontFamily: "var(--font-geist-mono)",
-            color: C.muted,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-          }}
-        >
-          {slug}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <ThemeToggle />
+          <span
+            style={{
+              fontSize: "0.65rem",
+              fontFamily: C.fontMono,
+              color: C.muted,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            {slug}
+          </span>
+        </div>
       </div>
 
       <div
@@ -786,7 +778,7 @@ export default function TripView({ slug }: { slug: string }) {
         <div>
           <p
             style={{
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
               fontSize: "0.65rem",
               letterSpacing: "0.15em",
               textTransform: "uppercase",
@@ -864,8 +856,8 @@ export default function TripView({ slug }: { slug: string }) {
             style={{
               padding: "0.7rem 1.5rem",
               background: C.amber,
-              color: "#0D0800",
-              fontFamily: "var(--font-geist-mono)",
+              color: C.bg,
+              fontFamily: C.fontMono,
               fontSize: "0.75rem",
               fontWeight: 700,
               letterSpacing: "0.08em",
@@ -925,7 +917,7 @@ export default function TripView({ slug }: { slug: string }) {
                   background: C.surface,
                   border: `1px solid ${C.border}`,
                   color: C.text,
-                  fontFamily: "var(--font-geist-mono)",
+                  fontFamily: C.fontMono,
                   fontSize: "0.75rem",
                   fontWeight: 600,
                   letterSpacing: "0.08em",
@@ -947,7 +939,7 @@ export default function TripView({ slug }: { slug: string }) {
         <div>
           <p
             style={{
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
               fontSize: "0.65rem",
               letterSpacing: "0.15em",
               textTransform: "uppercase",
@@ -974,7 +966,7 @@ export default function TripView({ slug }: { slug: string }) {
         <div>
           <p
             style={{
-              fontFamily: "var(--font-geist-mono)",
+              fontFamily: C.fontMono,
               fontSize: "0.65rem",
               letterSpacing: "0.15em",
               textTransform: "uppercase",
@@ -1077,5 +1069,13 @@ export default function TripView({ slug }: { slug: string }) {
         />
       )}
     </div>
+  );
+}
+
+export default function TripView({ slug }: { slug: string }) {
+  return (
+    <ThemeProvider>
+      <TripViewInner slug={slug} />
+    </ThemeProvider>
   );
 }
