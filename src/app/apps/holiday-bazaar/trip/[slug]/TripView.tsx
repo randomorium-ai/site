@@ -293,7 +293,7 @@ function ShareSheet({
           </a>
 
           {/* Native share (mobile) */}
-          {typeof window !== "undefined" && !!navigator.share && (
+          {!!navigator.share && (
             <button
               onClick={nativeShare}
               style={{
@@ -874,66 +874,67 @@ function TripViewInner({ slug }: { slug: string }) {
           </button>
         </div>
 
-        {/* Add your availability CTA — shown if the current user hasn't submitted yet */}
-        {session &&
+        {/* Add your availability CTA — shown to new joiners (no session) or members who haven't submitted yet */}
+        {(!session ||
           members.find(
             (m) => m.id === session.member_id && !hasSubmittedAvailability(m),
-          ) && (
-            <div
+          )) && (
+          <div
+            style={{
+              background: C.surface,
+              border: `1px solid ${C.border}`,
+              borderRadius: "14px",
+              padding: "1rem 1.25rem",
+            }}
+          >
+            <p
               style={{
-                background: C.surface,
-                border: `1px solid ${C.border}`,
-                borderRadius: "14px",
-                padding: "1rem 1.25rem",
+                fontSize: "0.875rem",
+                color: C.cream,
+                fontWeight: 600,
+                marginBottom: "0.25rem",
               }}
             >
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: C.cream,
-                  fontWeight: 600,
-                  marginBottom: "0.25rem",
-                }}
-              >
-                Your turn
-              </p>
-              <p
-                style={{
-                  fontSize: "0.8rem",
-                  color: C.muted,
-                  marginBottom: "1rem",
-                  lineHeight: 1.5,
-                }}
-              >
-                Add your available dates, departure airport, and how many AL
-                days you&apos;re happy to use.
-              </p>
-              <a
-                href={`/apps/holiday-bazaar/trip/${slug}/join`}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  padding: "0.7rem 1.5rem",
-                  background: C.surface,
-                  border: `1px solid ${C.border}`,
-                  color: C.text,
-                  fontFamily: C.fontMono,
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  borderRadius: "100px",
-                  textDecoration: "none",
-                  minHeight: "48px",
-                  boxSizing: "border-box",
-                  WebkitTapHighlightColor: "transparent",
-                  touchAction: "manipulation",
-                }}
-              >
-                Add my dates →
-              </a>
-            </div>
-          )}
+              {session ? "Your turn" : "Join this trip"}
+            </p>
+            <p
+              style={{
+                fontSize: "0.8rem",
+                color: C.muted,
+                marginBottom: "1rem",
+                lineHeight: 1.5,
+              }}
+            >
+              {session
+                ? "Add your available dates, departure airport, and how many AL days you're happy to use."
+                : "Add your dates and departure airport so we can find windows that work for everyone."}
+            </p>
+            <a
+              href={`/apps/holiday-bazaar/trip/${slug}/join`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "0.7rem 1.5rem",
+                background: C.amber,
+                border: "none",
+                color: C.bg,
+                fontFamily: C.fontMono,
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                borderRadius: "100px",
+                textDecoration: "none",
+                minHeight: "48px",
+                boxSizing: "border-box",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+              }}
+            >
+              {session ? "Add my dates →" : "Join the trip →"}
+            </a>
+          </div>
+        )}
 
         {/* Members list */}
         <div>
