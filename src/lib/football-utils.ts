@@ -40,9 +40,9 @@ export function nationalityFlag(nationality: string): string {
 // ── Position colours ───────────────────────────────────────────────────────
 
 export const POS_COLOR: Record<string, string> = {
-  GK:  "bg-amber-500 text-black",
+  GK:  "bg-amber-500 text-white",
   DEF: "bg-blue-600 text-white",
-  MID: "bg-emerald-600 text-white",
+  MID: "bg-[#1a7a3e] text-white",
   ATT: "bg-red-600 text-white",
 }
 

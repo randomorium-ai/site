@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { API_THEMES, type ApiPlayer, type ApiTheme } from '@/lib/football-api'
-import { FALLBACK_PLAYERS } from '@/data/football-fallback'
 import { nationalityFlag, POS_COLOR, scoreLabel } from '@/lib/football-utils'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -12,7 +11,7 @@ const PICKS_PER_PLAYER = 3
 const STORAGE_KEY = 'nf_the_number_v2'
 const SEARCH_DEBOUNCE_MS = 400
 
-type PosTab = 'popular' | 'GK' | 'DEF' | 'MID' | 'ATT'
+type PosTab = 'ALL' | 'GK' | 'DEF' | 'MID' | 'ATT'
 type Mode = 'solo' | 'two_player'
 type Phase = 'setup' | 'picking' | 'revealed'
 
@@ -32,8 +31,6 @@ function getDailyPuzzle() {
   const target = theme.targetMin + (s % (theme.targetMax - theme.targetMin))
   return { theme, target, dateStr }
 }
-
-// ─── Score helpers ────────────────────────────────────────────────────────────
 
 function calcScore(total: number, target: number): number {
   return Math.max(0, Math.round(1000 * (1 - Math.abs(total - target) / target)))
@@ -90,13 +87,14 @@ export default function TheNumberGame() {
   const [p2Picks, setP2Picks] = useState<ApiPlayer[]>([])
   const [turnIdx, setTurnIdx] = useState(0)
   const [search, setSearch] = useState('')
-  const [posTab, setPosTab] = useState<PosTab>('popular')
+  const [posTab, setPosTab] = useState<PosTab>('ALL')
   const [storage, setStorage] = useState<GameStorage>({ streak: 0, lastDate: '', history: [] })
   const [copied, setCopied] = useState(false)
   const [apiResults, setApiResults] = useState<ApiPlayer[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [apiError, setApiError] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { setStorage(getStorage()) }, [])
 
@@ -132,16 +130,11 @@ export default function TheNumberGame() {
   const p2Score = calcScore(p2Total, target)
 
   const displayPlayers = useMemo((): ApiPlayer[] => {
-    const usingSearch = search.length >= 2
-    let base: ApiPlayer[]
-    if (posTab === 'popular') {
-      base = usingSearch ? (apiError ? FALLBACK_PLAYERS : apiResults) : FALLBACK_PLAYERS
-    } else {
-      base = usingSearch ? (apiError ? FALLBACK_PLAYERS : apiResults) : FALLBACK_PLAYERS
-      base = base.filter(p => p.position === posTab)
-    }
-    return base.filter(p => !allPickedIds.has(p.id))
-  }, [search, posTab, apiResults, apiError, allPickedIds])
+    if (search.length < 2 || apiError) return []
+    return apiResults
+      .filter(p => posTab === 'ALL' || p.position === posTab)
+      .filter(p => !allPickedIds.has(p.id))
+  }, [search, apiResults, apiError, posTab, allPickedIds])
 
   function pick(player: ApiPlayer) {
     if (phase !== 'picking' || allPickedIds.has(player.id)) return
@@ -172,7 +165,7 @@ export default function TheNumberGame() {
   function reset() {
     setPhase('setup')
     setP1Picks([]); setP2Picks([])
-    setTurnIdx(0); setSearch(''); setPosTab('popular')
+    setTurnIdx(0); setSearch(''); setPosTab('ALL')
     setApiResults([])
   }
 
@@ -187,68 +180,48 @@ export default function TheNumberGame() {
   // ── SETUP ────────────────────────────────────────────────────────────────────
   if (phase === 'setup') {
     return (
-      <div className="min-h-screen bg-[#0d0d0d] flex flex-col items-center justify-center px-5 py-12">
+      <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center px-5 py-12">
         <div className="w-full max-w-sm">
-          <Link href="/apps/football-games" className="text-[#3a7a4a] text-xs font-mono hover:text-emerald-400 transition-colors mb-8 block tracking-wide">
-            ← all games
+          <Link href="/apps/football-games" className="text-[#1a7a3e] text-sm font-medium hover:underline mb-8 block">
+            ← All games
           </Link>
 
-          {/* Title block */}
-          <div className="mb-8">
-            <div className="text-[10px] font-mono text-[#3a5a46] uppercase tracking-[0.2em] mb-2">Game 01</div>
-            <h1 className="text-5xl font-black uppercase tracking-tight leading-none mb-3">The<br />Number</h1>
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-[#1e1e1e]" />
-              <div className="text-[#444] text-xs font-mono">{dateStr}</div>
-              {storage.streak > 1 && <div className="text-xs font-mono text-emerald-600">🔥 {storage.streak}</div>}
-            </div>
-          </div>
-
-          {/* Today's puzzle */}
-          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5 mb-6">
-            <div className="text-[10px] font-mono text-[#444] uppercase tracking-widest mb-3">Today&apos;s puzzle</div>
-            <div className="flex items-end justify-between mb-4">
-              <div>
-                <div className="text-xs text-[#666] mb-1">{theme.label}</div>
-                <div className="text-5xl font-black tabular-nums text-white leading-none">{target}</div>
-                <div className="text-xs text-[#444] mt-1">{theme.unit}</div>
-              </div>
-              <div className="text-right text-[#2a2a2a]">
-                <div className="text-6xl font-black">+</div>
-              </div>
-            </div>
-            <p className="text-[#666] text-xs leading-relaxed border-t border-[#1a1a1a] pt-3">
-              Pick <strong className="text-[#aaa]">3 footballers</strong>. Their combined{' '}
-              <strong className="text-[#aaa]">{theme.label.toLowerCase()}</strong> should hit{' '}
-              <strong className="text-[#aaa]">{target}</strong> as closely as possible.
-              No hints. No clues. Just football knowledge and educated guesswork.
-            </p>
-          </div>
-
-          {/* Mode selector */}
           <div className="mb-6">
-            <div className="text-[10px] font-mono text-[#444] uppercase tracking-widest mb-2">Mode</div>
+            <div className="text-xs font-mono text-[#999] uppercase tracking-widest mb-2">Game 01</div>
+            <h1 className="text-5xl font-black uppercase tracking-tight leading-none text-[#1a1a1a] mb-3">The<br />Number</h1>
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-[#e5e5e5]" />
+              <div className="text-[#999] text-xs font-mono">{dateStr}</div>
+              {storage.streak > 1 && <div className="text-xs font-bold text-[#1a7a3e]">🔥 {storage.streak} day streak</div>}
+            </div>
+          </div>
+
+          <div className="bg-white border border-[#e5e5e5] rounded-xl p-5 mb-5">
+            <div className="text-xs text-[#999] uppercase tracking-widest font-mono mb-3">Today</div>
+            <div className="text-sm font-medium text-[#666] mb-1">{theme.label}</div>
+            <div className="text-5xl font-black tabular-nums text-[#1a1a1a] leading-none mb-1">{target}</div>
+            <div className="text-xs text-[#aaa] font-mono">{theme.unit}</div>
+          </div>
+
+          <div className="mb-5">
             <div className="grid grid-cols-2 gap-2">
               {(['solo', 'two_player'] as Mode[]).map(m => (
                 <button
                   key={m}
                   onClick={() => setMode(m)}
-                  className={`py-3 rounded-lg border text-sm font-bold transition-all tracking-wide ${mode === m ? 'border-emerald-600 bg-emerald-600/10 text-emerald-400' : 'border-[#222] text-[#555] hover:border-[#333]'}`}
+                  className={`py-3 rounded-lg border text-sm font-bold transition-all ${mode === m ? 'bg-[#1a7a3e] border-[#1a7a3e] text-white' : 'bg-white border-[#e5e5e5] text-[#666] hover:border-[#ccc]'}`}
                 >
                   {m === 'solo' ? 'Solo' : '2 Player'}
                 </button>
               ))}
             </div>
-            {mode === 'two_player' && (
-              <p className="text-[#444] text-[11px] mt-2 text-center font-mono">Alternate picks · 3 each · closest total wins</p>
-            )}
           </div>
 
           <button
             onClick={() => setPhase('picking')}
-            className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-black text-sm uppercase tracking-widest transition-colors"
+            className="w-full py-4 bg-[#1a7a3e] hover:bg-[#155f30] text-white rounded-lg font-black text-sm uppercase tracking-widest transition-colors"
           >
-            Let&apos;s go
+            Start
           </button>
         </div>
       </div>
@@ -257,56 +230,59 @@ export default function TheNumberGame() {
 
   // ── PICKING ──────────────────────────────────────────────────────────────────
   if (phase === 'picking') {
-    const posTabs: PosTab[] = ['popular', 'GK', 'DEF', 'MID', 'ATT']
-    const showSearchHint = search.length >= 1 && search.length < 2
-    const showEmpty = search.length >= 2 && !isSearching && displayPlayers.length === 0
+    const hasSearch = search.length >= 2
+    const showEmpty = hasSearch && !isSearching && displayPlayers.length === 0 && !apiError
 
     return (
-      <div className="flex flex-col h-[100dvh] bg-[#0d0d0d]">
+      <div className="flex flex-col h-[100dvh] bg-[#fafafa]">
 
-        {/* ── Top bar ── */}
-        <div className="flex-shrink-0 bg-[#0d0d0d] border-b border-[#1a1a1a] px-4 py-3">
+        {/* Top bar */}
+        <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-3">
           <div className="max-w-xl mx-auto flex items-center justify-between">
-            <button onClick={reset} className="text-[#444] text-xs font-mono hover:text-white transition-colors">← back</button>
+            <button onClick={reset} className="text-[#1a7a3e] text-sm font-medium hover:underline">← Back</button>
             <div className="text-center">
-              <div className="text-[9px] text-[#444] font-mono uppercase tracking-[0.15em]">{theme.label}</div>
-              <div className="text-3xl font-black tabular-nums leading-tight">{target}</div>
+              <div className="text-[10px] text-[#999] font-mono uppercase tracking-widest">{theme.label}</div>
+              <div className="text-3xl font-black tabular-nums text-[#1a1a1a] leading-tight">{target}</div>
             </div>
             {!isSolo ? (
-              <div className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest ${currentP === 1 ? 'bg-blue-900/60 text-blue-300' : 'bg-rose-900/60 text-rose-300'}`}>
+              <div className={`text-xs font-bold px-3 py-1 rounded-full ${currentP === 1 ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}`}>
                 P{currentP}
               </div>
             ) : <div className="w-12" />}
           </div>
         </div>
 
-        {/* ── Fixed pick slots ── */}
-        <div className="flex-shrink-0 bg-[#0d0d0d] border-b border-[#1a1a1a] px-4 py-3">
+        {/* Fixed pick slots */}
+        <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-3">
           <div className="max-w-xl mx-auto">
             {isSolo ? (
               <div className="grid grid-cols-3 gap-2">
-                {[0, 1, 2].map(i => {
-                  const player = p1Picks[i]
-                  return (
-                    <PickSlot key={i} index={i} player={player} theme={theme} onRemove={player ? () => unpick(player.id, true) : undefined} />
-                  )
-                })}
+                {[0, 1, 2].map(i => (
+                  <PickSlot
+                    key={i}
+                    index={i}
+                    player={p1Picks[i]}
+                    onRemove={p1Picks[i] ? () => unpick(p1Picks[i].id, true) : undefined}
+                  />
+                ))}
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {([
-                  { picks: p1Picks, label: 'P1', isP1: true, color: 'text-blue-400 border-blue-900/40' },
-                  { picks: p2Picks, label: 'P2', isP1: false, color: 'text-rose-400 border-rose-900/40' },
+                  { picks: p1Picks, label: 'P1', isP1: true, color: 'text-blue-600' },
+                  { picks: p2Picks, label: 'P2', isP1: false, color: 'text-rose-600' },
                 ] as const).map(({ picks, label, isP1, color }) => (
                   <div key={label}>
-                    <div className={`text-[10px] font-mono mb-1.5 ${color.split(' ')[0]}`}>{label}</div>
+                    <div className={`text-xs font-bold mb-1.5 ${color}`}>{label}</div>
                     <div className="space-y-1.5">
-                      {[0, 1, 2].map(i => {
-                        const player = picks[i]
-                        return (
-                          <MiniPickSlot key={i} index={i} player={player} theme={theme} onRemove={player ? () => unpick(player.id, isP1) : undefined} />
-                        )
-                      })}
+                      {[0, 1, 2].map(i => (
+                        <MiniPickSlot
+                          key={i}
+                          index={i}
+                          player={picks[i]}
+                          onRemove={picks[i] ? () => unpick(picks[i].id, isP1) : undefined}
+                        />
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -315,86 +291,86 @@ export default function TheNumberGame() {
           </div>
         </div>
 
-        {/* ── Search + position tabs ── */}
-        <div className="flex-shrink-0 bg-[#0d0d0d] border-b border-[#1a1a1a] px-4 pt-3 pb-0">
+        {/* Search + tabs */}
+        <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 pt-3 pb-0">
           <div className="max-w-xl mx-auto">
             <div className="relative mb-3">
               <input
+                ref={searchRef}
                 type="text"
                 placeholder="Search 50,000 players..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full bg-[#141414] border border-[#222] rounded-lg pl-4 pr-10 py-2.5 text-sm text-white placeholder-[#3a3a3a] outline-none focus:border-[#333] transition-colors"
+                className="w-full bg-[#fafafa] border border-[#e0e0e0] rounded-lg pl-4 pr-10 py-2.5 text-sm text-[#1a1a1a] placeholder-[#bbb] outline-none focus:border-[#1a7a3e] focus:ring-1 focus:ring-[#1a7a3e]/20 transition-colors"
               />
               {isSearching ? (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] text-xs font-mono">…</div>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] text-xs font-mono">…</div>
               ) : search.length > 0 ? (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white transition-colors text-xs">✕</button>
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] hover:text-[#666] transition-colors text-sm">✕</button>
               ) : null}
             </div>
-            {/* Position tabs */}
-            <div className="flex gap-1 -mb-px">
-              {(['popular', 'GK', 'DEF', 'MID', 'ATT'] as PosTab[]).map(tab => (
+            <div className="flex gap-0 -mb-px">
+              {(['ALL', 'GK', 'DEF', 'MID', 'ATT'] as PosTab[]).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setPosTab(tab)}
-                  className={`px-3 py-2 text-[11px] font-bold rounded-t transition-colors capitalize border-b-2 ${posTab === tab ? 'text-white border-emerald-500 bg-[#111]' : 'text-[#444] border-transparent hover:text-[#777]'}`}
+                  className={`px-4 py-2 text-xs font-bold border-b-2 transition-colors ${posTab === tab ? 'text-[#1a7a3e] border-[#1a7a3e]' : 'text-[#aaa] border-transparent hover:text-[#666]'}`}
                 >
-                  {tab === 'popular' ? '⭐ Popular' : tab}
+                  {tab}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* ── Player grid ── */}
-        <div className="flex-1 overflow-y-auto bg-[#111]">
-          <div className="max-w-xl mx-auto px-4 pt-3 pb-6">
-            {posTab === 'popular' && search.length < 2 && (
-              <div className="mb-3">
-                <div className="text-xs font-bold text-[#555] uppercase tracking-widest">Popular Players</div>
-                <div className="text-[10px] text-[#3a3a3a] mt-0.5">The obvious ones. We know. You know. Here they are.</div>
+        {/* Player list */}
+        <div className="flex-1 overflow-y-auto bg-[#fafafa]">
+          <div className="max-w-xl mx-auto px-4 py-3 pb-6">
+            {/* Empty / idle states */}
+            {!hasSearch && !apiError && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="text-3xl mb-3">🔍</div>
+                <div className="text-[#1a1a1a] font-bold mb-1">Search for a player to get started</div>
+                <div className="text-[#999] text-sm">Any player from the top European leagues</div>
               </div>
             )}
-            {apiError && search.length >= 2 && (
-              <div className="text-[11px] text-amber-600/70 font-mono mb-3">Search temporarily unavailable · showing popular players</div>
-            )}
-            {showSearchHint && (
-              <div className="text-[11px] text-[#444] font-mono mb-3">Keep typing to search…</div>
-            )}
-
-            {showEmpty ? (
-              <div className="text-center py-16">
-                <div className="text-[#333] text-2xl mb-2">⚽</div>
-                <div className="text-[#444] text-sm">No players found for &quot;{search}&quot;</div>
-                <div className="text-[#333] text-xs mt-1 font-mono">Try a surname, or check the spelling</div>
+            {apiError && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="text-3xl mb-3">⚠️</div>
+                <div className="text-[#1a1a1a] font-bold mb-1">Search unavailable</div>
+                <div className="text-[#999] text-sm">Check your connection and try again</div>
               </div>
-            ) : (
+            )}
+            {showEmpty && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="text-3xl mb-3">⚽</div>
+                <div className="text-[#1a1a1a] font-bold mb-1">No results for &quot;{search}&quot;</div>
+                <div className="text-[#999] text-sm">Try a surname</div>
+              </div>
+            )}
+            {/* Results */}
+            {hasSearch && !apiError && displayPlayers.length > 0 && (
               <div className="space-y-1.5">
-                {displayPlayers.map(player => {
-                  const full = myPicks.length >= PICKS_PER_PLAYER
-                  return (
-                    <PlayerRow
-                      key={player.id}
-                      player={player}
-                      theme={theme}
-                      disabled={full}
-                      onClick={() => pick(player)}
-                    />
-                  )
-                })}
+                {displayPlayers.map(player => (
+                  <PlayerRow
+                    key={player.id}
+                    player={player}
+                    disabled={myPicks.length >= PICKS_PER_PLAYER}
+                    onClick={() => pick(player)}
+                  />
+                ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* ── Reveal button ── */}
+        {/* Reveal button */}
         {picksComplete && (
-          <div className="flex-shrink-0 bg-[#0d0d0d] border-t border-[#1a1a1a] px-4 py-3">
+          <div className="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-4 py-3">
             <div className="max-w-xl mx-auto">
               <button
                 onClick={reveal}
-                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-black text-sm uppercase tracking-widest transition-colors"
+                className="w-full py-4 bg-[#1a7a3e] hover:bg-[#155f30] text-white rounded-lg font-black text-sm uppercase tracking-widest transition-colors"
               >
                 Reveal →
               </button>
@@ -410,40 +386,39 @@ export default function TheNumberGame() {
   const label = scoreLabel(p1Score, theme.id)
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] px-5 py-10">
+    <div className="min-h-screen bg-[#fafafa] px-5 py-10">
       <div className="max-w-sm mx-auto">
-        <div className="text-center mb-8">
-          <div className="text-[10px] font-mono text-[#444] uppercase tracking-widest mb-1">Game 01 · The Number</div>
-          <div className="text-[#555] text-xs font-mono">{dateStr}</div>
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-black uppercase tracking-tight text-[#1a1a1a]">The Number</h1>
+          <div className="text-[#999] text-xs font-mono mt-1">{dateStr}</div>
         </div>
 
-        {/* Target card */}
-        <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 mb-5 flex items-center justify-between">
+        {/* Target */}
+        <div className="bg-white border border-[#e5e5e5] rounded-xl p-4 mb-4 flex items-center justify-between">
           <div>
-            <div className="text-[10px] font-mono text-[#444] uppercase tracking-widest mb-1">{theme.label}</div>
-            <div className="text-4xl font-black tabular-nums">{target}</div>
+            <div className="text-xs text-[#999] font-mono uppercase tracking-widest mb-1">{theme.label}</div>
+            <div className="text-4xl font-black tabular-nums text-[#1a1a1a]">{target}</div>
           </div>
-          <div className="text-[10px] font-mono text-[#333] uppercase tracking-widest">{theme.unit}</div>
+          <div className="text-xs font-mono text-[#ccc] uppercase">{theme.unit}</div>
         </div>
 
-        {/* Solo result */}
+        {/* Solo picks */}
         {isSolo && (
           <>
             <PicksReveal picks={p1Picks} theme={theme} total={p1Total} target={target} />
             <div className="mt-5 text-center">
-              <div className="text-6xl font-black tabular-nums mb-1">
-                {p1Score}
-                <span className="text-2xl text-[#444] font-normal">/1000</span>
+              <div className="text-6xl font-black tabular-nums text-[#1a1a1a] mb-1">
+                {p1Score}<span className="text-2xl text-[#ccc] font-normal">/1000</span>
               </div>
-              <div className="text-lg font-bold text-[#ccc] mb-1">{label}</div>
+              <div className="text-lg font-bold text-[#1a7a3e]">{label}</div>
               {storage.streak > 1 && (
-                <div className="text-emerald-600 text-xs font-mono">🔥 {storage.streak} day streak</div>
+                <div className="text-[#1a7a3e] text-sm font-bold mt-1">🔥 {storage.streak} day streak</div>
               )}
             </div>
           </>
         )}
 
-        {/* 2P result */}
+        {/* 2P picks */}
         {!isSolo && (
           <>
             <div className="grid grid-cols-2 gap-3 mb-5">
@@ -451,19 +426,19 @@ export default function TheNumberGame() {
                 { picks: p1Picks, total: p1Total, score: p1Score, label: 'P1', isWinner: winner === 'P1' },
                 { picks: p2Picks, total: p2Total, score: p2Score, label: 'P2', isWinner: winner === 'P2' },
               ] as const).map(({ picks, total, score, label: pLabel, isWinner }) => (
-                <div key={pLabel} className={`border rounded-xl p-3 ${isWinner ? 'border-emerald-700 bg-emerald-950/30' : 'border-[#1e1e1e] bg-[#111]'}`}>
-                  <div className={`text-[10px] font-mono uppercase tracking-widest mb-2 ${isWinner ? 'text-emerald-500' : 'text-[#555]'}`}>
+                <div key={pLabel} className={`border rounded-xl p-3 bg-white ${isWinner ? 'border-[#1a7a3e]' : 'border-[#e5e5e5]'}`}>
+                  <div className={`text-xs font-bold uppercase tracking-widest mb-2 ${isWinner ? 'text-[#1a7a3e]' : 'text-[#aaa]'}`}>
                     {pLabel} {isWinner && '🏆'}
                   </div>
                   {picks.map(p => (
                     <div key={p.id} className="flex justify-between items-center mb-1">
-                      <div className="text-xs text-[#888] truncate pr-2">{p.name}</div>
-                      <div className="text-xs font-bold tabular-nums">{theme.getStat(p)}</div>
+                      <div className="text-xs text-[#666] truncate pr-2">{p.name}</div>
+                      <div className="text-xs font-bold tabular-nums text-[#1a1a1a]">{theme.getStat(p)}</div>
                     </div>
                   ))}
-                  <div className="border-t border-[#1e1e1e] pt-2 mt-2 flex justify-between">
-                    <span className="text-[10px] text-[#555]">Total</span>
-                    <span className="font-bold tabular-nums text-sm">{total}</span>
+                  <div className="border-t border-[#f0f0f0] pt-2 mt-2 flex justify-between">
+                    <span className="text-xs text-[#aaa]">Total</span>
+                    <span className="font-bold tabular-nums text-[#1a1a1a]">{total}</span>
                   </div>
                   <div className="text-right text-xs font-bold text-[#666] mt-1">{score}/1000</div>
                 </div>
@@ -473,20 +448,20 @@ export default function TheNumberGame() {
           </>
         )}
 
-        <div className="text-center text-[#333] text-xs font-mono my-5">
+        <div className="text-center text-[#bbb] text-xs font-mono my-5">
           Next puzzle in {timeUntilMidnight()}
         </div>
 
         <div className="flex gap-2">
           {isSolo && (
-            <button onClick={share} className="flex-1 py-3 border border-[#222] rounded-lg text-sm font-bold hover:border-[#333] transition-colors">
+            <button onClick={share} className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-[#1a1a1a] hover:border-[#ccc] transition-colors">
               {copied ? '✓ Copied' : '↗ Share'}
             </button>
           )}
-          <button onClick={reset} className="flex-1 py-3 border border-[#222] rounded-lg text-sm font-bold hover:border-[#333] transition-colors">
+          <button onClick={reset} className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-[#1a1a1a] hover:border-[#ccc] transition-colors">
             Play again
           </button>
-          <Link href="/apps/football-games" className="flex-1 py-3 border border-[#222] rounded-lg text-sm font-bold hover:border-[#333] transition-colors text-center">
+          <Link href="/apps/football-games" className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-[#1a1a1a] hover:border-[#ccc] transition-colors text-center">
             All games
           </Link>
         </div>
@@ -495,73 +470,66 @@ export default function TheNumberGame() {
   )
 }
 
-// ─── Pick slot (solo — large 3-column) ───────────────────────────────────────
+// ─── Pick slot (solo) ─────────────────────────────────────────────────────────
 
-function PickSlot({ index, player, theme, onRemove }: {
+function PickSlot({ index, player, onRemove }: {
   index: number
   player: ApiPlayer | undefined
-  theme: ApiTheme
   onRemove?: () => void
 }) {
   return (
-    <div className="h-[88px] rounded-xl border border-dashed border-[#1e1e1e] relative overflow-hidden bg-[#0a0a0a]">
+    <div className={`h-[88px] rounded-xl border-2 relative overflow-hidden bg-white transition-colors ${player ? 'border-[#1a7a3e]' : 'border-dashed border-[#e0e0e0]'}`}>
       {player ? (
-        <button
-          onClick={onRemove}
-          className="w-full h-full p-2.5 text-left flex flex-col justify-between group"
-        >
+        <button onClick={onRemove} className="w-full h-full p-2.5 text-left flex flex-col justify-between group">
           <div className="flex items-center gap-1.5">
-            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${POS_COLOR[player.position] ?? 'bg-zinc-700 text-white'}`}>
+            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
               {player.position}
             </span>
             <span className="text-sm leading-none">{nationalityFlag(player.nationality)}</span>
           </div>
           <div>
-            <div className="text-[11px] font-bold text-white leading-tight truncate">{player.name}</div>
-            <div className="text-[10px] text-[#444] truncate">{player.currentTeam}</div>
+            <div className="text-[11px] font-bold text-[#1a1a1a] leading-tight truncate">{player.name}</div>
+            <div className="text-[10px] text-[#999] truncate">{player.currentTeam}</div>
           </div>
-          <div className="absolute top-1.5 right-1.5 text-[#333] group-hover:text-[#666] text-[10px] transition-colors">✕</div>
+          <div className="absolute top-1.5 right-1.5 text-[#ccc] group-hover:text-[#999] text-[10px] transition-colors">✕</div>
         </button>
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center">
-          <div className="text-2xl font-black text-[#1e1e1e] tabular-nums">{index + 1}</div>
-          <div className="text-[9px] font-mono text-[#2a2a2a] uppercase tracking-widest mt-0.5">Pick</div>
+          <div className="text-2xl font-black text-[#e0e0e0] tabular-nums">{index + 1}</div>
         </div>
       )}
     </div>
   )
 }
 
-// ─── Mini pick slot (2-player mode) ──────────────────────────────────────────
+// ─── Mini pick slot (2-player) ────────────────────────────────────────────────
 
-function MiniPickSlot({ index, player, theme, onRemove }: {
+function MiniPickSlot({ index, player, onRemove }: {
   index: number
   player: ApiPlayer | undefined
-  theme: ApiTheme
   onRemove?: () => void
 }) {
   return (
-    <div className="h-9 rounded-lg border border-dashed border-[#1a1a1a] flex items-center px-2.5 bg-[#0a0a0a] relative overflow-hidden">
+    <div className={`h-9 rounded-lg border flex items-center px-2.5 bg-white relative overflow-hidden transition-colors ${player ? 'border-[#1a7a3e]' : 'border-dashed border-[#e0e0e0]'}`}>
       {player ? (
         <button onClick={onRemove} className="w-full flex items-center gap-2 group">
-          <span className={`text-[8px] font-black px-1 py-0.5 rounded flex-shrink-0 ${POS_COLOR[player.position] ?? 'bg-zinc-700 text-white'}`}>
+          <span className={`text-[8px] font-black px-1 py-0.5 rounded flex-shrink-0 ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
             {player.position}
           </span>
-          <span className="text-xs text-[#bbb] truncate flex-1">{player.name}</span>
-          <span className="text-[#333] group-hover:text-[#666] text-[10px] flex-shrink-0">✕</span>
+          <span className="text-xs text-[#1a1a1a] font-medium truncate flex-1">{player.name}</span>
+          <span className="text-[#ccc] group-hover:text-[#999] text-[10px] flex-shrink-0">✕</span>
         </button>
       ) : (
-        <span className="text-[10px] text-[#252525] font-mono">Slot {index + 1}</span>
+        <span className="text-xs text-[#ddd]">Slot {index + 1}</span>
       )}
     </div>
   )
 }
 
-// ─── Player row (squad list style) ───────────────────────────────────────────
+// ─── Player row ───────────────────────────────────────────────────────────────
 
-function PlayerRow({ player, theme, disabled, onClick }: {
+function PlayerRow({ player, disabled, onClick }: {
   player: ApiPlayer
-  theme: ApiTheme
   disabled: boolean
   onClick: () => void
 }) {
@@ -569,27 +537,26 @@ function PlayerRow({ player, theme, disabled, onClick }: {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${disabled ? 'border-[#141414] bg-[#0d0d0d] opacity-30 cursor-not-allowed' : 'border-[#1a1a1a] bg-[#0d0d0d] hover:border-[#2a2a2a] hover:bg-[#131313] active:bg-[#1a1a1a]'}`}
+      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
+        disabled
+          ? 'border-[#f0f0f0] bg-white opacity-40 cursor-not-allowed'
+          : 'border-[#e5e5e5] bg-white hover:border-[#1a7a3e] hover:bg-[#f0f7f3] active:bg-[#e8f5ee]'
+      }`}
     >
-      {/* Position badge */}
-      <div className={`flex-shrink-0 text-[9px] font-black px-1.5 py-1 rounded w-8 text-center ${POS_COLOR[player.position] ?? 'bg-zinc-700 text-white'}`}>
+      <div className={`flex-shrink-0 text-[9px] font-black px-1.5 py-1 rounded w-8 text-center ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
         {player.position}
       </div>
-      {/* Flag */}
       <span className="text-base leading-none flex-shrink-0">{nationalityFlag(player.nationality)}</span>
-      {/* Name + club */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-bold text-white truncate leading-tight">{player.name}</div>
-        <div className="text-[11px] text-[#444] truncate">{player.currentTeam}</div>
+        <div className="text-sm font-bold text-[#1a1a1a] truncate">{player.name}</div>
+        <div className="text-xs text-[#999] truncate">{player.currentTeam}</div>
       </div>
-      {/* Stat hint (age is always visible; others hidden to preserve challenge) */}
-      {theme.id === 'appearances' || theme.id === 'minutes' ? null : null}
-      <div className="flex-shrink-0 text-[#2a2a2a] text-xs">→</div>
+      <div className="flex-shrink-0 text-[#ccc] text-sm">→</div>
     </button>
   )
 }
 
-// ─── Picks reveal (result screen) ────────────────────────────────────────────
+// ─── Picks reveal ─────────────────────────────────────────────────────────────
 
 function PicksReveal({ picks, theme, total, target }: {
   picks: ApiPlayer[]
@@ -599,31 +566,31 @@ function PicksReveal({ picks, theme, total, target }: {
 }) {
   const diff = total - target
   return (
-    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl overflow-hidden">
+    <div className="bg-white border border-[#e5e5e5] rounded-xl overflow-hidden">
       {picks.map((p, i) => (
-        <div key={p.id} className={`flex items-center gap-3 px-4 py-3 ${i < picks.length - 1 ? 'border-b border-[#171717]' : ''}`}>
-          <span className={`flex-shrink-0 text-[9px] font-black px-1.5 py-1 rounded w-8 text-center ${POS_COLOR[p.position] ?? 'bg-zinc-700 text-white'}`}>
+        <div key={p.id} className={`flex items-center gap-3 px-4 py-3 ${i < picks.length - 1 ? 'border-b border-[#f0f0f0]' : ''}`}>
+          <span className={`flex-shrink-0 text-[9px] font-black px-1.5 py-1 rounded w-8 text-center ${POS_COLOR[p.position] ?? 'bg-zinc-400 text-white'}`}>
             {p.position}
           </span>
           <span className="text-base leading-none flex-shrink-0">{nationalityFlag(p.nationality)}</span>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold truncate">{p.name}</div>
-            <div className="text-[11px] text-[#444]">{p.currentTeam}</div>
+            <div className="text-sm font-bold text-[#1a1a1a] truncate">{p.name}</div>
+            <div className="text-xs text-[#999]">{p.currentTeam}</div>
           </div>
           <div className="text-right flex-shrink-0">
-            <div className="text-xl font-black tabular-nums">{theme.getStat(p)}</div>
-            <div className="text-[10px] text-[#444]">{theme.unit}</div>
+            <div className="text-xl font-black tabular-nums text-[#1a1a1a]">{theme.getStat(p)}</div>
+            <div className="text-[10px] text-[#ccc]">{theme.unit}</div>
           </div>
         </div>
       ))}
-      <div className="border-t border-[#1e1e1e] bg-[#0d0d0d] px-4 py-3 flex items-center justify-between">
+      <div className="border-t border-[#f0f0f0] bg-[#fafafa] px-4 py-3 flex items-center justify-between">
         <div>
-          <div className="text-[10px] text-[#444] font-mono mb-0.5">Your total</div>
-          <div className="text-3xl font-black tabular-nums">{total}</div>
+          <div className="text-xs text-[#999] mb-0.5">Total</div>
+          <div className="text-3xl font-black tabular-nums text-[#1a1a1a]">{total}</div>
         </div>
         <div className="text-right">
-          <div className="text-[10px] text-[#444] font-mono mb-0.5">vs {target}</div>
-          <div className={`text-xl font-black tabular-nums ${diff === 0 ? 'text-emerald-400' : diff > 0 ? 'text-rose-400' : 'text-blue-400'}`}>
+          <div className="text-xs text-[#999] mb-0.5">vs {target}</div>
+          <div className={`text-xl font-black tabular-nums ${diff === 0 ? 'text-[#1a7a3e]' : diff > 0 ? 'text-rose-500' : 'text-blue-500'}`}>
             {diff === 0 ? '±0' : diff > 0 ? `+${diff}` : diff}
           </div>
         </div>
