@@ -127,7 +127,7 @@ export default function TheNumberGame() {
   const currentP = isSolo ? 1 : (turnIdx % 2 === 0 ? 1 : 2)
   const myPicks = isSolo ? p1Picks : currentP === 1 ? p1Picks : p2Picks
   const picksComplete = isSolo ? p1Picks.length === PICKS_PER_PLAYER : (p1Picks.length === PICKS_PER_PLAYER && p2Picks.length === PICKS_PER_PLAYER)
-  const allPickedIds = useMemo(() => new Set([...p1Picks.map(p => p.id), ...p2Picks.map(p => p.id)]), [p1Picks, p2Picks])
+  const allPickedNames = useMemo(() => new Set([...p1Picks.map(p => p.name), ...p2Picks.map(p => p.name)]), [p1Picks, p2Picks])
 
   const p1Total = p1Picks.reduce((s, p) => s + theme.getStat(p), 0)
   const p2Total = p2Picks.reduce((s, p) => s + theme.getStat(p), 0)
@@ -138,11 +138,11 @@ export default function TheNumberGame() {
     if (search.length < 2 || apiError) return []
     return apiResults
       .filter(p => posTab === 'ALL' || p.position === posTab)
-      .filter(p => !allPickedIds.has(p.id))
-  }, [search, apiResults, apiError, posTab, allPickedIds])
+      .filter(p => !allPickedNames.has(p.name))
+  }, [search, apiResults, apiError, posTab, allPickedNames])
 
   function pick(player: ApiPlayer) {
-    if (phase !== 'picking' || allPickedIds.has(player.id)) return
+    if (phase !== 'picking' || allPickedNames.has(player.name)) return
     if (isSolo) {
       if (p1Picks.length >= PICKS_PER_PLAYER) return
       setP1Picks(prev => [...prev, player])
@@ -155,10 +155,10 @@ export default function TheNumberGame() {
     }
   }
 
-  function unpick(playerId: number, fromP1: boolean) {
+  function unpick(playerName: string, fromP1: boolean) {
     if (phase !== 'picking') return
-    if (fromP1) setP1Picks(prev => prev.filter(p => p.id !== playerId))
-    else setP2Picks(prev => prev.filter(p => p.id !== playerId))
+    if (fromP1) setP1Picks(prev => prev.filter(p => p.name !== playerName))
+    else setP2Picks(prev => prev.filter(p => p.name !== playerName))
   }
 
   function reveal() {
@@ -267,7 +267,7 @@ export default function TheNumberGame() {
                     key={i}
                     index={i}
                     player={p1Picks[i]}
-                    onRemove={p1Picks[i] ? () => unpick(p1Picks[i].id, true) : undefined}
+                    onRemove={p1Picks[i] ? () => unpick(p1Picks[i].name, true) : undefined}
                   />
                 ))}
               </div>
@@ -285,7 +285,7 @@ export default function TheNumberGame() {
                           key={i}
                           index={i}
                           player={picks[i]}
-                          onRemove={picks[i] ? () => unpick(picks[i].id, isP1) : undefined}
+                          onRemove={picks[i] ? () => unpick(picks[i].name, isP1) : undefined}
                         />
                       ))}
                     </div>
@@ -309,7 +309,9 @@ export default function TheNumberGame() {
                 className="w-full bg-[#fafafa] border border-[#e0e0e0] rounded-lg pl-4 pr-10 py-2.5 text-sm text-[#1a1a1a] placeholder-[#bbb] outline-none focus:border-[#1a7a3e] focus:ring-1 focus:ring-[#1a7a3e]/20 transition-colors"
               />
               {isSearching ? (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] text-xs font-mono">…</div>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="w-4 h-4 border-2 border-[#e0e0e0] border-t-[#1a7a3e] rounded-full animate-spin" />
+                </div>
               ) : search.length > 0 ? (
                 <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] hover:text-[#666] transition-colors text-sm">✕</button>
               ) : null}
@@ -358,7 +360,7 @@ export default function TheNumberGame() {
               <div className="space-y-1.5">
                 {displayPlayers.map(player => (
                   <PlayerRow
-                    key={player.id}
+                    key={player.name}
                     player={player}
                     disabled={myPicks.length >= PICKS_PER_PLAYER}
                     onClick={() => pick(player)}

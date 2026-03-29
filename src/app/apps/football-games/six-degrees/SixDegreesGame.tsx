@@ -176,17 +176,17 @@ export default function SixDegreesGame() {
 
   // ── Derived state ────────────────────────────────────────────────────────────
   const currentPlayer = chain.length === 0 ? aPlayer : chain[chain.length - 1].player
-  const allUsedIds = useMemo(() => {
-    const ids = new Set<number>()
-    if (aPlayer) ids.add(aPlayer.id)
-    chain.forEach(s => ids.add(s.player.id))
+  const allUsedNames = useMemo(() => {
+    const names = new Set<string>()
+    if (aPlayer) names.add(aPlayer.name)
+    chain.forEach(s => names.add(s.player.name))
     // bPlayer excluded so user can select it to win
-    return ids
+    return names
   }, [aPlayer, chain])
 
   const filteredResults = useMemo(() =>
-    searchResults.filter(p => !allUsedIds.has(p.id)),
-    [searchResults, allUsedIds]
+    searchResults.filter(p => !allUsedNames.has(p.name)),
+    [searchResults, allUsedNames]
   )
 
   // ── Add a step ───────────────────────────────────────────────────────────────
@@ -194,10 +194,12 @@ export default function SixDegreesGame() {
     if (phase !== 'playing' || !currentPlayer || !bPlayer || !puzzle) return
     setValidationError(null)
 
-    // Check win immediately before validation
-    const willWin = player.id === bPlayer.id
+    // Check win by name (id may be 0 for local players)
+    const normName = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+    const willWin = normName(player.name) === normName(bPlayer.name)
 
-    if (pendingLinkType === 'club') {
+    if (pendingLinkType === 'club' && currentPlayer.id !== 0 && player.id !== 0) {
+      // Both players have API IDs — validate against career data
       setIsValidating(true)
       try {
         const res = await fetch('/api/football/validate-link', {
@@ -500,7 +502,7 @@ export default function SixDegreesGame() {
             <div className="space-y-1.5">
               {filteredResults.map(player => (
                 <button
-                  key={player.id}
+                  key={player.name}
                   onClick={() => addStep(player)}
                   disabled={isValidating}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
@@ -656,7 +658,7 @@ function PlayerChip({ player, highlight }: { player: ApiPlayer; highlight?: bool
       highlight ? 'border-[#1a7a3e] bg-[#f0f7f3]' : 'border-[#e5e5e5] bg-white'
     }`}>
       <span className="text-xs">{nationalityFlag(player.nationality)}</span>
-      <span className="text-xs font-bold text-[#1a1a1a] truncate">{player.name.split(' ').slice(-1)[0]}</span>
+      <span className="text-xs font-bold text-[#1a1a1a] truncate">{player.name}</span>
     </div>
   )
 }
