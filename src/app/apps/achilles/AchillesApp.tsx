@@ -776,6 +776,7 @@ export default function AchillesApp() {
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) {
         const s = JSON.parse(saved)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (s.sched) setSched(s.sched)
         if (s.allLogs) setAllLogs(s.allLogs)
         if (s.pbs) setPbs(s.pbs)

@@ -234,6 +234,7 @@ export default function SoukScene({ onExit }: { onExit: () => void }) {
   }, [applyX])
 
   const tap = (hs: HotspotDef) => {
+    // eslint-disable-next-line react-hooks/purity
     const line = hs.talk[Math.floor(Math.random() * hs.talk.length)]
     if (verb === 'Talk to' || hs.npc) {
       setDialogue({ who: hs.name.toUpperCase(), line })
