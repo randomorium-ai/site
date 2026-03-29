@@ -76,10 +76,14 @@ export default function BoardRow({ row, side, canPlay, onRowClick, empireStatuse
   const visibleWidth = getCardVisibleWidth(containerWidth, CARD_WIDTH, cards.length)
   const useAbsolute = cards.length > 5
 
+  // Dominating = winning by 10+ points in a row
+  const isDominating = score > otherScore && (score - otherScore) >= 10
+
   let rowClasses = `bzr-row bzr-row--${row.rowType}`
   if (canPlay) rowClasses += ' bzr-row--can-play'
   if (empireActive) rowClasses += ' bzr-row--empire-active'
   if (isSuppressed) rowClasses += ' bzr-row--suppressed'
+  if (isDominating) rowClasses += ' bzr-row--dominating'
 
   return (
     <div className={rowClasses} onClick={canPlay ? onRowClick : undefined}>

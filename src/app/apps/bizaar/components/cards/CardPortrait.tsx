@@ -479,6 +479,9 @@ export default function CardPortrait({ cardId, size = 'md' }: CardPortraitProps)
   const svgSize = size === 'sm' ? 22 : size === 'md' ? 28 : 38
   const eyeR = size === 'sm' ? 0.6 : 0.7
 
+  // Unique animation delay per character for variety
+  const animDelay = `${(cardId.charCodeAt(0) % 6) * 0.7}s`
+
   return (
     <div
       className={`bzr-portrait bzr-portrait--${size}`}
@@ -489,6 +492,7 @@ export default function CardPortrait({ cardId, size = 'md' }: CardPortraitProps)
         height={svgSize}
         viewBox="0 0 24 24"
         className="bzr-portrait-svg"
+        style={{ animationDelay: animDelay }}
       >
         {/* Render all layers back-to-front */}
         {config.layers.map((el, i) => (
@@ -505,17 +509,35 @@ export default function CardPortrait({ cardId, size = 'md' }: CardPortraitProps)
         ))}
         {/* Eyes — gives every character life */}
         {config.eyes.map(([cx, cy], i) => (
-          <circle key={`eye-${i}`} cx={cx} cy={cy} r={eyeR} fill="#1A1008" opacity={0.85} />
+          <circle key={`eye-${i}`} cx={cx} cy={cy} r={eyeR} fill="#1A1008" opacity={0.85}>
+            {/* Subtle eye blink animation — stagger by index */}
+            <animate
+              attributeName="ry"
+              values={`${eyeR};${eyeR};0.1;${eyeR};${eyeR}`}
+              keyTimes="0;0.45;0.5;0.55;1"
+              dur="4s"
+              begin={`${2 + i * 0.1 + cx * 0.2}s`}
+              repeatCount="indefinite"
+            />
+          </circle>
         ))}
         {/* Eye highlights */}
         {config.eyes.map(([cx, cy], i) => (
           <circle key={`hl-${i}`} cx={cx + 0.25} cy={cy - 0.2} r={0.25} fill="#FFF" opacity={0.6} />
         ))}
       </svg>
-      {/* Ambient glow */}
+      {/* Ambient glow — pulsing */}
       <div
         className="bzr-portrait-glow"
-        style={{ background: `radial-gradient(circle, ${config.accent}25 0%, transparent 70%)` }}
+        style={{
+          background: `radial-gradient(circle, ${config.accent}30 0%, transparent 70%)`,
+          animationDelay: animDelay,
+        }}
+      />
+      {/* Inner light rim */}
+      <div
+        className="bzr-portrait-rim"
+        style={{ borderColor: `${config.accent}20` }}
       />
     </div>
   )

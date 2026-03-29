@@ -87,6 +87,22 @@ export default function HandCard({ card, selected, onClick, index, totalCards }:
           <div className="bzr-hcard-ability">{abilityText}</div>
         )}
 
+        {/* Ornamental corner filigree */}
+        <svg className="bzr-hcard-corner bzr-hcard-corner--tl" width="12" height="12" viewBox="0 0 12 12">
+          <path d="M1 11V4a3 3 0 013-3h7" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.35" />
+          <path d="M1 8V5a2 2 0 012-2h3" fill="none" stroke={accent} strokeWidth="0.5" opacity="0.2" />
+        </svg>
+        <svg className="bzr-hcard-corner bzr-hcard-corner--tr" width="12" height="12" viewBox="0 0 12 12">
+          <path d="M11 11V4a3 3 0 00-3-3H1" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.35" />
+          <path d="M11 8V5a2 2 0 00-2-2H6" fill="none" stroke={accent} strokeWidth="0.5" opacity="0.2" />
+        </svg>
+        <svg className="bzr-hcard-corner bzr-hcard-corner--bl" width="12" height="12" viewBox="0 0 12 12">
+          <path d="M1 1v7a3 3 0 003 3h7" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.35" />
+        </svg>
+        <svg className="bzr-hcard-corner bzr-hcard-corner--br" width="12" height="12" viewBox="0 0 12 12">
+          <path d="M11 1v7a3 3 0 01-3 3H1" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.35" />
+        </svg>
+
         {/* Row ribbon */}
         <div className="bzr-hcard-row" style={{ background: accent }}>
           {ROW_LABELS[card.rowType]}

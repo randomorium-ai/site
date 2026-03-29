@@ -1,47 +1,42 @@
 // ── Bizaar Generative Ambient Music ──
-// Web Audio API generative music. Middle-eastern bazaar atmosphere.
-// Phrygian scale drone + plucked strings + subtle percussion.
-// Three scenes: menu (mysterious), battle (tense), result (varied).
+// Authentic Middle-Eastern bazaar atmosphere using Maqam Hijaz scale.
+// Oud-like plucked strings, ambient drone, doumbek percussion, crowd murmur.
+// Dynamic intensity based on scene and gameplay.
 
 import { useAudioStore } from '../stores/audioStore'
 
 export type MusicScene = 'menu' | 'battle' | 'result-win' | 'result-lose' | 'silent'
 
-// Phrygian scale on D — dark, Middle Eastern
-const PHRYGIAN_D = [
-  146.83, // D3
-  155.56, // Eb3
-  174.61, // F3
-  196.00, // G3
-  207.65, // Ab3
-  233.08, // Bb3
-  261.63, // C4
-  293.66, // D4
-  311.13, // Eb4
-  349.23, // F4
-  392.00, // G4
-]
+// ═══════════════════════════════════════
+// MAQAM HIJAZ — authentic Middle Eastern scale
+// Hijaz: D Eb F# G A Bb C D
+// The augmented second (Eb→F#) gives the distinctive "bazaar" sound
+// ═══════════════════════════════════════
+const HIJAZ = {
+  D2: 73.42, Eb2: 77.78, Fs2: 92.50, G2: 98.00, A2: 110.00, Bb2: 116.54, C3: 130.81,
+  D3: 146.83, Eb3: 155.56, Fs3: 185.00, G3: 196.00, A3: 220.00, Bb3: 233.08, C4: 261.63,
+  D4: 293.66, Eb4: 311.13, Fs4: 370.00, G4: 392.00, A4: 440.00, Bb4: 466.16, C5: 523.25,
+  D5: 587.33,
+}
 
-// Pentatonic subset for melodies (less dissonant)
-const MELODY_NOTES = [
-  146.83, // D3
-  174.61, // F3
-  196.00, // G3
-  233.08, // Bb3
-  293.66, // D4
-  349.23, // F4
-  392.00, // G4
-]
+// Melody subsets per mood
+const MENU_NOTES = [HIJAZ.D3, HIJAZ.Eb3, HIJAZ.Fs3, HIJAZ.G3, HIJAZ.A3, HIJAZ.D4, HIJAZ.Eb4]
+const BATTLE_NOTES = [HIJAZ.D3, HIJAZ.Fs3, HIJAZ.G3, HIJAZ.A3, HIJAZ.Bb3, HIJAZ.D4, HIJAZ.Fs4, HIJAZ.G4]
+const WIN_NOTES = [HIJAZ.D4, HIJAZ.Fs4, HIJAZ.G4, HIJAZ.A4, HIJAZ.D5]
+const LOSE_NOTES = [HIJAZ.D3, HIJAZ.Eb3, HIJAZ.G3, HIJAZ.Bb3, HIJAZ.D4, HIJAZ.Eb4]
 
 class BazaarMusicEngine {
   private ctx: AudioContext | null = null
   private masterGain: GainNode | null = null
-  private droneOsc: OscillatorNode | null = null
-  private droneGain: GainNode | null = null
-  private drone2Osc: OscillatorNode | null = null
-  private drone2Gain: GainNode | null = null
+  private droneOsc1: OscillatorNode | null = null
+  private droneOsc2: OscillatorNode | null = null
+  private droneGain1: GainNode | null = null
+  private droneGain2: GainNode | null = null
   private melodyTimer: ReturnType<typeof setTimeout> | null = null
   private percTimer: ReturnType<typeof setTimeout> | null = null
+  private ambientTimer: ReturnType<typeof setTimeout> | null = null
+  private ambientSource: AudioBufferSourceNode | null = null
+  private ambientGain: GainNode | null = null
   private currentScene: MusicScene = 'silent'
   private running = false
 
@@ -49,7 +44,7 @@ class BazaarMusicEngine {
     if (!this.ctx) {
       this.ctx = new AudioContext()
       this.masterGain = this.ctx.createGain()
-      this.masterGain.gain.value = 0.25
+      this.masterGain.gain.value = 0.22
       this.masterGain.connect(this.ctx.destination)
     }
     return this.ctx
@@ -67,24 +62,27 @@ class BazaarMusicEngine {
     const ac = this.getCtx()
     if (ac.state === 'suspended') ac.resume()
 
-    // Start drone
     this.startDrone(scene)
-    // Start melody loop
     this.scheduleMelody(scene)
-    // Start percussion (battle only)
-    if (scene === 'battle') this.schedulePerc()
+    if (scene === 'battle') {
+      this.schedulePerc()
+    }
+    this.startAmbientBed()
   }
 
   stop() {
     this.running = false
     this.currentScene = 'silent'
 
-    if (this.droneOsc) { try { this.droneOsc.stop() } catch {} this.droneOsc = null }
-    if (this.drone2Osc) { try { this.drone2Osc.stop() } catch {} this.drone2Osc = null }
-    if (this.droneGain) { this.droneGain.disconnect(); this.droneGain = null }
-    if (this.drone2Gain) { this.drone2Gain.disconnect(); this.drone2Gain = null }
+    if (this.droneOsc1) { try { this.droneOsc1.stop() } catch {} this.droneOsc1 = null }
+    if (this.droneOsc2) { try { this.droneOsc2.stop() } catch {} this.droneOsc2 = null }
+    if (this.droneGain1) { this.droneGain1.disconnect(); this.droneGain1 = null }
+    if (this.droneGain2) { this.droneGain2.disconnect(); this.droneGain2 = null }
     if (this.melodyTimer) { clearTimeout(this.melodyTimer); this.melodyTimer = null }
     if (this.percTimer) { clearTimeout(this.percTimer); this.percTimer = null }
+    if (this.ambientTimer) { clearTimeout(this.ambientTimer); this.ambientTimer = null }
+    if (this.ambientSource) { try { this.ambientSource.stop() } catch {} this.ambientSource = null }
+    if (this.ambientGain) { this.ambientGain.disconnect(); this.ambientGain = null }
   }
 
   setScene(scene: MusicScene) {
@@ -92,135 +90,284 @@ class BazaarMusicEngine {
     this.start(scene)
   }
 
+  // ── DRONE ──
   private startDrone(scene: MusicScene) {
     const ac = this.getCtx()
     if (!this.masterGain) return
 
-    // Root drone — D2
-    this.droneGain = ac.createGain()
-    this.droneOsc = ac.createOscillator()
-    this.droneOsc.type = 'sine'
-    this.droneOsc.frequency.value = 73.42 // D2
+    const vol = scene === 'menu' ? 0.1 : scene === 'battle' ? 0.07 : 0.05
 
-    const droneVol = scene === 'menu' ? 0.12 : scene === 'battle' ? 0.08 : 0.06
-    this.droneGain.gain.setValueAtTime(0, ac.currentTime)
-    this.droneGain.gain.linearRampToValueAtTime(droneVol, ac.currentTime + 2)
-    this.droneOsc.connect(this.droneGain).connect(this.masterGain)
-    this.droneOsc.start()
+    // Root drone — D2 with subtle LFO vibrato
+    this.droneGain1 = ac.createGain()
+    this.droneOsc1 = ac.createOscillator()
+    this.droneOsc1.type = 'sine'
+    this.droneOsc1.frequency.value = HIJAZ.D2
+    this.droneGain1.gain.setValueAtTime(0, ac.currentTime)
+    this.droneGain1.gain.linearRampToValueAtTime(vol, ac.currentTime + 3)
 
-    // Fifth drone — A2 (adds depth)
-    this.drone2Gain = ac.createGain()
-    this.drone2Osc = ac.createOscillator()
-    this.drone2Osc.type = 'sine'
-    this.drone2Osc.frequency.value = 110 // A2
+    // Add subtle vibrato via LFO
+    const lfo = ac.createOscillator()
+    const lfoGain = ac.createGain()
+    lfo.type = 'sine'
+    lfo.frequency.value = 0.3  // Very slow modulation
+    lfoGain.gain.value = 1.5   // Slight pitch wobble
+    lfo.connect(lfoGain).connect(this.droneOsc1.frequency)
+    lfo.start()
 
-    const drone2Vol = droneVol * 0.5
-    this.drone2Gain.gain.setValueAtTime(0, ac.currentTime)
-    this.drone2Gain.gain.linearRampToValueAtTime(drone2Vol, ac.currentTime + 3)
-    this.drone2Osc.connect(this.drone2Gain).connect(this.masterGain)
-    this.drone2Osc.start()
+    this.droneOsc1.connect(this.droneGain1).connect(this.masterGain)
+    this.droneOsc1.start()
+
+    // Fifth drone — A2 (perfect fifth)
+    this.droneGain2 = ac.createGain()
+    this.droneOsc2 = ac.createOscillator()
+    this.droneOsc2.type = 'sine'
+    this.droneOsc2.frequency.value = HIJAZ.A2
+    this.droneGain2.gain.setValueAtTime(0, ac.currentTime)
+    this.droneGain2.gain.linearRampToValueAtTime(vol * 0.4, ac.currentTime + 4)
+    this.droneOsc2.connect(this.droneGain2).connect(this.masterGain)
+    this.droneOsc2.start()
   }
 
+  // ── OUD-LIKE PLUCK ──
+  private playOudPluck(freq: number, vol: number) {
+    const ac = this.getCtx()
+    if (!this.masterGain) return
+
+    // Karplus-Strong inspired pluck: initial noise burst → filtered decay
+    const dur = 0.6 + Math.random() * 0.4
+
+    // Excitation: short noise burst
+    const noiseLen = ac.sampleRate * 0.015
+    const noiseBuf = ac.createBuffer(1, noiseLen, ac.sampleRate)
+    const noiseData = noiseBuf.getChannelData(0)
+    for (let i = 0; i < noiseLen; i++) {
+      noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseLen)
+    }
+    const noise = ac.createBufferSource()
+    noise.buffer = noiseBuf
+    const noiseGain = ac.createGain()
+    noiseGain.gain.setValueAtTime(vol * 0.3, ac.currentTime)
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.03)
+
+    // Tonal body: triangle oscillator at note frequency
+    const osc = ac.createOscillator()
+    osc.type = 'triangle'
+    osc.frequency.value = freq
+    const oscGain = ac.createGain()
+    oscGain.gain.setValueAtTime(vol, ac.currentTime)
+    oscGain.gain.setValueAtTime(vol * 0.8, ac.currentTime + 0.01) // Initial attack
+    oscGain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur)
+
+    // String resonance filter
+    const filter = ac.createBiquadFilter()
+    filter.type = 'bandpass'
+    filter.frequency.value = freq * 2
+    filter.Q.value = 4
+
+    // Second harmonic for richness
+    const harm = ac.createOscillator()
+    harm.type = 'sine'
+    harm.frequency.value = freq * 2
+    const harmGain = ac.createGain()
+    harmGain.gain.setValueAtTime(vol * 0.15, ac.currentTime)
+    harmGain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur * 0.5)
+
+    noise.connect(noiseGain).connect(this.masterGain)
+    osc.connect(filter).connect(oscGain).connect(this.masterGain)
+    harm.connect(harmGain).connect(this.masterGain)
+
+    noise.start(ac.currentTime)
+    osc.start(ac.currentTime)
+    osc.stop(ac.currentTime + dur)
+    harm.start(ac.currentTime)
+    harm.stop(ac.currentTime + dur * 0.5)
+  }
+
+  // ── MELODY ──
   private scheduleMelody(scene: MusicScene) {
     if (!this.running) return
 
     const interval = scene === 'menu'
-      ? 2000 + Math.random() * 4000      // Sparse, mysterious
+      ? 2500 + Math.random() * 4000      // Sparse, mysterious
       : scene === 'battle'
-        ? 800 + Math.random() * 2000       // More frequent
+        ? 700 + Math.random() * 1800       // Active
         : 1500 + Math.random() * 3000      // Result — moderate
 
     this.melodyTimer = setTimeout(() => {
       if (!this.running) return
-      this.playMelodyNote(scene)
+      this.playMelodyPhrase(scene)
       this.scheduleMelody(scene)
     }, interval)
   }
 
-  private playMelodyNote(scene: MusicScene) {
+  private playMelodyPhrase(scene: MusicScene) {
     if (useAudioStore.getState().muted) return
-    const ac = this.getCtx()
-    if (!this.masterGain) return
 
-    const notes = scene === 'menu' ? PHRYGIAN_D : MELODY_NOTES
-    const freq = notes[Math.floor(Math.random() * notes.length)]
+    const notes = scene === 'menu' ? MENU_NOTES
+      : scene === 'result-win' ? WIN_NOTES
+      : scene === 'result-lose' ? LOSE_NOTES
+      : BATTLE_NOTES
 
-    const osc = ac.createOscillator()
-    const gain = ac.createGain()
-    const filter = ac.createBiquadFilter()
-
-    osc.type = 'triangle'
-    osc.frequency.value = freq
-
-    filter.type = 'lowpass'
-    filter.frequency.value = 1200
-    filter.Q.value = 2
-
+    // Play 1-3 note phrases
+    const phraseLen = 1 + Math.floor(Math.random() * 3)
     const vol = scene === 'battle' ? 0.06 : 0.04
-    const decay = 0.4 + Math.random() * 0.6
 
-    gain.gain.setValueAtTime(vol, ac.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + decay)
-
-    osc.connect(filter).connect(gain).connect(this.masterGain)
-    osc.start(ac.currentTime)
-    osc.stop(ac.currentTime + decay)
-
-    // Occasionally play a second note for harmony (thirds/fifths)
-    if (Math.random() > 0.6) {
-      const idx = notes.indexOf(freq)
-      const harmIdx = Math.min(idx + 2, notes.length - 1)
-      const harmFreq = notes[harmIdx]
-
-      const osc2 = ac.createOscillator()
-      const gain2 = ac.createGain()
-      osc2.type = 'triangle'
-      osc2.frequency.value = harmFreq
-      gain2.gain.setValueAtTime(vol * 0.5, ac.currentTime + 0.05)
-      gain2.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + decay * 0.8)
-      osc2.connect(filter).connect(gain2).connect(this.masterGain)
-      osc2.start(ac.currentTime + 0.05)
-      osc2.stop(ac.currentTime + decay * 0.8)
+    for (let i = 0; i < phraseLen; i++) {
+      const freq = notes[Math.floor(Math.random() * notes.length)]
+      setTimeout(() => {
+        if (!this.running) return
+        this.playOudPluck(freq, vol)
+      }, i * (120 + Math.random() * 200))
     }
   }
 
+  // ── DOUMBEK PERCUSSION ──
   private schedulePerc() {
     if (!this.running) return
 
-    const interval = 400 + Math.random() * 300  // ~120-150 BPM feel
+    // 4-beat doumbek pattern: DUM-tek-tek-DUM (Middle Eastern rhythm)
+    const beatInterval = 350 + Math.random() * 100 // ~130-170 BPM
 
     this.percTimer = setTimeout(() => {
-      if (!this.running) return
-      if (Math.random() > 0.4) this.playPerc()  // Not every beat
+      if (!this.running || this.currentScene !== 'battle') return
+      this.playPercPattern()
       this.schedulePerc()
-    }, interval)
+    }, beatInterval * 4) // Full pattern cycle
   }
 
-  private playPerc() {
+  private playPercPattern() {
     if (useAudioStore.getState().muted) return
     const ac = this.getCtx()
     if (!this.masterGain) return
 
-    // Filtered noise burst — tabla-like
-    const bufferSize = ac.sampleRate * 0.06
-    const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate)
+    const beatTime = 0.3
+
+    // Pattern: DUM (low) - tek (high) - [rest] - tek (high)
+    const pattern = [
+      { time: 0, type: 'dum' as const },
+      { time: beatTime, type: 'tek' as const },
+      { time: beatTime * 3, type: 'tek' as const },
+    ]
+
+    // Sometimes add a fill
+    if (Math.random() > 0.6) {
+      pattern.push({ time: beatTime * 2.5, type: 'tek' as const })
+    }
+
+    pattern.forEach(({ time, type }) => {
+      const bufSize = ac.sampleRate * (type === 'dum' ? 0.08 : 0.04)
+      const buffer = ac.createBuffer(1, bufSize, ac.sampleRate)
+      const data = buffer.getChannelData(0)
+      for (let i = 0; i < bufSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, type === 'dum' ? 2 : 4)
+      }
+
+      const source = ac.createBufferSource()
+      source.buffer = buffer
+
+      const filter = ac.createBiquadFilter()
+      filter.type = 'bandpass'
+      if (type === 'dum') {
+        filter.frequency.value = 150 + Math.random() * 50
+        filter.Q.value = 4
+      } else {
+        filter.frequency.value = 1200 + Math.random() * 400
+        filter.Q.value = 8
+      }
+
+      const gain = ac.createGain()
+      const t = ac.currentTime + time
+      const vol = type === 'dum' ? 0.05 : 0.02
+      gain.gain.setValueAtTime(vol, t)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + (type === 'dum' ? 0.1 : 0.04))
+
+      source.connect(filter).connect(gain).connect(this.masterGain!)
+      source.start(t)
+    })
+  }
+
+  // ── AMBIENT BED — distant crowd, wind ──
+  private startAmbientBed() {
+    if (!this.running) return
+    const ac = this.getCtx()
+    if (!this.masterGain) return
+
+    // Looping filtered noise for ambient wind/crowd murmur
+    const duration = 4
+    const bufSize = ac.sampleRate * duration
+    const buffer = ac.createBuffer(1, bufSize, ac.sampleRate)
     const data = buffer.getChannelData(0)
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize)
+
+    // Generate noise with slow amplitude modulation (crowd-like)
+    for (let i = 0; i < bufSize; i++) {
+      const t = i / ac.sampleRate
+      const modulation = 0.5 + 0.5 * Math.sin(t * 0.8) * Math.sin(t * 1.3)
+      data[i] = (Math.random() * 2 - 1) * modulation * 0.3
+    }
+
+    this.ambientSource = ac.createBufferSource()
+    this.ambientSource.buffer = buffer
+    this.ambientSource.loop = true
+
+    // Multiple filters to shape the crowd murmur
+    const lowpass = ac.createBiquadFilter()
+    lowpass.type = 'lowpass'
+    lowpass.frequency.value = 400
+    lowpass.Q.value = 0.5
+
+    const highpass = ac.createBiquadFilter()
+    highpass.type = 'highpass'
+    highpass.frequency.value = 60
+
+    this.ambientGain = ac.createGain()
+    const vol = this.currentScene === 'battle' ? 0.03 : 0.02
+    this.ambientGain.gain.setValueAtTime(0, ac.currentTime)
+    this.ambientGain.gain.linearRampToValueAtTime(vol, ac.currentTime + 5)
+
+    this.ambientSource.connect(highpass).connect(lowpass).connect(this.ambientGain).connect(this.masterGain)
+    this.ambientSource.start()
+
+    // Occasional wind gusts
+    this.scheduleWindGust()
+  }
+
+  private scheduleWindGust() {
+    if (!this.running) return
+
+    this.ambientTimer = setTimeout(() => {
+      if (!this.running) return
+      this.playWindGust()
+      this.scheduleWindGust()
+    }, 5000 + Math.random() * 8000)
+  }
+
+  private playWindGust() {
+    if (useAudioStore.getState().muted) return
+    const ac = this.getCtx()
+    if (!this.masterGain) return
+
+    const dur = 1 + Math.random() * 1.5
+    const bufSize = ac.sampleRate * dur
+    const buffer = ac.createBuffer(1, bufSize, ac.sampleRate)
+    const data = buffer.getChannelData(0)
+    for (let i = 0; i < bufSize; i++) {
+      const env = Math.sin((i / bufSize) * Math.PI)
+      data[i] = (Math.random() * 2 - 1) * env
     }
 
     const source = ac.createBufferSource()
     source.buffer = buffer
-
     const filter = ac.createBiquadFilter()
     filter.type = 'bandpass'
-    const isLow = Math.random() > 0.5
-    filter.frequency.value = isLow ? 200 : 800
-    filter.Q.value = isLow ? 3 : 5
+    filter.frequency.setValueAtTime(300, ac.currentTime)
+    filter.frequency.exponentialRampToValueAtTime(800, ac.currentTime + dur * 0.4)
+    filter.frequency.exponentialRampToValueAtTime(200, ac.currentTime + dur)
+    filter.Q.value = 1.5
 
     const gain = ac.createGain()
-    gain.gain.setValueAtTime(isLow ? 0.06 : 0.03, ac.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.08)
+    gain.gain.setValueAtTime(0, ac.currentTime)
+    gain.gain.linearRampToValueAtTime(0.015, ac.currentTime + dur * 0.3)
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur)
 
     source.connect(filter).connect(gain).connect(this.masterGain)
     source.start(ac.currentTime)

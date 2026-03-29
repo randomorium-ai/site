@@ -263,25 +263,45 @@ export function debuff() {
   osc.stop(ac.currentTime + 0.2)
 }
 
-/** Rising chord for empire activation */
+/** Rising Hijaz chord for empire activation — dramatic ascending */
 export function empireActivate() {
   if (isMuted()) return
   const ac = getCtx()
-  const freqs = [293.66, 440, 587.33] // D4-A4-D5
+  // D-F#-A-D (Hijaz major chord, bright and triumphant)
+  const freqs = [146.83, 185.00, 220.00, 293.66, 370.00]
   freqs.forEach((freq, i) => {
     const osc = ac.createOscillator()
     const gain = ac.createGain()
-    osc.type = 'sine'
-    const startTime = ac.currentTime + i * 0.08
+    osc.type = i < 2 ? 'triangle' : 'sine'
+    const startTime = ac.currentTime + i * 0.1
     osc.frequency.setValueAtTime(freq, startTime)
-    osc.frequency.exponentialRampToValueAtTime(freq * 1.15, startTime + 0.6)
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.05, startTime + 0.8)
     gain.gain.setValueAtTime(0, startTime)
-    gain.gain.linearRampToValueAtTime(0.15, startTime + 0.05)
-    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.7)
+    gain.gain.linearRampToValueAtTime(0.12, startTime + 0.04)
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 1)
     osc.connect(gain).connect(ac.destination)
     osc.start(startTime)
-    osc.stop(startTime + 0.7)
+    osc.stop(startTime + 1)
   })
+
+  // Add shimmer — high filtered noise
+  const bufSize = ac.sampleRate * 0.8
+  const buffer = ac.createBuffer(1, bufSize, ac.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < bufSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 2)
+  }
+  const source = ac.createBufferSource()
+  source.buffer = buffer
+  const filter = ac.createBiquadFilter()
+  filter.type = 'bandpass'
+  filter.frequency.value = 4000
+  filter.Q.value = 2
+  const shimGain = ac.createGain()
+  shimGain.gain.setValueAtTime(0.03, ac.currentTime + 0.2)
+  shimGain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.8)
+  source.connect(filter).connect(shimGain).connect(ac.destination)
+  source.start(ac.currentTime + 0.2)
 }
 
 /** Harsh buzz for disruption card */
@@ -304,19 +324,40 @@ export function disruption() {
 // ROUND & MATCH RESULTS
 // ════════════════════════════════════════
 
-/** Major chord arpeggio for round win */
+/** Hijaz ascending arpeggio for round win */
 export function roundWin() {
   if (isMuted()) return
   const ac = getCtx()
-  const notes = [262, 330, 392, 523] // C4-E4-G4-C5
+  // D-F#-A-D5 (Hijaz bright arpeggio)
+  const notes = [293.66, 370.00, 440.00, 587.33]
   notes.forEach((freq, i) => {
     const osc = ac.createOscillator()
     const gain = ac.createGain()
-    osc.type = 'sine'
+    osc.type = 'triangle'
     const t = ac.currentTime + i * 0.1
     osc.frequency.setValueAtTime(freq, t)
     gain.gain.setValueAtTime(0, t)
     gain.gain.linearRampToValueAtTime(0.15, t + 0.03)
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5)
+    osc.connect(gain).connect(ac.destination)
+    osc.start(t)
+    osc.stop(t + 0.5)
+  })
+}
+
+/** Hijaz descending for round loss — Eb-D-Bb-G */
+export function roundLose() {
+  if (isMuted()) return
+  const ac = getCtx()
+  const notes = [311.13, 293.66, 233.08, 196.00] // Eb4-D4-Bb3-G3
+  notes.forEach((freq, i) => {
+    const osc = ac.createOscillator()
+    const gain = ac.createGain()
+    osc.type = 'sine'
+    const t = ac.currentTime + i * 0.18
+    osc.frequency.setValueAtTime(freq, t)
+    gain.gain.setValueAtTime(0, t)
+    gain.gain.linearRampToValueAtTime(0.12, t + 0.03)
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4)
     osc.connect(gain).connect(ac.destination)
     osc.start(t)
@@ -324,79 +365,62 @@ export function roundWin() {
   })
 }
 
-/** Descending minor for round loss */
-export function roundLose() {
-  if (isMuted()) return
-  const ac = getCtx()
-  const notes = [392, 311, 262] // G4-Eb4-C4
-  notes.forEach((freq, i) => {
-    const osc = ac.createOscillator()
-    const gain = ac.createGain()
-    osc.type = 'sine'
-    const t = ac.currentTime + i * 0.15
-    osc.frequency.setValueAtTime(freq, t)
-    gain.gain.setValueAtTime(0, t)
-    gain.gain.linearRampToValueAtTime(0.12, t + 0.03)
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35)
-    osc.connect(gain).connect(ac.destination)
-    osc.start(t)
-    osc.stop(t + 0.35)
-  })
-}
-
-/** Triumphant fanfare for match win */
+/** Triumphant Hijaz fanfare for match win */
 export function matchWin() {
   if (isMuted()) return
   const ac = getCtx()
-  const notes = [262, 330, 392, 523, 659] // C4-E4-G4-C5-E5
+  // D-F#-A-D5-F#5 (triumphant Hijaz arpeggio)
+  const notes = [293.66, 370.00, 440.00, 587.33, 740.00]
   notes.forEach((freq, i) => {
     const osc = ac.createOscillator()
     const gain = ac.createGain()
-    osc.type = 'sine'
-    const t = ac.currentTime + i * 0.15
+    osc.type = 'triangle'
+    const t = ac.currentTime + i * 0.14
     osc.frequency.setValueAtTime(freq, t)
     gain.gain.setValueAtTime(0, t)
-    gain.gain.linearRampToValueAtTime(0.2, t + 0.04)
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8)
+    gain.gain.linearRampToValueAtTime(0.18, t + 0.04)
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9)
     osc.connect(gain).connect(ac.destination)
     osc.start(t)
-    osc.stop(t + 0.8)
+    osc.stop(t + 0.9)
   })
-  // Add sustained chord
+  // Sustained D major chord
   setTimeout(() => {
     if (isMuted()) return
-    const chord = [262, 330, 392]
+    const chord = [293.66, 370.00, 440.00] // D-F#-A
     chord.forEach(freq => {
       const osc = ac.createOscillator()
       const gain = ac.createGain()
-      osc.type = 'triangle'
+      osc.type = 'sine'
       osc.frequency.value = freq
       gain.gain.setValueAtTime(0.08, ac.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 1.5)
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 2)
       osc.connect(gain).connect(ac.destination)
       osc.start(ac.currentTime)
-      osc.stop(ac.currentTime + 1.5)
+      osc.stop(ac.currentTime + 2)
     })
   }, 700)
 }
 
-/** Descending minor for match loss */
+/** Hijaz descending for match loss — Eb-D-Bb-G-D3 */
 export function matchLose() {
   if (isMuted()) return
   const ac = getCtx()
-  const notes = [440, 349, 294, 220] // A4-F4-D4-A3
+  const notes = [311.13, 293.66, 233.08, 196.00, 146.83] // Eb4-D4-Bb3-G3-D3
   notes.forEach((freq, i) => {
     const osc = ac.createOscillator()
     const gain = ac.createGain()
     osc.type = 'sine'
-    const t = ac.currentTime + i * 0.2
+    const t = ac.currentTime + i * 0.22
     osc.frequency.setValueAtTime(freq, t)
+    // Add gentle pitch drop on each note
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.97, t + 0.5)
     gain.gain.setValueAtTime(0, t)
-    gain.gain.linearRampToValueAtTime(0.15, t + 0.04)
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5)
+    gain.gain.linearRampToValueAtTime(0.13, t + 0.04)
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6)
     osc.connect(gain).connect(ac.destination)
     osc.start(t)
-    osc.stop(t + 0.5)
+    osc.stop(t + 0.6)
   })
 }
 

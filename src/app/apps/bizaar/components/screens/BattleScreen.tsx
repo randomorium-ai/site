@@ -15,6 +15,7 @@ import ScorePanel from '../hud/ScorePanel'
 import TurnIndicator from '../hud/TurnIndicator'
 import EmpireActivation from '../effects/EmpireActivation'
 import RoundBanner from '../effects/RoundBanner'
+import BoardAtmosphere from '../effects/BoardAtmosphere'
 
 interface BattleScreenProps {
   onMatchEnd: () => void
@@ -27,6 +28,15 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevPhaseRef = useRef<GamePhase>(state.phase)
   const prevHandLenRef = useRef(state.playerHand.length)
+
+  // Screen shake ref
+  const battleRef = useRef<HTMLDivElement>(null)
+  const triggerShake = useCallback((heavy = false) => {
+    if (!battleRef.current) return
+    battleRef.current.classList.remove('bzr-shake', 'bzr-shake--heavy')
+    void battleRef.current.offsetWidth
+    battleRef.current.classList.add(heavy ? 'bzr-shake--heavy' : 'bzr-shake')
+  }, [])
 
   // Start match on mount + music
   useEffect(() => {
@@ -71,12 +81,13 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
     // Match end
     if (state.phase === 'MATCH_END') {
       bazaarMusic.stop()
+      triggerShake(true)
       const pWon = state.playerRoundsWon
       const oWon = state.opponentRoundsWon
       if (pWon > oWon) sfx.matchWin()
       else if (oWon > pWon) sfx.matchLose()
     }
-  }, [state.phase, state.roundHistory, state.playerRoundsWon, state.opponentRoundsWon])
+  }, [state.phase, state.roundHistory, state.playerRoundsWon, state.opponentRoundsWon, triggerShake])
 
   // Card draw sound (hand size increases)
   useEffect(() => {
@@ -101,6 +112,7 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
         opponentPlayCard(cardInstanceId, targetRow)
         if (card?.tags.includes('disruption')) {
           sfx.disruption()
+          triggerShake()
         } else {
           sfx.opponentCardPlace()
         }
@@ -113,7 +125,7 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
     return () => {
       if (aiTimerRef.current) clearTimeout(aiTimerRef.current)
     }
-  }, [state.phase, state.turnCount, opponentPlayCard, opponentPass])
+  }, [state.phase, state.turnCount, opponentPlayCard, opponentPass, triggerShake])
 
   // Match end detection
   useEffect(() => {
@@ -142,12 +154,13 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
         playSelectedCard(rowType)
         if (card?.tags.includes('disruption')) {
           sfx.disruption()
+          triggerShake()
         } else {
           sfx.cardPlace()
         }
       }
     },
-    [canPlayRow, playSelectedCard, state.playerHand, state.selectedCardId]
+    [canPlayRow, playSelectedCard, state.playerHand, state.selectedCardId, triggerShake]
   )
 
   const handleSelectCard = useCallback(
@@ -171,7 +184,10 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
   const isPlayerTurn = state.phase === 'TURN_PLAYER' && !state.playerPassed
 
   return (
-    <div className="bzr-battle bzr-screen-enter" style={{ position: 'relative' }}>
+    <div ref={battleRef} className="bzr-battle bzr-screen-enter">
+      {/* Atmospheric particles & vignette */}
+      <BoardAtmosphere />
+
       {/* Mute toggle */}
       <button
         className="bzr-mute-btn"

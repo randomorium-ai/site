@@ -13,6 +13,22 @@ interface ActiveFlourish {
   key: number
 }
 
+// Generate burst rays for the radial light effect
+const RAYS = Array.from({ length: 12 }, (_, i) => ({
+  angle: (360 / 12) * i + Math.random() * 10,
+  width: 1.5 + Math.random() * 2,
+  length: 60 + Math.random() * 40,
+  delay: Math.random() * 0.15,
+}))
+
+// Pre-generate spark particles
+const SPARKS = Array.from({ length: 16 }, (_, i) => ({
+  id: i,
+  left: `${20 + Math.random() * 60}%`,
+  delay: `${Math.random() * 0.6}s`,
+  duration: `${0.6 + Math.random() * 0.5}s`,
+}))
+
 export default function EmpireActivation({ empireStatuses }: EmpireActivationProps) {
   const [flourish, setFlourish] = useState<ActiveFlourish | null>(null)
   const prevStatusRef = useRef<Map<string, boolean>>(new Map())
@@ -42,7 +58,7 @@ export default function EmpireActivation({ empireStatuses }: EmpireActivationPro
 
   useEffect(() => {
     if (!flourish) return
-    const timer = setTimeout(() => setFlourish(null), 1200)
+    const timer = setTimeout(() => setFlourish(null), 1800)
     return () => clearTimeout(timer)
   }, [flourish])
 
@@ -50,7 +66,43 @@ export default function EmpireActivation({ empireStatuses }: EmpireActivationPro
 
   return (
     <div key={flourish.key} className="bzr-empire-flourish">
+      {/* Radial light burst */}
+      <div className="bzr-empire-rays">
+        {RAYS.map((ray, i) => (
+          <div
+            key={i}
+            className="bzr-empire-ray"
+            style={{
+              transform: `rotate(${ray.angle}deg)`,
+              width: `${ray.length}%`,
+              height: `${ray.width}px`,
+              animationDelay: `${ray.delay}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Central glow */}
+      <div className="bzr-empire-center-glow" />
+
+      {/* Title */}
       <div className="bzr-empire-flourish-text">{flourish.empireName}</div>
+      <div className="bzr-empire-flourish-sub">Empire Activated</div>
+
+      {/* Particle shower */}
+      <div className="bzr-empire-shower">
+        {SPARKS.map(spark => (
+          <div
+            key={spark.id}
+            className="bzr-empire-spark"
+            style={{
+              left: spark.left,
+              animationDelay: spark.delay,
+              animationDuration: spark.duration,
+            }}
+          />
+        ))}
+      </div>
     </div>
   )
 }

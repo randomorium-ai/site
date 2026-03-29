@@ -8,6 +8,15 @@ interface ResultScreenProps {
   onMenu: () => void
 }
 
+// Victory particles — golden sparkles falling
+const VICTORY_PARTICLES = Array.from({ length: 20 }, (_, i) => ({
+  id: i,
+  left: `${5 + Math.random() * 90}%`,
+  delay: `${Math.random() * 3}s`,
+  duration: `${2 + Math.random() * 3}s`,
+  size: `${1.5 + Math.random() * 2}px`,
+}))
+
 export default function ResultScreen({ onPlayAgain, onMenu }: ResultScreenProps) {
   const { state } = useGameStore()
   const winner = getMatchWinner()
@@ -35,6 +44,25 @@ export default function ResultScreen({ onPlayAgain, onMenu }: ResultScreenProps)
 
   return (
     <div className="bzr-result bzr-fade-in bzr-screen-enter">
+      {/* Victory sparkle particles */}
+      {winner === 'player' && (
+        <div className="bzr-result-particles" aria-hidden="true">
+          {VICTORY_PARTICLES.map(p => (
+            <div
+              key={p.id}
+              className="bzr-result-sparkle"
+              style={{
+                left: p.left,
+                animationDelay: p.delay,
+                animationDuration: p.duration,
+                width: p.size,
+                height: p.size,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <div className="bzr-result-sigil">
         <SerpentSigil size={48} />
       </div>
@@ -50,6 +78,7 @@ export default function ResultScreen({ onPlayAgain, onMenu }: ResultScreenProps)
             <div
               key={round.roundNumber}
               className={`bzr-result-round ${won ? 'bzr-result-round--won' : ''} ${lost ? 'bzr-result-round--lost' : ''}`}
+              style={{ animationDelay: `${0.3 + round.roundNumber * 0.15}s` }}
             >
               <div className="bzr-result-round-label">
                 Round {round.roundNumber}

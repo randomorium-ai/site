@@ -1,8 +1,9 @@
 'use client'
 
+import { useRef, useEffect } from 'react'
 import { motion } from 'motion/react'
 import type { CardInstance } from '@/lib/bizaar/engine/types'
-import CardPortrait from '../cards/CardPortrait'
+import CardPortrait, { getCardAccent } from '../cards/CardPortrait'
 import AbilityIcon, { EmpireCrownIcon } from '../cards/AbilityIcon'
 import StrengthPopup from '../effects/StrengthPopup'
 
@@ -16,6 +17,15 @@ export default function BoardCard({ card, style }: BoardCardProps) {
   const isDebuffed = card.currentStrength < card.baseStrength
   const isEmpire = card.tags.includes('empire')
   const isDisruption = card.tags.includes('disruption')
+  const accent = getCardAccent(card.definitionId)
+
+  // Landing flash — plays once on mount
+  const flashRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (flashRef.current) {
+      flashRef.current.classList.add('bzr-bcard-flash--active')
+    }
+  }, [])
 
   let strCls = 'bzr-bcard-str'
   if (isBuffed) strCls += ' bzr-bcard-str--buffed'
@@ -29,15 +39,18 @@ export default function BoardCard({ card, style }: BoardCardProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.7 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
+      initial={{ opacity: 0, scale: 0.5, y: card.owner === 'player' ? 20 : -20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
       style={style}
     >
       <div
         className={cls}
         title={`${card.name}${card.ability ? ' — ' + card.ability.description : ''}`}
       >
+        {/* Landing flash */}
+        <div ref={flashRef} className="bzr-bcard-flash" style={{ '--flash-color': accent } as React.CSSProperties} />
+
         {/* Strength — top left */}
         <div className={strCls}>{card.currentStrength}</div>
 
