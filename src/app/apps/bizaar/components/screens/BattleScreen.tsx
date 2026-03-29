@@ -2,14 +2,17 @@
 
 import { useEffect, useCallback, useRef } from 'react'
 import { useGameStore } from '@/lib/bizaar/stores/gameStore'
+import { useAudioStore } from '@/lib/bizaar/stores/audioStore'
 import { getAIMove } from '@/lib/bizaar/engine/ai'
 import { scoreBoard } from '@/lib/bizaar/engine/scoring'
 import { TOTAL_ROUNDS } from '@/lib/bizaar/engine/constants'
-import type { RowType } from '@/lib/bizaar/engine/types'
+import * as sfx from '@/lib/bizaar/audio/SynthAudio'
+import type { RowType, GamePhase } from '@/lib/bizaar/engine/types'
 import Battlefield from '../board/Battlefield'
 import Hand from '../hand/Hand'
 import ScorePanel from '../hud/ScorePanel'
 import TurnIndicator from '../hud/TurnIndicator'
+import EmpireActivation from '../effects/EmpireActivation'
 
 interface BattleScreenProps {
   onMatchEnd: () => void
@@ -18,7 +21,10 @@ interface BattleScreenProps {
 export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
   const { state, startMatch, selectCard, playSelectedCard, playerPass, opponentPlayCard, opponentPass } =
     useGameStore()
+  const { muted, toggleMute } = useAudioStore()
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const prevPhaseRef = useRef<GamePhase>(state.phase)
+  const prevHandLenRef = useRef(state.playerHand.length)
 
   // Start match on mount
   useEffect(() => {
@@ -28,6 +34,35 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Phase-change audio
+  useEffect(() => {
+    const prev = prevPhaseRef.current
+    prevPhaseRef.current = state.phase
+
+    if (prev === state.phase) return
+
+    if (state.phase === 'ROUND_END') {
+      // Determine who won this round
+      const lastRound = state.roundHistory[state.roundHistory.length - 1]
+      if (lastRound?.winner === 'player') sfx.roundWin()
+    }
+
+    if (state.phase === 'MATCH_END') {
+      const pWon = state.playerRoundsWon
+      const oWon = state.opponentRoundsWon
+      if (pWon > oWon) sfx.matchWin()
+      else if (oWon > pWon) sfx.matchLose()
+    }
+  }, [state.phase, state.roundHistory, state.playerRoundsWon, state.opponentRoundsWon])
+
+  // Card draw sound (hand size increases)
+  useEffect(() => {
+    if (state.playerHand.length > prevHandLenRef.current && prevHandLenRef.current > 0) {
+      sfx.cardDraw()
+    }
+    prevHandLenRef.current = state.playerHand.length
+  }, [state.playerHand.length])
 
   // AI turn handler
   useEffect(() => {
@@ -39,8 +74,10 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
 
       if (move.action.type === 'PLAY_CARD') {
         opponentPlayCard(move.action.cardInstanceId, move.action.targetRow)
+        sfx.opponentCardPlace()
       } else {
         opponentPass()
+        sfx.pass()
       }
     }, 600 + Math.random() * 400) // 600-1000ms delay for feel
 
@@ -72,6 +109,7 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
     (rowType: RowType) => {
       if (canPlayRow(rowType)) {
         playSelectedCard(rowType)
+        sfx.cardPlace()
       }
     },
     [canPlayRow, playSelectedCard]
@@ -88,10 +126,23 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
     [state.selectedCardId, selectCard]
   )
 
+  const handlePass = useCallback(() => {
+    playerPass()
+    sfx.pass()
+  }, [playerPass])
+
   const isPlayerTurn = state.phase === 'TURN_PLAYER' && !state.playerPassed
 
   return (
-    <div className="bzr-battle">
+    <div className="bzr-battle" style={{ position: 'relative' }}>
+      {/* Mute toggle */}
+      <button className="bzr-mute-btn" onClick={toggleMute} title={muted ? 'Unmute' : 'Mute'}>
+        {muted ? '\u{1F507}' : '\u{1F509}'}
+      </button>
+
+      {/* Empire activation overlay */}
+      <EmpireActivation empireStatuses={state.empireStatuses} />
+
       {/* Opponent HUD */}
       <ScorePanel
         side="opponent"
@@ -139,7 +190,7 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
         onSelectCard={handleSelectCard}
         deckCount={state.playerDeck.length}
         discardCount={state.playerDiscard.length}
-        onPass={playerPass}
+        onPass={handlePass}
         canAct={isPlayerTurn}
       />
     </div>

@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'motion/react'
 import type { CardInstance } from '@/lib/bizaar/engine/types'
 import { ROW_LABELS } from '@/lib/bizaar/engine/constants'
 import CardPortrait, { getCardAccent } from '../cards/CardPortrait'
@@ -46,43 +47,51 @@ export default function HandCard({ card, selected, onClick, index, totalCards }:
   if (isDisruption) cls += ' bzr-hcard--disruption'
 
   return (
-    <div
-      className={cls}
-      onClick={onClick}
-      style={{
-        transform: `rotate(${rotation}deg) translateY(${translateY}px)${selected ? ' translateY(-16px)' : ''}`,
-        zIndex: selected ? 50 : index,
-        '--card-accent': accent,
-      } as React.CSSProperties}
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.8, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.6, y: -30 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
     >
-      {/* Strength badge — prominent top-left */}
-      <div className="bzr-hcard-str">
-        {card.baseStrength}
+      <div
+        className={cls}
+        onClick={onClick}
+        style={{
+          transform: `rotate(${rotation}deg) translateY(${translateY}px)${selected ? ' translateY(-16px)' : ''}`,
+          zIndex: selected ? 50 : index,
+          '--card-accent': accent,
+        } as React.CSSProperties}
+      >
+        {/* Strength badge — prominent top-left */}
+        <div className="bzr-hcard-str">
+          {card.baseStrength}
+        </div>
+
+        {/* Type badge — top right */}
+        <div className="bzr-hcard-type">
+          {isEmpire && <EmpireCrownIcon size={11} />}
+          {card.ability && <AbilityIcon effect={card.ability.effect} size={11} />}
+        </div>
+
+        {/* Portrait */}
+        <div className="bzr-hcard-portrait">
+          <CardPortrait cardId={card.definitionId} size="md" />
+        </div>
+
+        {/* Name */}
+        <div className="bzr-hcard-name">{card.name}</div>
+
+        {/* Ability text */}
+        {abilityText && (
+          <div className="bzr-hcard-ability">{abilityText}</div>
+        )}
+
+        {/* Row ribbon */}
+        <div className="bzr-hcard-row" style={{ background: accent }}>
+          {ROW_LABELS[card.rowType]}
+        </div>
       </div>
-
-      {/* Type badge — top right */}
-      <div className="bzr-hcard-type">
-        {isEmpire && <EmpireCrownIcon size={11} />}
-        {card.ability && <AbilityIcon effect={card.ability.effect} size={11} />}
-      </div>
-
-      {/* Portrait */}
-      <div className="bzr-hcard-portrait">
-        <CardPortrait cardId={card.definitionId} size="md" />
-      </div>
-
-      {/* Name */}
-      <div className="bzr-hcard-name">{card.name}</div>
-
-      {/* Ability text */}
-      {abilityText && (
-        <div className="bzr-hcard-ability">{abilityText}</div>
-      )}
-
-      {/* Row ribbon */}
-      <div className="bzr-hcard-row" style={{ background: accent }}>
-        {ROW_LABELS[card.rowType]}
-      </div>
-    </div>
+    </motion.div>
   )
 }

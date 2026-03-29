@@ -1203,6 +1203,95 @@
 
 .bzr-fade-in { animation: bzr-fade-in 0.5s ease; }
 
+/* ── Score pulse ── */
+.bzr-row-score--pulse {
+  animation: bzr-score-pulse 0.4s ease;
+}
+
+/* ── Empire Activation Flourish ── */
+.bzr-empire-flourish {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  pointer-events: none;
+  animation: bzr-empire-flash 1.2s ease-out forwards;
+}
+
+.bzr-empire-flourish::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center,
+    rgba(232, 200, 74, 0.15) 0%,
+    rgba(232, 200, 74, 0.05) 40%,
+    transparent 70%);
+  animation: bzr-empire-shimmer 1.2s ease-out forwards;
+}
+
+.bzr-empire-flourish-text {
+  font-family: var(--font-bizaar-display), serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--bzr-gold);
+  text-shadow:
+    0 0 30px rgba(232, 200, 74, 0.6),
+    0 0 60px rgba(232, 200, 74, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.8);
+  animation: bzr-empire-text 1.2s ease-out forwards;
+}
+
+@keyframes bzr-empire-flash {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes bzr-empire-shimmer {
+  0% { transform: scale(0.5); opacity: 0; }
+  20% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes bzr-empire-text {
+  0% { transform: scale(0.6); opacity: 0; }
+  15% { transform: scale(1.1); opacity: 1; }
+  25% { transform: scale(1); }
+  70% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.05); opacity: 0; }
+}
+
+/* ── Mute button ── */
+.bzr-mute-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bzr-s2);
+  border: 1px solid var(--bzr-s4);
+  color: var(--bzr-cream-dim);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 20;
+  line-height: 1;
+}
+
+.bzr-mute-btn:hover {
+  background: var(--bzr-s3);
+  color: var(--bzr-cream);
+}
+
 /* ════════════════════════════
    RESPONSIVE
    ════════════════════════════ */

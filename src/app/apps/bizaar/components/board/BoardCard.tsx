@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'motion/react'
 import type { CardInstance } from '@/lib/bizaar/engine/types'
 import CardPortrait from '../cards/CardPortrait'
 import AbilityIcon, { EmpireCrownIcon } from '../cards/AbilityIcon'
@@ -26,25 +27,31 @@ export default function BoardCard({ card, style }: BoardCardProps) {
   if (isDisruption) cls += ' bzr-bcard--disruption'
 
   return (
-    <div
-      className={cls}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.7 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
       style={style}
-      title={`${card.name}${card.ability ? ' — ' + card.ability.description : ''}`}
     >
-      {/* Strength — top left */}
-      <div className={strCls}>{card.currentStrength}</div>
+      <div
+        className={cls}
+        title={`${card.name}${card.ability ? ' — ' + card.ability.description : ''}`}
+      >
+        {/* Strength — top left */}
+        <div className={strCls}>{card.currentStrength}</div>
 
-      {/* Type badge — top right */}
-      <div className="bzr-bcard-type">
-        {isEmpire && <EmpireCrownIcon size={8} />}
-        {card.ability && <AbilityIcon effect={card.ability.effect} size={8} />}
+        {/* Type badge — top right */}
+        <div className="bzr-bcard-type">
+          {isEmpire && <EmpireCrownIcon size={8} />}
+          {card.ability && <AbilityIcon effect={card.ability.effect} size={8} />}
+        </div>
+
+        {/* Mini portrait */}
+        <CardPortrait cardId={card.definitionId} size="sm" />
+
+        {/* Name */}
+        <span className="bzr-bcard-name">{card.name}</span>
       </div>
-
-      {/* Mini portrait */}
-      <CardPortrait cardId={card.definitionId} size="sm" />
-
-      {/* Name */}
-      <span className="bzr-bcard-name">{card.name}</span>
-    </div>
+    </motion.div>
   )
 }

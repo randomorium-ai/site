@@ -1,5 +1,6 @@
 'use client'
 
+import { AnimatePresence } from 'motion/react'
 import type { CardInstance } from '@/lib/bizaar/engine/types'
 import HandCard from './HandCard'
 
@@ -37,16 +38,18 @@ export default function Hand({
 
       {/* Hand cards */}
       <div className="bzr-hand-cards">
-        {cards.map((card, i) => (
-          <HandCard
-            key={card.instanceId}
-            card={card}
-            selected={card.instanceId === selectedCardId}
-            onClick={() => canAct && onSelectCard(card.instanceId)}
-            index={i}
-            totalCards={cards.length}
-          />
-        ))}
+        <AnimatePresence mode="popLayout">
+          {cards.map((card, i) => (
+            <HandCard
+              key={card.instanceId}
+              card={card}
+              selected={card.instanceId === selectedCardId}
+              onClick={() => canAct && onSelectCard(card.instanceId)}
+              index={i}
+              totalCards={cards.length}
+            />
+          ))}
+        </AnimatePresence>
         {cards.length === 0 && (
           <span className="bzr-hand-empty">No cards remain</span>
         )}

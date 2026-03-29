@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import type { RowState, Owner, EmpireStatus, SuppressionRecord } from '@/lib/bizaar/engine/types'
 import { ROW_LABELS, ROW_ICONS } from '@/lib/bizaar/engine/constants'
 import { getCardVisibleWidth, getCardOffset } from '@/lib/bizaar/utils/cardLayout'
@@ -38,6 +38,23 @@ export default function BoardRow({ row, side, canPlay, onRowClick, empireStatuse
   const isSuppressed = suppressions.some(
     s => s.rowType === row.rowType && s.target === side
   )
+
+  // Score pulse: detect when score changes, trigger via ref to avoid setState in effect
+  const prevScoreRef = useRef(score)
+  const scoreElRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (score !== prevScoreRef.current && prevScoreRef.current !== 0) {
+      const el = scoreElRef.current
+      if (el) {
+        el.classList.remove('bzr-row-score--pulse')
+        // Force reflow to restart animation
+        void el.offsetWidth
+        el.classList.add('bzr-row-score--pulse')
+      }
+    }
+    prevScoreRef.current = score
+  }, [score])
 
   const scoreClass = score > otherScore
     ? 'bzr-row-score--winning'
@@ -98,7 +115,7 @@ export default function BoardRow({ row, side, canPlay, onRowClick, empireStatuse
 
       {/* Score + card count */}
       <div className="bzr-row-score-area">
-        <div className={`bzr-row-score ${scoreClass}`}>
+        <div ref={scoreElRef} className={`bzr-row-score ${scoreClass}`}>
           {score}
         </div>
         {cards.length > 0 && (
