@@ -1,0 +1,164 @@
+[
+  {
+    "id": "cloth-merchant",
+    "name": "Cloth Merchant",
+    "baseStrength": 5,
+    "rowType": "textiles",
+    "ability": { "trigger": "passive", "effect": { "type": "adjacency_buff", "value": 2 }, "description": "Gives +2 strength to adjacent cards in this row." },
+    "flavourText": "His silks catch the light and the eye of every passerby.",
+    "tags": ["empire", "textile-empire", "merchant"]
+  },
+  {
+    "id": "wool-merchant",
+    "name": "Wool Merchant",
+    "baseStrength": 4,
+    "rowType": "textiles",
+    "ability": { "trigger": "passive", "effect": { "type": "row_buff", "value": 1 }, "description": "Gives +1 strength to all friendly cards in this row." },
+    "flavourText": "Warm hands, warm heart, warm profit margins.",
+    "tags": ["empire", "textile-empire", "merchant"]
+  },
+  {
+    "id": "rug-seller",
+    "name": "Rug Seller",
+    "baseStrength": 6,
+    "rowType": "textiles",
+    "ability": null,
+    "flavourText": "Every rug has a story. Most of them are made up.",
+    "tags": ["empire", "textile-empire", "merchant"]
+  },
+  {
+    "id": "ruby-trader",
+    "name": "Ruby Trader",
+    "baseStrength": 4,
+    "rowType": "treasures",
+    "ability": { "trigger": "passive", "effect": { "type": "adjacency_buff", "value": 2 }, "description": "Gives +2 strength to adjacent cards in this row." },
+    "flavourText": "She can spot a fake ruby at forty paces and a real sucker at twenty.",
+    "tags": ["empire", "treasure-empire", "merchant"]
+  },
+  {
+    "id": "gold-curator",
+    "name": "Gold Curator",
+    "baseStrength": 5,
+    "rowType": "treasures",
+    "ability": { "trigger": "passive", "effect": { "type": "row_buff", "value": 1 }, "description": "Gives +1 strength to all friendly cards in this row." },
+    "flavourText": "Catalogues every coin. Trusts no one with the keys.",
+    "tags": ["empire", "treasure-empire", "merchant"]
+  },
+  {
+    "id": "relic-broker",
+    "name": "Relic Broker",
+    "baseStrength": 3,
+    "rowType": "treasures",
+    "ability": { "trigger": "passive", "effect": { "type": "self_buff_if_losing", "value": 4 }, "description": "Gains +4 strength if you are losing the round." },
+    "flavourText": "Desperate times call for desperate markups.",
+    "tags": ["empire", "treasure-empire", "merchant"]
+  },
+  {
+    "id": "saffron-merchant",
+    "name": "Saffron Merchant",
+    "baseStrength": 6,
+    "rowType": "spices",
+    "ability": null,
+    "flavourText": "Worth more than gold by weight. He reminds you of this constantly.",
+    "tags": ["empire", "spice-empire", "merchant"]
+  },
+  {
+    "id": "herb-peddler",
+    "name": "Herb Peddler",
+    "baseStrength": 3,
+    "rowType": "spices",
+    "ability": { "trigger": "passive", "effect": { "type": "self_buff_per_ally", "value": 2 }, "description": "Gains +2 strength for each other friendly card in this row." },
+    "flavourText": "Knows every leaf, root, and fungus. Prescribes all three for headaches.",
+    "tags": ["empire", "spice-empire", "merchant"]
+  },
+  {
+    "id": "pepper-seller",
+    "name": "Pepper Seller",
+    "baseStrength": 4,
+    "rowType": "spices",
+    "ability": { "trigger": "passive", "effect": { "type": "adjacency_buff", "value": 2 }, "description": "Gives +2 strength to adjacent cards in this row." },
+    "flavourText": "His stall makes your eyes water from three streets away.",
+    "tags": ["empire", "spice-empire", "merchant"]
+  },
+  {
+    "id": "highwayman",
+    "name": "Highwayman",
+    "baseStrength": 2,
+    "rowType": "treasures",
+    "ability": { "trigger": "on_play", "effect": { "type": "suppress_row", "targetRow": "treasures" }, "description": "Suppresses the opponent's Treasures empire for this round." },
+    "flavourText": "Your gold or your life. Ideally both.",
+    "tags": ["disruption", "rogue"]
+  },
+  {
+    "id": "bazaar-guard",
+    "name": "Bazaar Guard",
+    "baseStrength": 7,
+    "rowType": "textiles",
+    "ability": null,
+    "flavourText": "Keeps the peace. Badly. But enthusiastically.",
+    "tags": ["neutral", "guard"]
+  },
+  {
+    "id": "camel-driver",
+    "name": "Camel Driver",
+    "baseStrength": 5,
+    "rowType": "spices",
+    "ability": { "trigger": "passive", "effect": { "type": "row_buff", "value": 1 }, "description": "Gives +1 strength to all friendly cards in this row." },
+    "flavourText": "The camel does the work. He takes the credit.",
+    "tags": ["neutral", "merchant"]
+  },
+  {
+    "id": "fortune-teller",
+    "name": "Fortune Teller",
+    "baseStrength": 3,
+    "rowType": "spices",
+    "ability": { "trigger": "passive", "effect": { "type": "burst_at_threshold", "threshold": 3, "value": 5 }, "description": "Gains +5 strength when 3+ friendly cards are in this row." },
+    "flavourText": "She predicted you would read this. She charges for that.",
+    "tags": ["neutral", "mystic"]
+  },
+  {
+    "id": "silk-thief",
+    "name": "Silk Thief",
+    "baseStrength": 2,
+    "rowType": "textiles",
+    "ability": { "trigger": "on_play", "effect": { "type": "weaken_strongest", "value": 3 }, "description": "Weakens the opponent's strongest card in this row by 3." },
+    "flavourText": "Quick fingers. Quicker excuses.",
+    "tags": ["disruption", "rogue"]
+  },
+  {
+    "id": "water-bearer",
+    "name": "Water Bearer",
+    "baseStrength": 4,
+    "rowType": "treasures",
+    "ability": { "trigger": "passive", "effect": { "type": "row_buff", "value": 1 }, "description": "Gives +1 strength to all friendly cards in this row." },
+    "flavourText": "In a desert, water is the real treasure.",
+    "tags": ["neutral", "merchant"]
+  },
+  {
+    "id": "snake-charmer",
+    "name": "Snake Charmer",
+    "baseStrength": 4,
+    "rowType": "spices",
+    "ability": { "trigger": "passive", "effect": { "type": "self_buff_if_losing", "value": 3 }, "description": "Gains +3 strength if you are losing the round." },
+    "flavourText": "The snake does what the snake wants. He just plays the music.",
+    "tags": ["neutral", "mystic"]
+  },
+  {
+    "id": "jewel-appraiser",
+    "name": "Jewel Appraiser",
+    "baseStrength": 5,
+    "rowType": "treasures",
+    "ability": { "trigger": "passive", "effect": { "type": "self_buff_per_ally", "value": 1 }, "description": "Gains +1 strength for each other friendly card in this row." },
+    "flavourText": "Knows the price of everything and the value of nothing.",
+    "tags": ["neutral", "merchant"]
+  },
+  {
+    "id": "carpet-weaver",
+    "name": "Carpet Weaver",
+    "baseStrength": 3,
+    "rowType": "textiles",
+    "ability": { "trigger": "passive", "effect": { "type": "self_buff_per_ally", "value": 2 }, "description": "Gains +2 strength for each other friendly card in this row." },
+    "flavourText": "Each knot tells a story. She has tied thousands.",
+    "tags": ["neutral", "artisan"]
+  }
+]
