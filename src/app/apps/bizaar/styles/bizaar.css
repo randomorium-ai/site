@@ -1292,6 +1292,146 @@
   color: var(--bzr-cream);
 }
 
+/* ── Gwent-style Round Banner ── */
+.bzr-round-banner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  pointer-events: none;
+  animation: bzr-banner-enter 1.6s ease-out forwards;
+}
+
+.bzr-round-banner-content {
+  text-align: center;
+  padding: 12px 32px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(14, 12, 8, 0.92) 20%,
+    rgba(14, 12, 8, 0.95) 50%,
+    rgba(14, 12, 8, 0.92) 80%,
+    transparent);
+  animation: bzr-banner-content 1.6s ease-out forwards;
+}
+
+.bzr-round-banner-text {
+  font-family: var(--font-bizaar-display), serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  line-height: 1;
+  animation: bzr-banner-text 1.6s ease-out forwards;
+}
+
+.bzr-round-banner-sub {
+  font-family: var(--font-bizaar-display), serif;
+  font-size: 0.7rem;
+  font-style: italic;
+  margin-top: 4px;
+  opacity: 0.6;
+  letter-spacing: 0.06em;
+}
+
+.bzr-round-banner-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  opacity: 0.3;
+}
+
+/* Banner color variants */
+.bzr-round-banner--match-start .bzr-round-banner-text,
+.bzr-round-banner--round-start .bzr-round-banner-text {
+  color: var(--bzr-brass);
+}
+.bzr-round-banner--match-start .bzr-round-banner-sub,
+.bzr-round-banner--round-start .bzr-round-banner-sub { color: var(--bzr-cream-dim); }
+.bzr-round-banner--match-start,
+.bzr-round-banner--round-start { color: var(--bzr-brass); }
+
+.bzr-round-banner--round-won .bzr-round-banner-text {
+  color: var(--bzr-gold);
+  text-shadow: 0 0 20px rgba(232, 200, 74, 0.4);
+}
+.bzr-round-banner--round-won .bzr-round-banner-sub { color: var(--bzr-teal); }
+.bzr-round-banner--round-won { color: var(--bzr-gold); }
+
+.bzr-round-banner--round-lost .bzr-round-banner-text {
+  color: var(--bzr-rose);
+  text-shadow: 0 0 15px rgba(249, 168, 184, 0.3);
+}
+.bzr-round-banner--round-lost .bzr-round-banner-sub { color: var(--bzr-rose-dim); }
+.bzr-round-banner--round-lost { color: var(--bzr-rose); }
+
+.bzr-round-banner--round-draw .bzr-round-banner-text { color: var(--bzr-cream-dim); }
+.bzr-round-banner--round-draw .bzr-round-banner-sub { color: var(--bzr-cream-dim); }
+.bzr-round-banner--round-draw { color: var(--bzr-cream-dim); }
+
+@keyframes bzr-banner-enter {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes bzr-banner-content {
+  0% { transform: scaleX(0); }
+  8% { transform: scaleX(1.02); }
+  12% { transform: scaleX(1); }
+  80% { transform: scaleX(1); }
+  100% { transform: scaleX(0); }
+}
+
+@keyframes bzr-banner-text {
+  0% { transform: translateY(10px); opacity: 0; }
+  12% { transform: translateY(0); opacity: 1; }
+  80% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-5px); opacity: 0; }
+}
+
+/* ── Strength Change Popup ── */
+.bzr-str-popup {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-bizaar-display), serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 15;
+  animation: bzr-str-pop 0.8s ease-out forwards;
+}
+
+.bzr-str-popup--buff {
+  color: var(--bzr-str-buffed);
+  text-shadow: 0 0 6px rgba(88, 232, 136, 0.5);
+}
+
+.bzr-str-popup--debuff {
+  color: var(--bzr-str-debuffed);
+  text-shadow: 0 0 6px rgba(240, 96, 96, 0.5);
+}
+
+@keyframes bzr-str-pop {
+  0% { transform: translateX(-50%) translateY(0); opacity: 1; }
+  30% { transform: translateX(-50%) translateY(-8px); opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-16px); opacity: 0; }
+}
+
+/* ── Screen Transition ── */
+.bzr-screen-enter {
+  animation: bzr-screen-in 0.4s ease-out;
+}
+
+@keyframes bzr-screen-in {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 /* ════════════════════════════
    RESPONSIVE
    ════════════════════════════ */

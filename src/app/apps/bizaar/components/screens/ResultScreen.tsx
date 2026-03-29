@@ -34,7 +34,7 @@ export default function ResultScreen({ onPlayAgain, onMenu }: ResultScreenProps)
         : 'An honourable stalemate between merchants.'
 
   return (
-    <div className="bzr-result bzr-fade-in">
+    <div className="bzr-result bzr-fade-in bzr-screen-enter">
       <div className="bzr-result-sigil">
         <SerpentSigil size={48} />
       </div>

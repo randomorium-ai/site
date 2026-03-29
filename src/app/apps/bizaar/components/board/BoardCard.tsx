@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import type { CardInstance } from '@/lib/bizaar/engine/types'
 import CardPortrait from '../cards/CardPortrait'
 import AbilityIcon, { EmpireCrownIcon } from '../cards/AbilityIcon'
+import StrengthPopup from '../effects/StrengthPopup'
 
 interface BoardCardProps {
   card: CardInstance
@@ -39,6 +40,9 @@ export default function BoardCard({ card, style }: BoardCardProps) {
       >
         {/* Strength — top left */}
         <div className={strCls}>{card.currentStrength}</div>
+
+        {/* Strength change popup */}
+        <StrengthPopup currentStrength={card.currentStrength} />
 
         {/* Type badge — top right */}
         <div className="bzr-bcard-type">

@@ -9,7 +9,7 @@ interface MainMenuProps {
 
 export default function MainMenu({ onStart }: MainMenuProps) {
   return (
-    <div className="bzr-menu">
+    <div className="bzr-menu bzr-screen-enter">
       <Link
         href="/"
         className="bzr-menu-back"

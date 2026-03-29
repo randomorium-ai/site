@@ -6,6 +6,7 @@ import { useAudioStore } from '@/lib/bizaar/stores/audioStore'
 import { getAIMove } from '@/lib/bizaar/engine/ai'
 import { scoreBoard } from '@/lib/bizaar/engine/scoring'
 import { TOTAL_ROUNDS } from '@/lib/bizaar/engine/constants'
+import { bazaarMusic } from '@/lib/bizaar/audio/BazaarMusic'
 import * as sfx from '@/lib/bizaar/audio/SynthAudio'
 import type { RowType, GamePhase } from '@/lib/bizaar/engine/types'
 import Battlefield from '../board/Battlefield'
@@ -13,6 +14,7 @@ import Hand from '../hand/Hand'
 import ScorePanel from '../hud/ScorePanel'
 import TurnIndicator from '../hud/TurnIndicator'
 import EmpireActivation from '../effects/EmpireActivation'
+import RoundBanner from '../effects/RoundBanner'
 
 interface BattleScreenProps {
   onMatchEnd: () => void
@@ -26,11 +28,14 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
   const prevPhaseRef = useRef<GamePhase>(state.phase)
   const prevHandLenRef = useRef(state.playerHand.length)
 
-  // Start match on mount
+  // Start match on mount + music
   useEffect(() => {
     startMatch()
+    sfx.matchStart()
+    bazaarMusic.start('battle')
     return () => {
       if (aiTimerRef.current) clearTimeout(aiTimerRef.current)
+      bazaarMusic.stop()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -42,13 +47,30 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
 
     if (prev === state.phase) return
 
-    if (state.phase === 'ROUND_END') {
-      // Determine who won this round
-      const lastRound = state.roundHistory[state.roundHistory.length - 1]
-      if (lastRound?.winner === 'player') sfx.roundWin()
+    // Player's turn starts
+    if (state.phase === 'TURN_PLAYER' && prev === 'TURN_OPPONENT') {
+      sfx.turnStart()
     }
 
+    // Round end
+    if (state.phase === 'ROUND_END') {
+      const lastRound = state.roundHistory[state.roundHistory.length - 1]
+      if (lastRound?.winner === 'player') {
+        sfx.roundWin()
+      } else if (lastRound?.winner === 'opponent') {
+        sfx.roundLose()
+      }
+    }
+
+    // New round starting
+    if (state.phase === 'TURN_PLAYER' && prev === 'ROUND_END') {
+      sfx.roundStart()
+      sfx.shuffle()
+    }
+
+    // Match end
     if (state.phase === 'MATCH_END') {
+      bazaarMusic.stop()
       const pWon = state.playerRoundsWon
       const oWon = state.opponentRoundsWon
       if (pWon > oWon) sfx.matchWin()
@@ -73,13 +95,20 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
       const move = getAIMove(currentState)
 
       if (move.action.type === 'PLAY_CARD') {
-        opponentPlayCard(move.action.cardInstanceId, move.action.targetRow)
-        sfx.opponentCardPlace()
+        const { cardInstanceId, targetRow } = move.action
+        // Check if the card is a disruption
+        const card = currentState.opponentHand.find(c => c.instanceId === cardInstanceId)
+        opponentPlayCard(cardInstanceId, targetRow)
+        if (card?.tags.includes('disruption')) {
+          sfx.disruption()
+        } else {
+          sfx.opponentCardPlace()
+        }
       } else {
         opponentPass()
         sfx.pass()
       }
-    }, 600 + Math.random() * 400) // 600-1000ms delay for feel
+    }, 600 + Math.random() * 400)
 
     return () => {
       if (aiTimerRef.current) clearTimeout(aiTimerRef.current)
@@ -89,7 +118,7 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
   // Match end detection
   useEffect(() => {
     if (state.phase === 'MATCH_END') {
-      const timer = setTimeout(onMatchEnd, 1200)
+      const timer = setTimeout(onMatchEnd, 2400) // Longer for banner
       return () => clearTimeout(timer)
     }
   }, [state.phase, onMatchEnd])
@@ -108,19 +137,27 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
   const handleRowClick = useCallback(
     (rowType: RowType) => {
       if (canPlayRow(rowType)) {
+        // Check if card is disruption
+        const card = state.playerHand.find(c => c.instanceId === state.selectedCardId)
         playSelectedCard(rowType)
-        sfx.cardPlace()
+        if (card?.tags.includes('disruption')) {
+          sfx.disruption()
+        } else {
+          sfx.cardPlace()
+        }
       }
     },
-    [canPlayRow, playSelectedCard]
+    [canPlayRow, playSelectedCard, state.playerHand, state.selectedCardId]
   )
 
   const handleSelectCard = useCallback(
     (cardInstanceId: string) => {
       if (state.selectedCardId === cardInstanceId) {
         selectCard(null)
+        sfx.cardDeselect()
       } else {
         selectCard(cardInstanceId)
+        sfx.cardSelect()
       }
     },
     [state.selectedCardId, selectCard]
@@ -134,14 +171,31 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
   const isPlayerTurn = state.phase === 'TURN_PLAYER' && !state.playerPassed
 
   return (
-    <div className="bzr-battle" style={{ position: 'relative' }}>
+    <div className="bzr-battle bzr-screen-enter" style={{ position: 'relative' }}>
       {/* Mute toggle */}
-      <button className="bzr-mute-btn" onClick={toggleMute} title={muted ? 'Unmute' : 'Mute'}>
+      <button
+        className="bzr-mute-btn"
+        onClick={() => {
+          toggleMute()
+          sfx.uiClick()
+          // Stop or restart music
+          if (!muted) bazaarMusic.stop()
+          else bazaarMusic.start('battle')
+        }}
+        title={muted ? 'Unmute' : 'Mute'}
+      >
         {muted ? '\u{1F507}' : '\u{1F509}'}
       </button>
 
       {/* Empire activation overlay */}
       <EmpireActivation empireStatuses={state.empireStatuses} />
+
+      {/* Round transition banner (Gwent-style) */}
+      <RoundBanner
+        phase={state.phase}
+        roundNumber={state.roundNumber}
+        roundHistory={state.roundHistory}
+      />
 
       {/* Opponent HUD */}
       <ScorePanel
