@@ -264,6 +264,7 @@ function NormalHome({ onEnter }: { onEnter: () => void }) {
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function SoukView({ onExit }: { onExit: () => void }) {
   return (
     <div

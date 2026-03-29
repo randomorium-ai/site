@@ -14,11 +14,12 @@ export interface ApiPlayer {
   lastname: string
   age: number
   nationality: string
-  position: string // "Goalkeeper" | "Defender" | "Midfielder" | "Attacker"
+  position: string // "GK" | "DEF" | "MID" | "ATT"
   photo: string
   currentTeam: string
   currentTeamId: number
   stats: {
+    // Current season (from API-Football)
     appearances: number
     goals: number
     assists: number
@@ -26,6 +27,11 @@ export interface ApiPlayer {
     yellowCards: number
     redCards: number
     rating: string
+    // Career totals (from popular-players.ts; 0 if player not in pool)
+    careerGoals: number
+    careerApps: number
+    careerAssists: number
+    intCaps: number
   }
 }
 
@@ -43,27 +49,27 @@ export interface ApiTheme {
 export const API_THEMES: ApiTheme[] = [
   {
     id: "goals",
-    label: "Goals this season",
+    label: "Career goals",
     unit: "goals",
-    targetMin: 5,
-    targetMax: 40,
-    getStat: (p) => p.stats.goals,
+    targetMin: 50,
+    targetMax: 400,
+    getStat: (p) => p.stats.careerGoals,
   },
   {
-    id: "assists",
-    label: "Assists this season",
-    unit: "assists",
-    targetMin: 3,
-    targetMax: 25,
-    getStat: (p) => p.stats.assists,
+    id: "appearances",
+    label: "Career appearances",
+    unit: "apps",
+    targetMin: 200,
+    targetMax: 650,
+    getStat: (p) => p.stats.careerApps,
   },
   {
-    id: "minutes",
-    label: "Minutes played this season",
-    unit: "mins",
-    targetMin: 500,
-    targetMax: 2500,
-    getStat: (p) => p.stats.minutesPlayed,
+    id: "caps",
+    label: "International caps",
+    unit: "caps",
+    targetMin: 60,
+    targetMax: 200,
+    getStat: (p) => p.stats.intCaps,
   },
 ]
 
@@ -84,7 +90,7 @@ interface CacheEntry {
 }
 
 const cache = new Map<string, CacheEntry>()
-const DEFAULT_TTL_MS = 60 * 60 * 1000 // 1 hour
+const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 function getCached<T>(key: string): T | null {
   const entry = cache.get(key)
@@ -169,11 +175,18 @@ function normalisePlayerEntry(entry: any): ApiPlayer {
   const goals = s.goals ?? {}
   const cards = s.cards ?? {}
 
+  // Always construct full name from firstname + lastname when available
+  const firstname: string = p.firstname ?? ""
+  const lastname: string = p.lastname ?? ""
+  const fullName = (firstname && lastname)
+    ? `${firstname} ${lastname}`.trim()
+    : (p.name ?? "")
+
   return {
     id: p.id,
-    name: p.name,
-    firstname: p.firstname,
-    lastname: p.lastname,
+    name: fullName,
+    firstname,
+    lastname,
     age: p.age ?? 0,
     nationality: p.nationality ?? "",
     position: normalisePosition(games.position ?? p.position ?? ""),
@@ -188,6 +201,11 @@ function normalisePlayerEntry(entry: any): ApiPlayer {
       yellowCards: cards.yellow ?? 0,
       redCards: cards.red ?? 0,
       rating: games.rating ?? "0",
+      // Career stats: populated by the search route from popular-players.ts
+      careerGoals: 0,
+      careerApps: 0,
+      careerAssists: 0,
+      intCaps: 0,
     },
   }
 }
@@ -297,7 +315,7 @@ export async function getSquad(teamId: number): Promise<ApiPlayer[]> {
     photo: p.photo ?? "",
     currentTeam: "",
     currentTeamId: teamId,
-    stats: { appearances: 0, goals: 0, assists: 0, minutesPlayed: 0, yellowCards: 0, redCards: 0, rating: "0" },
+    stats: { appearances: 0, goals: 0, assists: 0, minutesPlayed: 0, yellowCards: 0, redCards: 0, rating: "0", careerGoals: 0, careerApps: 0, careerAssists: 0, intCaps: 0 },
   }))
 }
 
@@ -322,7 +340,7 @@ export async function getFixtureLineup(fixtureId: number): Promise<{
     photo: p.player.photo ?? "",
     currentTeam: "",
     currentTeamId: 0,
-    stats: { appearances: 0, goals: 0, assists: 0, minutesPlayed: 0, yellowCards: 0, redCards: 0, rating: "0" },
+    stats: { appearances: 0, goals: 0, assists: 0, minutesPlayed: 0, yellowCards: 0, redCards: 0, rating: "0", careerGoals: 0, careerApps: 0, careerAssists: 0, intCaps: 0 },
   })
 
   return {
