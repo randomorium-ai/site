@@ -6,12 +6,20 @@ export default function Home() {
       {/* Nav */}
       <header className="border-b border-zinc-100 px-6 py-4 flex items-center justify-between">
         <span className="font-mono text-sm font-medium tracking-tight">randomorium.ai</span>
-        <a
-          href="https://shop.randomorium.ai"
-          className="text-xs bg-black text-white px-4 py-2 rounded-full hover:bg-zinc-800 transition-colors"
-        >
-          buy a hat →
-        </a>
+        <nav className="flex items-center gap-3">
+          <a
+            href="/apps/bizaar"
+            className="text-xs text-zinc-600 px-3 py-2 rounded-full border border-zinc-200 hover:border-zinc-400 hover:text-zinc-900 transition-colors"
+          >
+            Play Bizaar
+          </a>
+          <a
+            href="https://shop.randomorium.ai"
+            className="text-xs bg-black text-white px-4 py-2 rounded-full hover:bg-zinc-800 transition-colors"
+          >
+            buy a hat →
+          </a>
+        </nav>
       </header>
 
       {/* Hero */}
@@ -39,8 +47,7 @@ export default function Home() {
                 <li key={app.slug}>
                   <a
                     href={app.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    {...(app.url.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                     className="group block border border-zinc-100 rounded-xl p-5 hover:border-zinc-300 hover:shadow-sm transition-all"
                   >
                     <div className="flex items-start justify-between mb-2">
