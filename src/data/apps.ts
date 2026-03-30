@@ -19,6 +19,15 @@ export const apps: App[] = [
     hatHook: "Sssalem recommends a holiday hat before you travel",
   },
   {
+    name: "Bizaar",
+    slug: "bizaar",
+    description: "A Gwent-style card battler set in a fantasy bazaar. Build empires. Outsmart the serpent.",
+    url: "/apps/bizaar",
+    author: "harry",
+    builtWith: "Next.js",
+    hatHook: "The serpent says every good merchant wears a hat.",
+  },
+  {
     name: "Footballorium",
     slug: "football-games",
     description: "Daily football puzzles. The Number, Six Degrees, and more — for people who watch too much football.",

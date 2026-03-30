@@ -182,6 +182,12 @@ function NormalHome({ onEnter }: { onEnter: () => void }) {
       <header className="border-b border-zinc-100 px-6 py-4 flex items-center justify-between">
         <span className="font-mono text-sm font-medium tracking-tight">randomorium.ai</span>
         <div className="flex items-center gap-3">
+          <a
+            href="/apps/bizaar"
+            className="text-xs text-zinc-600 px-3 py-2 rounded-full border border-zinc-200 hover:border-zinc-400 hover:text-zinc-900 transition-colors"
+          >
+            Play Bizaar
+          </a>
           <button
             onClick={onEnter}
             className="text-xs text-zinc-500 hover:text-zinc-900 transition-colors border border-zinc-200 px-3 py-1.5 rounded-full hover:border-zinc-400"
