@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import type { RowState, Owner, EmpireStatus, SuppressionRecord } from '@/lib/bizaar/engine/types'
+import type { RowState, Owner, EmpireStatus, SuppressionRecord, CardInstance } from '@/lib/bizaar/engine/types'
 import { ROW_LABELS, ROW_ICONS } from '@/lib/bizaar/engine/constants'
 import { getCardVisibleWidth, getCardOffset } from '@/lib/bizaar/utils/cardLayout'
 import { EMPIRE_DEFINITIONS } from '@/lib/bizaar/engine/empires'
@@ -14,11 +14,12 @@ interface BoardRowProps {
   onRowClick: () => void
   empireStatuses: EmpireStatus[]
   suppressions: SuppressionRecord[]
+  onInspectCard?: (card: CardInstance) => void
 }
 
 const CARD_WIDTH = 55
 
-export default function BoardRow({ row, side, canPlay, onRowClick, empireStatuses, suppressions }: BoardRowProps) {
+export default function BoardRow({ row, side, canPlay, onRowClick, empireStatuses, suppressions, onInspectCard }: BoardRowProps) {
   const cardsRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(300)
 
@@ -32,26 +33,42 @@ export default function BoardRow({ row, side, canPlay, onRowClick, empireStatuse
     ? empireStatuses.find(es => es.empireId === empire.id && es.owner === side)
     : null
   const empireActive = empireStatus?.active ?? false
-  const empireProgress = empireStatus ? `${empireStatus.cardsPresent}/${empireStatus.cardsRequired}` : null
 
   // Check suppression
   const isSuppressed = suppressions.some(
     s => s.rowType === row.rowType && s.target === side
   )
 
-  // Score pulse: detect when score changes, trigger via ref to avoid setState in effect
+  // Score pulse + delta: detect when score changes
   const prevScoreRef = useRef(score)
   const scoreElRef = useRef<HTMLDivElement>(null)
+  const rowElRef = useRef<HTMLDivElement>(null)
+  const [scoreDelta, setScoreDelta] = useState(0)
+  const [showDelta, setShowDelta] = useState(false)
 
   useEffect(() => {
     if (score !== prevScoreRef.current && prevScoreRef.current !== 0) {
+      const delta = score - prevScoreRef.current
+      setScoreDelta(delta)
+      setShowDelta(true)
+
       const el = scoreElRef.current
       if (el) {
         el.classList.remove('bzr-row-score--pulse')
-        // Force reflow to restart animation
         void el.offsetWidth
         el.classList.add('bzr-row-score--pulse')
       }
+
+      // Flash row on big impacts
+      if (Math.abs(delta) >= 3 && rowElRef.current) {
+        rowElRef.current.classList.remove('bzr-row--flash')
+        void rowElRef.current.offsetWidth
+        rowElRef.current.classList.add('bzr-row--flash')
+      }
+
+      const timer = setTimeout(() => setShowDelta(false), 1200)
+      prevScoreRef.current = score
+      return () => clearTimeout(timer)
     }
     prevScoreRef.current = score
   }, [score])
@@ -86,7 +103,7 @@ export default function BoardRow({ row, side, canPlay, onRowClick, empireStatuse
   if (isDominating) rowClasses += ' bzr-row--dominating'
 
   return (
-    <div className={rowClasses} onClick={canPlay ? onRowClick : undefined}>
+    <div ref={rowElRef} className={rowClasses} onClick={canPlay ? onRowClick : undefined}>
       {/* Row label with icon */}
       <div className="bzr-row-label">
         <div className="bzr-row-label-inner">
@@ -108,6 +125,7 @@ export default function BoardRow({ row, side, canPlay, onRowClick, empireStatuse
           <BoardCard
             key={card.instanceId}
             card={card}
+            onInspect={onInspectCard ? () => onInspectCard(card) : undefined}
             style={useAbsolute ? {
               position: 'absolute',
               left: `${getCardOffset(i, visibleWidth)}px`,
@@ -122,12 +140,25 @@ export default function BoardRow({ row, side, canPlay, onRowClick, empireStatuse
         <div ref={scoreElRef} className={`bzr-row-score ${scoreClass}`}>
           {score}
         </div>
+        {showDelta && scoreDelta !== 0 && (
+          <span className={`bzr-score-delta ${scoreDelta > 0 ? 'bzr-score-delta--positive' : 'bzr-score-delta--negative'}`}>
+            {scoreDelta > 0 ? '+' : ''}{scoreDelta}
+          </span>
+        )}
         {cards.length > 0 && (
           <span className="bzr-row-card-count">{cards.length} cards</span>
         )}
-        {/* Empire progress indicator */}
-        {empireProgress && empireStatus && empireStatus.cardsPresent > 0 && !empireActive && (
-          <span className="bzr-row-empire-progress">{empireProgress}</span>
+        {/* Empire progress dots */}
+        {empire && empireStatus && empireStatus.cardsPresent > 0 && !empireActive && (
+          <div className="bzr-row-empire-dots">
+            {Array.from({ length: empireStatus.cardsRequired }, (_, i) => (
+              <span
+                key={i}
+                className={`bzr-empire-dot${i < empireStatus.cardsPresent ? ' bzr-empire-dot--filled' : ''}`}
+              />
+            ))}
+            <span className="bzr-row-empire-name">{empire.name.replace(' Empire', '')}</span>
+          </div>
         )}
       </div>
 

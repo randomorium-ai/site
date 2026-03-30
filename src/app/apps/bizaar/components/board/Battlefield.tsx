@@ -1,6 +1,6 @@
 'use client'
 
-import type { BoardState, RowType, EmpireStatus, SuppressionRecord } from '@/lib/bizaar/engine/types'
+import type { BoardState, RowType, EmpireStatus, SuppressionRecord, CardInstance } from '@/lib/bizaar/engine/types'
 import { OPPONENT_ROW_ORDER, PLAYER_ROW_ORDER } from '@/lib/bizaar/engine/constants'
 import BoardRow from './BoardRow'
 
@@ -12,6 +12,7 @@ interface BattlefieldProps {
   suppressions: SuppressionRecord[]
   playerTotal: number
   opponentTotal: number
+  onInspectCard?: (card: CardInstance) => void
 }
 
 export default function Battlefield({
@@ -22,6 +23,7 @@ export default function Battlefield({
   suppressions,
   playerTotal,
   opponentTotal,
+  onInspectCard,
 }: BattlefieldProps) {
   const playerLeading = playerTotal > opponentTotal
   const opponentLeading = opponentTotal > playerTotal
@@ -38,6 +40,7 @@ export default function Battlefield({
           onRowClick={() => {}}
           empireStatuses={empireStatuses}
           suppressions={suppressions}
+          onInspectCard={onInspectCard}
         />
       ))}
 
@@ -64,6 +67,7 @@ export default function Battlefield({
           onRowClick={() => onRowClick(rowType)}
           empireStatuses={empireStatuses}
           suppressions={suppressions}
+          onInspectCard={onInspectCard}
         />
       ))}
     </div>

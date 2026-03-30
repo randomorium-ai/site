@@ -1,14 +1,14 @@
 'use client'
 
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 import { useGameStore } from '@/lib/bizaar/stores/gameStore'
-import { useAudioStore } from '@/lib/bizaar/stores/audioStore'
+import { useAudioStore, getVolumeIcon } from '@/lib/bizaar/stores/audioStore'
 import { getAIMove } from '@/lib/bizaar/engine/ai'
 import { scoreBoard } from '@/lib/bizaar/engine/scoring'
 import { TOTAL_ROUNDS } from '@/lib/bizaar/engine/constants'
 import { bazaarMusic } from '@/lib/bizaar/audio/BazaarMusic'
 import * as sfx from '@/lib/bizaar/audio/SynthAudio'
-import type { RowType, GamePhase } from '@/lib/bizaar/engine/types'
+import type { RowType, GamePhase, CardInstance } from '@/lib/bizaar/engine/types'
 import Battlefield from '../board/Battlefield'
 import Hand from '../hand/Hand'
 import ScorePanel from '../hud/ScorePanel'
@@ -16,6 +16,8 @@ import TurnIndicator from '../hud/TurnIndicator'
 import EmpireActivation from '../effects/EmpireActivation'
 import RoundBanner from '../effects/RoundBanner'
 import BoardAtmosphere from '../effects/BoardAtmosphere'
+import CardDetail from '../cards/CardDetail'
+import CardPlayPreview from '../effects/CardPlayPreview'
 
 interface BattleScreenProps {
   onMatchEnd: () => void
@@ -24,7 +26,12 @@ interface BattleScreenProps {
 export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
   const { state, startMatch, selectCard, playSelectedCard, playerPass, opponentPlayCard, opponentPass } =
     useGameStore()
-  const { muted, toggleMute } = useAudioStore()
+  const { cycleVolume, volumePreset } = useAudioStore()
+  const [inspectedCard, setInspectedCard] = useState<CardInstance | null>(null)
+  const [previewCard, setPreviewCard] = useState<CardInstance | null>(null)
+  const [previewSide, setPreviewSide] = useState<'player' | 'opponent'>('player')
+  const [isPreviewActive, setIsPreviewActive] = useState(false)
+  const pendingPlayRef = useRef<{ type: 'player'; rowType: RowType; card: CardInstance } | { type: 'opponent'; cardInstanceId: string; targetRow: RowType; card: CardInstance } | null>(null)
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevPhaseRef = useRef<GamePhase>(state.phase)
   const prevHandLenRef = useRef(state.playerHand.length)
@@ -97,7 +104,7 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
     prevHandLenRef.current = state.playerHand.length
   }, [state.playerHand.length])
 
-  // AI turn handler
+  // AI turn handler — show preview before resolving
   useEffect(() => {
     if (state.phase !== 'TURN_OPPONENT') return
 
@@ -107,14 +114,18 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
 
       if (move.action.type === 'PLAY_CARD') {
         const { cardInstanceId, targetRow } = move.action
-        // Check if the card is a disruption
         const card = currentState.opponentHand.find(c => c.instanceId === cardInstanceId)
-        opponentPlayCard(cardInstanceId, targetRow)
-        if (card?.tags.includes('disruption')) {
-          sfx.disruption()
-          triggerShake()
+        if (card) {
+          pendingPlayRef.current = { type: 'opponent', cardInstanceId, targetRow, card }
+          setPreviewCard(card)
+          setPreviewSide('opponent')
+          setIsPreviewActive(true)
+          sfx.cardAnnounce()
         } else {
+          // Fallback: play directly if card not found
+          opponentPlayCard(cardInstanceId, targetRow)
           sfx.opponentCardPlace()
+          sfx.scoreTick()
         }
       } else {
         opponentPass()
@@ -125,12 +136,12 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
     return () => {
       if (aiTimerRef.current) clearTimeout(aiTimerRef.current)
     }
-  }, [state.phase, state.turnCount, opponentPlayCard, opponentPass, triggerShake])
+  }, [state.phase, state.turnCount, opponentPlayCard, opponentPass])
 
   // Match end detection
   useEffect(() => {
     if (state.phase === 'MATCH_END') {
-      const timer = setTimeout(onMatchEnd, 2400) // Longer for banner
+      const timer = setTimeout(onMatchEnd, 3500) // Extra time to absorb match result
       return () => clearTimeout(timer)
     }
   }, [state.phase, onMatchEnd])
@@ -139,29 +150,74 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
 
   const canPlayRow = useCallback(
     (rowType: RowType): boolean => {
+      if (isPreviewActive) return false
       if (state.phase !== 'TURN_PLAYER' || state.playerPassed || !state.selectedCardId) return false
       const card = state.playerHand.find((c) => c.instanceId === state.selectedCardId)
       return card?.rowType === rowType
     },
-    [state.phase, state.playerPassed, state.selectedCardId, state.playerHand]
+    [state.phase, state.playerPassed, state.selectedCardId, state.playerHand, isPreviewActive]
   )
 
   const handleRowClick = useCallback(
     (rowType: RowType) => {
       if (canPlayRow(rowType)) {
-        // Check if card is disruption
         const card = state.playerHand.find(c => c.instanceId === state.selectedCardId)
-        playSelectedCard(rowType)
-        if (card?.tags.includes('disruption')) {
-          sfx.disruption()
-          triggerShake()
-        } else {
-          sfx.cardPlace()
+        if (card) {
+          pendingPlayRef.current = { type: 'player', rowType, card }
+          setPreviewCard(card)
+          setPreviewSide('player')
+          setIsPreviewActive(true)
+          sfx.cardAnnounce()
         }
       }
     },
-    [canPlayRow, playSelectedCard, state.playerHand, state.selectedCardId, triggerShake]
+    [canPlayRow, state.playerHand, state.selectedCardId]
   )
+
+  const handlePreviewComplete = useCallback(() => {
+    const pending = pendingPlayRef.current
+    pendingPlayRef.current = null
+    setPreviewCard(null)
+    setIsPreviewActive(false)
+
+    if (!pending) return
+
+    if (pending.type === 'player') {
+      playSelectedCard(pending.rowType)
+      if (pending.card.tags.includes('disruption')) {
+        sfx.disruption()
+        triggerShake()
+      } else {
+        sfx.cardPlace()
+      }
+      if (pending.card.ability) {
+        const eff = pending.card.ability.effect.type
+        if (eff === 'adjacency_buff' || eff === 'row_buff' || eff === 'self_buff_per_ally' || eff === 'self_buff_if_losing' || eff === 'burst_at_threshold') {
+          setTimeout(() => sfx.buffActivate(), 150)
+        } else if (eff === 'weaken_strongest') {
+          setTimeout(() => sfx.debuff(), 150)
+        }
+      }
+      sfx.scoreTick()
+    } else {
+      opponentPlayCard(pending.cardInstanceId, pending.targetRow)
+      if (pending.card.tags.includes('disruption')) {
+        sfx.disruption()
+        triggerShake()
+      } else {
+        sfx.opponentCardPlace()
+      }
+      if (pending.card.ability) {
+        const eff = pending.card.ability.effect.type
+        if (eff === 'adjacency_buff' || eff === 'row_buff' || eff === 'self_buff_per_ally' || eff === 'self_buff_if_losing' || eff === 'burst_at_threshold') {
+          setTimeout(() => sfx.buffActivate(), 150)
+        } else if (eff === 'weaken_strongest') {
+          setTimeout(() => sfx.debuff(), 150)
+        }
+      }
+      sfx.scoreTick()
+    }
+  }, [playSelectedCard, opponentPlayCard, triggerShake])
 
   const handleSelectCard = useCallback(
     (cardInstanceId: string) => {
@@ -188,19 +244,20 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
       {/* Atmospheric particles & vignette */}
       <BoardAtmosphere />
 
-      {/* Mute toggle */}
+      {/* Volume control */}
       <button
         className="bzr-mute-btn"
         onClick={() => {
-          toggleMute()
+          cycleVolume()
           sfx.uiClick()
-          // Stop or restart music
-          if (!muted) bazaarMusic.stop()
+          // If cycling to muted, stop music; otherwise ensure music plays
+          const store = useAudioStore.getState()
+          if (store.muted) bazaarMusic.stop()
           else bazaarMusic.start('battle')
         }}
-        title={muted ? 'Unmute' : 'Mute'}
+        title={`Volume: ${volumePreset}`}
       >
-        {muted ? '\u{1F507}' : '\u{1F509}'}
+        {getVolumeIcon(volumePreset)}
       </button>
 
       {/* Empire activation overlay */}
@@ -241,6 +298,7 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
         suppressions={state.suppressions}
         playerTotal={scored.playerTotal}
         opponentTotal={scored.opponentTotal}
+        onInspectCard={setInspectedCard}
       />
 
       {/* Player HUD */}
@@ -262,7 +320,14 @@ export default function BattleScreen({ onMatchEnd }: BattleScreenProps) {
         discardCount={state.playerDiscard.length}
         onPass={handlePass}
         canAct={isPlayerTurn}
+        onInspectCard={setInspectedCard}
       />
+
+      {/* Card play preview overlay */}
+      <CardPlayPreview card={previewCard} side={previewSide} onComplete={handlePreviewComplete} />
+
+      {/* Card inspection overlay */}
+      <CardDetail card={inspectedCard} onClose={() => setInspectedCard(null)} />
     </div>
   )
 }

@@ -9,11 +9,17 @@ import { getMatchWinner } from '@/lib/bizaar/stores/gameStore'
 import MainMenu from './components/screens/MainMenu'
 import BattleScreen from './components/screens/BattleScreen'
 import ResultScreen from './components/screens/ResultScreen'
+import HowToPlay from './components/screens/HowToPlay'
 
-export type Screen = 'menu' | 'battle' | 'result'
+export type Screen = 'menu' | 'battle' | 'result' | 'howtoplay'
 
 export default function BizaarApp() {
-  const [screen, setScreen] = useState<Screen>('menu')
+  const [screen, setScreen] = useState<Screen>(() => {
+    if (typeof window !== 'undefined' && !localStorage.getItem('bizaar-tutorial-seen')) {
+      return 'howtoplay'
+    }
+    return 'menu'
+  })
   const muted = useAudioStore(s => s.muted)
 
   // Music lifecycle per screen
@@ -48,9 +54,15 @@ export default function BizaarApp() {
     setScreen('menu')
   }
 
+  const handleHowToPlay = () => {
+    sfx.uiClick()
+    setScreen('howtoplay')
+  }
+
   return (
     <>
-      {screen === 'menu' && <MainMenu onStart={handleStart} />}
+      {screen === 'howtoplay' && <HowToPlay onClose={handleMenu} />}
+      {screen === 'menu' && <MainMenu onStart={handleStart} onHowToPlay={handleHowToPlay} />}
       {screen === 'battle' && (
         <BattleScreen onMatchEnd={handleMatchEnd} />
       )}
@@ -60,7 +72,7 @@ export default function BizaarApp() {
           onMenu={handleMenu}
         />
       )}
-      {screen !== 'battle' && <HatBanner />}
+      {screen !== 'battle' && screen !== 'howtoplay' && <HatBanner />}
     </>
   )
 }

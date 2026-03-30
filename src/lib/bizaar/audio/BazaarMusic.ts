@@ -4,6 +4,7 @@
 // Dynamic intensity based on scene and gameplay.
 
 import { useAudioStore } from '../stores/audioStore'
+import { getSharedCtx, getSharedMasterGain } from './audioContext'
 
 export type MusicScene = 'menu' | 'battle' | 'result-win' | 'result-lose' | 'silent'
 
@@ -27,7 +28,7 @@ const LOSE_NOTES = [HIJAZ.D3, HIJAZ.Eb3, HIJAZ.G3, HIJAZ.Bb3, HIJAZ.D4, HIJAZ.Eb
 
 class BazaarMusicEngine {
   private ctx: AudioContext | null = null
-  private masterGain: GainNode | null = null
+  private musicGain: GainNode | null = null
   private droneOsc1: OscillatorNode | null = null
   private droneOsc2: OscillatorNode | null = null
   private droneGain1: GainNode | null = null
@@ -42,10 +43,10 @@ class BazaarMusicEngine {
 
   private getCtx(): AudioContext {
     if (!this.ctx) {
-      this.ctx = new AudioContext()
-      this.masterGain = this.ctx.createGain()
-      this.masterGain.gain.value = 0.22
-      this.masterGain.connect(this.ctx.destination)
+      this.ctx = getSharedCtx()
+      this.musicGain = this.ctx.createGain()
+      this.musicGain.gain.value = 0.22
+      this.musicGain.connect(getSharedMasterGain())
     }
     return this.ctx
   }
@@ -93,7 +94,7 @@ class BazaarMusicEngine {
   // ── DRONE ──
   private startDrone(scene: MusicScene) {
     const ac = this.getCtx()
-    if (!this.masterGain) return
+    if (!this.musicGain) return
 
     const vol = scene === 'menu' ? 0.1 : scene === 'battle' ? 0.07 : 0.05
 
@@ -114,7 +115,7 @@ class BazaarMusicEngine {
     lfo.connect(lfoGain).connect(this.droneOsc1.frequency)
     lfo.start()
 
-    this.droneOsc1.connect(this.droneGain1).connect(this.masterGain)
+    this.droneOsc1.connect(this.droneGain1).connect(this.musicGain)
     this.droneOsc1.start()
 
     // Fifth drone — A2 (perfect fifth)
@@ -124,14 +125,14 @@ class BazaarMusicEngine {
     this.droneOsc2.frequency.value = HIJAZ.A2
     this.droneGain2.gain.setValueAtTime(0, ac.currentTime)
     this.droneGain2.gain.linearRampToValueAtTime(vol * 0.4, ac.currentTime + 4)
-    this.droneOsc2.connect(this.droneGain2).connect(this.masterGain)
+    this.droneOsc2.connect(this.droneGain2).connect(this.musicGain)
     this.droneOsc2.start()
   }
 
   // ── OUD-LIKE PLUCK ──
   private playOudPluck(freq: number, vol: number) {
     const ac = this.getCtx()
-    if (!this.masterGain) return
+    if (!this.musicGain) return
 
     // Karplus-Strong inspired pluck: initial noise burst → filtered decay
     const dur = 0.6 + Math.random() * 0.4
@@ -172,9 +173,9 @@ class BazaarMusicEngine {
     harmGain.gain.setValueAtTime(vol * 0.15, ac.currentTime)
     harmGain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur * 0.5)
 
-    noise.connect(noiseGain).connect(this.masterGain)
-    osc.connect(filter).connect(oscGain).connect(this.masterGain)
-    harm.connect(harmGain).connect(this.masterGain)
+    noise.connect(noiseGain).connect(this.musicGain)
+    osc.connect(filter).connect(oscGain).connect(this.musicGain)
+    harm.connect(harmGain).connect(this.musicGain)
 
     noise.start(ac.currentTime)
     osc.start(ac.currentTime)
@@ -238,7 +239,7 @@ class BazaarMusicEngine {
   private playPercPattern() {
     if (useAudioStore.getState().muted) return
     const ac = this.getCtx()
-    if (!this.masterGain) return
+    if (!this.musicGain) return
 
     const beatTime = 0.3
 
@@ -281,7 +282,7 @@ class BazaarMusicEngine {
       gain.gain.setValueAtTime(vol, t)
       gain.gain.exponentialRampToValueAtTime(0.001, t + (type === 'dum' ? 0.1 : 0.04))
 
-      source.connect(filter).connect(gain).connect(this.masterGain!)
+      source.connect(filter).connect(gain).connect(this.musicGain!)
       source.start(t)
     })
   }
@@ -290,7 +291,7 @@ class BazaarMusicEngine {
   private startAmbientBed() {
     if (!this.running) return
     const ac = this.getCtx()
-    if (!this.masterGain) return
+    if (!this.musicGain) return
 
     // Looping filtered noise for ambient wind/crowd murmur
     const duration = 4
@@ -324,7 +325,7 @@ class BazaarMusicEngine {
     this.ambientGain.gain.setValueAtTime(0, ac.currentTime)
     this.ambientGain.gain.linearRampToValueAtTime(vol, ac.currentTime + 5)
 
-    this.ambientSource.connect(highpass).connect(lowpass).connect(this.ambientGain).connect(this.masterGain)
+    this.ambientSource.connect(highpass).connect(lowpass).connect(this.ambientGain).connect(this.musicGain)
     this.ambientSource.start()
 
     // Occasional wind gusts
@@ -344,7 +345,7 @@ class BazaarMusicEngine {
   private playWindGust() {
     if (useAudioStore.getState().muted) return
     const ac = this.getCtx()
-    if (!this.masterGain) return
+    if (!this.musicGain) return
 
     const dur = 1 + Math.random() * 1.5
     const bufSize = ac.sampleRate * dur
@@ -369,7 +370,7 @@ class BazaarMusicEngine {
     gain.gain.linearRampToValueAtTime(0.015, ac.currentTime + dur * 0.3)
     gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur)
 
-    source.connect(filter).connect(gain).connect(this.masterGain)
+    source.connect(filter).connect(gain).connect(this.musicGain)
     source.start(ac.currentTime)
   }
 }

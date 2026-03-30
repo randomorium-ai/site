@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import { AnimatePresence } from 'motion/react'
 import type { CardInstance } from '@/lib/bizaar/engine/types'
 import HandCard from './HandCard'
@@ -12,6 +13,7 @@ interface HandProps {
   discardCount?: number
   onPass: () => void
   canAct: boolean
+  onInspectCard?: (card: CardInstance) => void
 }
 
 export default function Hand({
@@ -22,7 +24,25 @@ export default function Hand({
   discardCount = 0,
   onPass,
   canAct,
+  onInspectCard,
 }: HandProps) {
+  const [confirmingPass, setConfirmingPass] = useState(false)
+
+  const handlePassClick = useCallback(() => {
+    if (!confirmingPass) {
+      setConfirmingPass(true)
+    } else {
+      setConfirmingPass(false)
+      onPass()
+    }
+  }, [confirmingPass, onPass])
+
+  // Reset pass confirmation when a card is selected or played
+  const handleSelectCard = useCallback((id: string) => {
+    setConfirmingPass(false)
+    onSelectCard(id)
+  }, [onSelectCard])
+
   return (
     <div className="bzr-hand-area">
       {/* Deck pile */}
@@ -39,14 +59,13 @@ export default function Hand({
       {/* Hand cards */}
       <div className="bzr-hand-cards">
         <AnimatePresence mode="popLayout">
-          {cards.map((card, i) => (
+          {cards.map((card) => (
             <HandCard
               key={card.instanceId}
               card={card}
               selected={card.instanceId === selectedCardId}
-              onClick={() => canAct && onSelectCard(card.instanceId)}
-              index={i}
-              totalCards={cards.length}
+              onClick={() => canAct && handleSelectCard(card.instanceId)}
+              onLongPress={onInspectCard ? () => onInspectCard(card) : undefined}
             />
           ))}
         </AnimatePresence>
@@ -58,9 +77,12 @@ export default function Hand({
       {/* Pass button + discard */}
       <div className="bzr-hand-right">
         {canAct && (
-          <button className="bzr-pass-btn" onClick={onPass}>
-            <span className="bzr-pass-btn-text">Pass</span>
-            <span className="bzr-pass-btn-sub">End round</span>
+          <button
+            className={`bzr-pass-btn${confirmingPass ? ' bzr-pass-btn--confirm' : ''}`}
+            onClick={handlePassClick}
+          >
+            <span className="bzr-pass-btn-text">{confirmingPass ? 'Confirm?' : 'Pass'}</span>
+            <span className="bzr-pass-btn-sub">{confirmingPass ? 'Tap again' : 'End round'}</span>
           </button>
         )}
         {discardCount > 0 && (

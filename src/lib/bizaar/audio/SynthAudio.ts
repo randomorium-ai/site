@@ -3,13 +3,14 @@
 // AudioContext created lazily on first user interaction (mobile autoplay policy).
 
 import { useAudioStore } from '../stores/audioStore'
-
-let ctx: AudioContext | null = null
+import { getSharedCtx, getSharedMasterGain } from './audioContext'
 
 function getCtx(): AudioContext {
-  if (!ctx) ctx = new AudioContext()
-  if (ctx.state === 'suspended') ctx.resume()
-  return ctx
+  return getSharedCtx()
+}
+
+function getDest(): AudioNode {
+  return getSharedMasterGain()
 }
 
 function isMuted(): boolean {
@@ -31,7 +32,7 @@ export function cardPlace() {
   osc.frequency.exponentialRampToValueAtTime(40, ac.currentTime + 0.06)
   gain.gain.setValueAtTime(0.35, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.1)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.1)
 
@@ -43,7 +44,7 @@ export function cardPlace() {
   click.frequency.exponentialRampToValueAtTime(200, ac.currentTime + 0.02)
   clickGain.gain.setValueAtTime(0.05, ac.currentTime)
   clickGain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.03)
-  click.connect(clickGain).connect(ac.destination)
+  click.connect(clickGain).connect(getDest())
   click.start(ac.currentTime)
   click.stop(ac.currentTime + 0.03)
 }
@@ -59,7 +60,7 @@ export function opponentCardPlace() {
   osc.frequency.exponentialRampToValueAtTime(50, ac.currentTime + 0.06)
   gain.gain.setValueAtTime(0.25, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.08)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.08)
 }
@@ -75,7 +76,7 @@ export function cardSelect() {
   osc.frequency.setValueAtTime(800, ac.currentTime + 0.02)
   gain.gain.setValueAtTime(0.1, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.06)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.06)
 }
@@ -91,9 +92,44 @@ export function cardDeselect() {
   osc.frequency.exponentialRampToValueAtTime(400, ac.currentTime + 0.04)
   gain.gain.setValueAtTime(0.07, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.05)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.05)
+}
+
+/** Dramatic card reveal — ascending sine sweep */
+export function cardAnnounce() {
+  if (isMuted()) return
+  const ac = getCtx()
+  const osc = ac.createOscillator()
+  const gain = ac.createGain()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(200, ac.currentTime)
+  osc.frequency.exponentialRampToValueAtTime(600, ac.currentTime + 0.15)
+  gain.gain.setValueAtTime(0.12, ac.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.25)
+  osc.connect(gain).connect(getDest())
+  osc.start(ac.currentTime)
+  osc.stop(ac.currentTime + 0.25)
+
+  // Reverb tail — short noise burst
+  const bufSize = ac.sampleRate * 0.15
+  const buffer = ac.createBuffer(1, bufSize, ac.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < bufSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 3)
+  }
+  const source = ac.createBufferSource()
+  source.buffer = buffer
+  const filter = ac.createBiquadFilter()
+  filter.type = 'bandpass'
+  filter.frequency.value = 1500
+  filter.Q.value = 1
+  const nGain = ac.createGain()
+  nGain.gain.setValueAtTime(0.03, ac.currentTime + 0.1)
+  nGain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.25)
+  source.connect(filter).connect(nGain).connect(getDest())
+  source.start(ac.currentTime + 0.1)
 }
 
 /** Soft whoosh for drawing a card */
@@ -116,7 +152,7 @@ export function cardDraw() {
   const gain = ac.createGain()
   gain.gain.setValueAtTime(0.12, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.12)
-  source.connect(filter).connect(gain).connect(ac.destination)
+  source.connect(filter).connect(gain).connect(getDest())
   source.start(ac.currentTime)
 }
 
@@ -135,7 +171,7 @@ export function pass() {
   osc.frequency.exponentialRampToValueAtTime(130, ac.currentTime + 0.3)
   gain.gain.setValueAtTime(0.15, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.35)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.35)
 }
@@ -150,7 +186,7 @@ export function turnStart() {
   osc.frequency.setValueAtTime(523, ac.currentTime) // C5
   gain.gain.setValueAtTime(0.08, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.3)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.3)
 
@@ -161,7 +197,7 @@ export function turnStart() {
   osc2.frequency.value = 783.99 // G5
   gain2.gain.setValueAtTime(0.04, ac.currentTime + 0.05)
   gain2.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.25)
-  osc2.connect(gain2).connect(ac.destination)
+  osc2.connect(gain2).connect(getDest())
   osc2.start(ac.currentTime + 0.05)
   osc2.stop(ac.currentTime + 0.25)
 }
@@ -180,7 +216,7 @@ export function roundStart() {
     gain.gain.setValueAtTime(0, t)
     gain.gain.linearRampToValueAtTime(0.12, t + 0.03)
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4)
-    osc.connect(gain).connect(ac.destination)
+    osc.connect(gain).connect(getDest())
     osc.start(t)
     osc.stop(t + 0.4)
   })
@@ -206,7 +242,7 @@ export function shuffle() {
     const t = ac.currentTime + i * 0.05
     gain.gain.setValueAtTime(0.06, t)
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04)
-    source.connect(filter).connect(gain).connect(ac.destination)
+    source.connect(filter).connect(gain).connect(getDest())
     source.start(t)
   }
 }
@@ -226,7 +262,7 @@ export function scoreTick() {
   osc.frequency.exponentialRampToValueAtTime(880, ac.currentTime + 0.08)
   gain.gain.setValueAtTime(0.1, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.1)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.1)
 }
@@ -242,7 +278,7 @@ export function buffActivate() {
   osc.frequency.exponentialRampToValueAtTime(660, ac.currentTime + 0.15)
   gain.gain.setValueAtTime(0.08, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.2)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.2)
 }
@@ -258,7 +294,7 @@ export function debuff() {
   osc.frequency.exponentialRampToValueAtTime(200, ac.currentTime + 0.15)
   gain.gain.setValueAtTime(0.08, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.2)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.2)
 }
@@ -279,7 +315,7 @@ export function empireActivate() {
     gain.gain.setValueAtTime(0, startTime)
     gain.gain.linearRampToValueAtTime(0.12, startTime + 0.04)
     gain.gain.exponentialRampToValueAtTime(0.001, startTime + 1)
-    osc.connect(gain).connect(ac.destination)
+    osc.connect(gain).connect(getDest())
     osc.start(startTime)
     osc.stop(startTime + 1)
   })
@@ -300,7 +336,7 @@ export function empireActivate() {
   const shimGain = ac.createGain()
   shimGain.gain.setValueAtTime(0.03, ac.currentTime + 0.2)
   shimGain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.8)
-  source.connect(filter).connect(shimGain).connect(ac.destination)
+  source.connect(filter).connect(shimGain).connect(getDest())
   source.start(ac.currentTime + 0.2)
 }
 
@@ -315,7 +351,7 @@ export function disruption() {
   osc.frequency.exponentialRampToValueAtTime(60, ac.currentTime + 0.12)
   gain.gain.setValueAtTime(0.08, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.18)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.18)
 }
@@ -339,7 +375,7 @@ export function roundWin() {
     gain.gain.setValueAtTime(0, t)
     gain.gain.linearRampToValueAtTime(0.15, t + 0.03)
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5)
-    osc.connect(gain).connect(ac.destination)
+    osc.connect(gain).connect(getDest())
     osc.start(t)
     osc.stop(t + 0.5)
   })
@@ -359,7 +395,7 @@ export function roundLose() {
     gain.gain.setValueAtTime(0, t)
     gain.gain.linearRampToValueAtTime(0.12, t + 0.03)
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4)
-    osc.connect(gain).connect(ac.destination)
+    osc.connect(gain).connect(getDest())
     osc.start(t)
     osc.stop(t + 0.4)
   })
@@ -380,7 +416,7 @@ export function matchWin() {
     gain.gain.setValueAtTime(0, t)
     gain.gain.linearRampToValueAtTime(0.18, t + 0.04)
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9)
-    osc.connect(gain).connect(ac.destination)
+    osc.connect(gain).connect(getDest())
     osc.start(t)
     osc.stop(t + 0.9)
   })
@@ -395,7 +431,7 @@ export function matchWin() {
       osc.frequency.value = freq
       gain.gain.setValueAtTime(0.08, ac.currentTime)
       gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 2)
-      osc.connect(gain).connect(ac.destination)
+      osc.connect(gain).connect(getDest())
       osc.start(ac.currentTime)
       osc.stop(ac.currentTime + 2)
     })
@@ -418,7 +454,7 @@ export function matchLose() {
     gain.gain.setValueAtTime(0, t)
     gain.gain.linearRampToValueAtTime(0.13, t + 0.04)
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6)
-    osc.connect(gain).connect(ac.destination)
+    osc.connect(gain).connect(getDest())
     osc.start(t)
     osc.stop(t + 0.6)
   })
@@ -439,7 +475,7 @@ export function uiClick() {
   osc.frequency.exponentialRampToValueAtTime(600, ac.currentTime + 0.02)
   gain.gain.setValueAtTime(0.06, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.04)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.04)
 }
@@ -454,7 +490,7 @@ export function uiHover() {
   osc.frequency.value = 900
   gain.gain.setValueAtTime(0.02, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.02)
-  osc.connect(gain).connect(ac.destination)
+  osc.connect(gain).connect(getDest())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + 0.02)
 }
@@ -483,7 +519,7 @@ export function matchStart() {
   const gain = ac.createGain()
   gain.gain.setValueAtTime(0.1, ac.currentTime)
   gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.3)
-  source.connect(filter).connect(gain).connect(ac.destination)
+  source.connect(filter).connect(gain).connect(getDest())
   source.start(ac.currentTime)
 
   // Opening chord
@@ -497,7 +533,7 @@ export function matchStart() {
     g.gain.setValueAtTime(0, t)
     g.gain.linearRampToValueAtTime(0.1, t + 0.05)
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.8)
-    osc.connect(g).connect(ac.destination)
+    osc.connect(g).connect(getDest())
     osc.start(t)
     osc.stop(t + 0.8)
   })

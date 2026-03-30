@@ -5,6 +5,7 @@ import SerpentSigil from '../shared/SerpentSigil'
 
 interface MainMenuProps {
   onStart: () => void
+  onHowToPlay?: () => void
 }
 
 // Floating lantern particles for the menu
@@ -17,7 +18,7 @@ const LANTERN_PARTICLES = Array.from({ length: 8 }, (_, i) => ({
   opacity: 0.2 + Math.random() * 0.3,
 }))
 
-export default function MainMenu({ onStart }: MainMenuProps) {
+export default function MainMenu({ onStart, onHowToPlay }: MainMenuProps) {
   return (
     <div className="bzr-menu bzr-screen-enter">
       {/* Floating lantern particles */}
@@ -62,8 +63,8 @@ export default function MainMenu({ onStart }: MainMenuProps) {
         <button className="bzr-btn bzr-btn-primary" onClick={onStart}>
           Start Match
         </button>
-        <button className="bzr-btn bzr-btn-secondary" disabled>
-          Browse Cards
+        <button className="bzr-btn bzr-btn-secondary" onClick={onHowToPlay}>
+          How to Play
         </button>
       </div>
     </div>

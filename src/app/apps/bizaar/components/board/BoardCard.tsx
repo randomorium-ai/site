@@ -6,13 +6,15 @@ import type { CardInstance } from '@/lib/bizaar/engine/types'
 import CardPortrait, { getCardAccent } from '../cards/CardPortrait'
 import AbilityIcon, { EmpireCrownIcon } from '../cards/AbilityIcon'
 import StrengthPopup from '../effects/StrengthPopup'
+import CardPlayBurst from '../effects/CardPlayBurst'
 
 interface BoardCardProps {
   card: CardInstance
   style?: React.CSSProperties
+  onInspect?: () => void
 }
 
-export default function BoardCard({ card, style }: BoardCardProps) {
+export default function BoardCard({ card, style, onInspect }: BoardCardProps) {
   const isBuffed = card.currentStrength > card.baseStrength
   const isDebuffed = card.currentStrength < card.baseStrength
   const isEmpire = card.tags.includes('empire')
@@ -47,6 +49,8 @@ export default function BoardCard({ card, style }: BoardCardProps) {
       <div
         className={cls}
         title={`${card.name}${card.ability ? ' — ' + card.ability.description : ''}`}
+        onClick={onInspect}
+        style={{ cursor: onInspect ? 'pointer' : undefined }}
       >
         {/* Landing flash */}
         <div ref={flashRef} className="bzr-bcard-flash" style={{ '--flash-color': accent } as React.CSSProperties} />
@@ -68,6 +72,9 @@ export default function BoardCard({ card, style }: BoardCardProps) {
 
         {/* Name */}
         <span className="bzr-bcard-name">{card.name}</span>
+
+        {/* Particle burst on placement */}
+        <CardPlayBurst triggerKey={1} color={accent} />
       </div>
     </motion.div>
   )

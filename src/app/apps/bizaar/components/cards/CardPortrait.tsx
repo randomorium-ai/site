@@ -475,8 +475,8 @@ export default function CardPortrait({ cardId, size = 'md' }: CardPortraitProps)
   const config = P[cardId]
   if (!config) return null
 
-  const dims = size === 'sm' ? 40 : size === 'md' ? 56 : 80
-  const svgSize = size === 'sm' ? 22 : size === 'md' ? 28 : 38
+  const dims = size === 'sm' ? 40 : size === 'md' ? 76 : 90
+  const svgSize = size === 'sm' ? 22 : size === 'md' ? 42 : 50
   const eyeR = size === 'sm' ? 0.6 : 0.7
 
   // Unique animation delay per character for variety

@@ -1,8 +1,10 @@
 'use client'
 
+import { useRef, useCallback } from 'react'
 import { motion } from 'motion/react'
 import type { CardInstance } from '@/lib/bizaar/engine/types'
 import { ROW_LABELS } from '@/lib/bizaar/engine/constants'
+import * as sfx from '@/lib/bizaar/audio/SynthAudio'
 import CardPortrait, { getCardAccent } from '../cards/CardPortrait'
 import AbilityIcon, { EmpireCrownIcon } from '../cards/AbilityIcon'
 
@@ -10,8 +12,7 @@ interface HandCardProps {
   card: CardInstance
   selected: boolean
   onClick: () => void
-  index: number
-  totalCards: number
+  onLongPress?: () => void
 }
 
 function getAbilityShortText(card: CardInstance): string | null {
@@ -29,17 +30,38 @@ function getAbilityShortText(card: CardInstance): string | null {
   }
 }
 
-export default function HandCard({ card, selected, onClick, index, totalCards }: HandCardProps) {
+export default function HandCard({ card, selected, onClick, onLongPress }: HandCardProps) {
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const didLongPress = useRef(false)
+
+  const handlePointerDown = useCallback(() => {
+    didLongPress.current = false
+    longPressTimer.current = setTimeout(() => {
+      didLongPress.current = true
+      onLongPress?.()
+    }, 300)
+  }, [onLongPress])
+
+  const handlePointerUp = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+    if (!didLongPress.current) {
+      onClick()
+    }
+  }, [onClick])
+
+  const handlePointerLeave = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+  }, [])
   const isEmpire = card.tags.includes('empire')
   const isDisruption = card.tags.includes('disruption')
   const accent = getCardAccent(card.definitionId)
   const abilityText = getAbilityShortText(card)
-
-  // Fan spread
-  const centerIndex = (totalCards - 1) / 2
-  const offset = index - centerIndex
-  const rotation = offset * 2.2
-  const translateY = Math.abs(offset) * 2.5
 
   let cls = 'bzr-hcard'
   if (selected) cls += ' bzr-hcard--selected'
@@ -56,10 +78,14 @@ export default function HandCard({ card, selected, onClick, index, totalCards }:
     >
       <div
         className={cls}
-        onClick={onClick}
+        onPointerDown={onLongPress ? handlePointerDown : undefined}
+        onPointerUp={onLongPress ? handlePointerUp : undefined}
+        onPointerLeave={onLongPress ? handlePointerLeave : undefined}
+        onClick={onLongPress ? undefined : onClick}
+        onMouseEnter={() => {
+          if (window.matchMedia('(hover: hover)').matches) sfx.uiHover()
+        }}
         style={{
-          transform: `rotate(${rotation}deg) translateY(${translateY}px)${selected ? ' translateY(-16px)' : ''}`,
-          zIndex: selected ? 50 : index,
           '--card-accent': accent,
         } as React.CSSProperties}
       >
@@ -88,18 +114,18 @@ export default function HandCard({ card, selected, onClick, index, totalCards }:
         )}
 
         {/* Ornamental corner filigree */}
-        <svg className="bzr-hcard-corner bzr-hcard-corner--tl" width="12" height="12" viewBox="0 0 12 12">
+        <svg className="bzr-hcard-corner bzr-hcard-corner--tl" width="16" height="16" viewBox="0 0 12 12">
           <path d="M1 11V4a3 3 0 013-3h7" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.35" />
           <path d="M1 8V5a2 2 0 012-2h3" fill="none" stroke={accent} strokeWidth="0.5" opacity="0.2" />
         </svg>
-        <svg className="bzr-hcard-corner bzr-hcard-corner--tr" width="12" height="12" viewBox="0 0 12 12">
+        <svg className="bzr-hcard-corner bzr-hcard-corner--tr" width="16" height="16" viewBox="0 0 12 12">
           <path d="M11 11V4a3 3 0 00-3-3H1" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.35" />
           <path d="M11 8V5a2 2 0 00-2-2H6" fill="none" stroke={accent} strokeWidth="0.5" opacity="0.2" />
         </svg>
-        <svg className="bzr-hcard-corner bzr-hcard-corner--bl" width="12" height="12" viewBox="0 0 12 12">
+        <svg className="bzr-hcard-corner bzr-hcard-corner--bl" width="16" height="16" viewBox="0 0 12 12">
           <path d="M1 1v7a3 3 0 003 3h7" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.35" />
         </svg>
-        <svg className="bzr-hcard-corner bzr-hcard-corner--br" width="12" height="12" viewBox="0 0 12 12">
+        <svg className="bzr-hcard-corner bzr-hcard-corner--br" width="16" height="16" viewBox="0 0 12 12">
           <path d="M11 1v7a3 3 0 01-3 3H1" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.35" />
         </svg>
 
