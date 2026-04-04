@@ -1,8 +1,8 @@
 // Player nicknames and aliases — maps a normalised alias to the canonical
-// name used in popular-players.ts. Extend this file as new nicknames emerge.
+// name used in players.json. Extend this file as new nicknames emerge.
 //
 // Keys must be lowercase with accents stripped (normalised).
-// Values must exactly match a `name` field in popular-players.ts.
+// Values must exactly match a `name` field in players.json.
 
 export const PLAYER_ALIASES: Record<string, string> = {
   // ── Cristiano Ronaldo ─────────────────────────────────────────────────

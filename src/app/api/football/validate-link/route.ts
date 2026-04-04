@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getPlayerCareer, ApiError } from "@/lib/football-api"
+import { findPlayerById } from "@/lib/player-search"
 
 export async function POST(req: NextRequest) {
-  let body: { playerAId: number; playerBId: number; linkType: string }
+  let body: { playerAId: string; playerBId: string; linkType: string }
   try {
     body = await req.json()
   } catch {
@@ -16,29 +16,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ valid: true, evidence: null })
   }
 
-  try {
-    const [careerA, careerB] = await Promise.all([
-      getPlayerCareer(playerAId),
-      getPlayerCareer(playerBId),
-    ])
+  const playerA = findPlayerById(playerAId)
+  const playerB = findPlayerById(playerBId)
 
-    const setA = new Set(careerA.map(s => `${s.teamId}:${s.season}`))
-
-    for (const b of careerB) {
-      if (setA.has(`${b.teamId}:${b.season}`)) {
-        const yr = String(parseInt(b.season) + 1).slice(-2)
-        return NextResponse.json({
-          valid: true,
-          evidence: `Both at ${b.teamName} — ${b.season}/${yr}`,
-        })
-      }
-    }
-
-    return NextResponse.json({ valid: false, evidence: null })
-  } catch (err) {
-    if (err instanceof ApiError) {
-      return NextResponse.json({ error: err.message }, { status: err.status })
-    }
-    return NextResponse.json({ error: "Validation failed" }, { status: 500 })
+  if (!playerA || !playerB) {
+    // Unknown player — accept on honor system
+    return NextResponse.json({ valid: true, evidence: null })
   }
+
+  // Find overlapping career clubs (by normalised name, ignoring years)
+  const clubsA = new Set(playerA.career_clubs.map((c) => c.club.toLowerCase().trim()))
+
+  for (const clubB of playerB.career_clubs) {
+    const name = clubB.club.toLowerCase().trim()
+    if (clubsA.has(name)) {
+      return NextResponse.json({
+        valid: true,
+        evidence: `Both played for ${clubB.club}`,
+      })
+    }
+  }
+
+  return NextResponse.json({ valid: false, evidence: null })
 }

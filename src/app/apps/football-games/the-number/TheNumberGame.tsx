@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { API_THEMES, type ApiPlayer, type ApiTheme } from '@/lib/football-api'
+import { GAME_THEMES, type GameTheme } from '@/lib/game-themes'
+import type { Player } from '@/lib/player'
 import { nationalityFlag, POS_COLOR, scoreLabel } from '@/lib/football-utils'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -26,7 +27,7 @@ function getDailyPuzzle() {
   let s = parseInt(dateStr.replace(/-/g, ''), 10)
   s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0)
   s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0)
-  const theme = API_THEMES[s % API_THEMES.length]
+  const theme = GAME_THEMES[s % GAME_THEMES.length]
   s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0)
   const target = theme.targetMin + (s % (theme.targetMax - theme.targetMin))
   return { theme, target, dateStr }
@@ -63,12 +64,12 @@ function updateStreak(dateStr: string, score: number, mode: Mode): GameStorage {
   return next
 }
 
-function buildShareText(dateStr: string, theme: ApiTheme, target: number, picks: ApiPlayer[], total: number, score: number): string {
+function buildShareText(dateStr: string, theme: GameTheme, target: number, picks: Player[], total: number, score: number): string {
   return [
     `⚽ THE NUMBER — ${dateStr}`,
     `${theme.label} · Target: ${target}`,
     '',
-    ...picks.map(p => `  ${nationalityFlag(p.nationality)} ${p.name} (${p.currentTeam}): ${theme.getStat(p)} ${theme.unit}`),
+    ...picks.map(p => `  ${nationalityFlag(p.nationality)} ${p.name} (${p.current_club}): ${theme.getStat(p)} ${theme.unit}`),
     '',
     `Total: ${total} · Score: ${score}/1000 · ${scoreLabel(score, theme.id)}`,
     'randomorium.ai/apps/football-games/the-number',
@@ -83,19 +84,19 @@ export default function TheNumberGame() {
 
   const [phase, setPhase] = useState<Phase>('setup')
   const [mode, setMode] = useState<Mode>('solo')
-  const [p1Picks, setP1Picks] = useState<ApiPlayer[]>([])
-  const [p2Picks, setP2Picks] = useState<ApiPlayer[]>([])
+  const [p1Picks, setP1Picks] = useState<Player[]>([])
+  const [p2Picks, setP2Picks] = useState<Player[]>([])
   const [turnIdx, setTurnIdx] = useState(0)
   const [search, setSearch] = useState('')
   const [posTab, setPosTab] = useState<PosTab>('ALL')
   const [storage, setStorage] = useState<GameStorage>({ streak: 0, lastDate: '', history: [] })
   const [copied, setCopied] = useState(false)
-  const [apiResults, setApiResults] = useState<ApiPlayer[]>([])
+  const [apiResults, setApiResults] = useState<Player[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [apiError, setApiError] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
-  const searchCache = useRef(new Map<string, ApiPlayer[]>())
+  const searchCache = useRef(new Map<string, Player[]>())
 
   useEffect(() => { setStorage(getStorage()) }, [])
 
@@ -108,7 +109,7 @@ export default function TheNumberGame() {
     try {
       const res = await fetch(`/api/football/players?search=${encodeURIComponent(q)}`)
       if (!res.ok) throw new Error('api error')
-      const { players } = await res.json() as { players: ApiPlayer[] }
+      const { players } = await res.json() as { players: Player[] }
       searchCache.current.set(cacheKey, players)
       setApiResults(players)
     } catch { setApiError(true); setApiResults([]) }
@@ -134,14 +135,14 @@ export default function TheNumberGame() {
   const p1Score = calcScore(p1Total, target)
   const p2Score = calcScore(p2Total, target)
 
-  const displayPlayers = useMemo((): ApiPlayer[] => {
+  const displayPlayers = useMemo((): Player[] => {
     if (search.length < 2 || apiError) return []
     return apiResults
       .filter(p => posTab === 'ALL' || p.position === posTab)
       .filter(p => !allPickedNames.has(p.name))
   }, [search, apiResults, apiError, posTab, allPickedNames])
 
-  function pick(player: ApiPlayer) {
+  function pick(player: Player) {
     if (phase !== 'picking' || allPickedNames.has(player.name)) return
     if (isSolo) {
       if (p1Picks.length >= PICKS_PER_PLAYER) return
@@ -481,7 +482,7 @@ export default function TheNumberGame() {
 
 function PickSlot({ index, player, onRemove }: {
   index: number
-  player: ApiPlayer | undefined
+  player: Player | undefined
   onRemove?: () => void
 }) {
   return (
@@ -496,7 +497,7 @@ function PickSlot({ index, player, onRemove }: {
           </div>
           <div>
             <div className="text-[11px] font-bold text-[#1a1a1a] leading-tight line-clamp-2">{player.name}</div>
-            <div className="text-[10px] text-[#999] truncate">{player.currentTeam}</div>
+            <div className="text-[10px] text-[#999] truncate">{player.current_club}</div>
           </div>
           <div className="absolute top-1.5 right-1.5 text-[#ccc] group-hover:text-[#999] text-[10px] transition-colors">✕</div>
         </button>
@@ -513,7 +514,7 @@ function PickSlot({ index, player, onRemove }: {
 
 function MiniPickSlot({ index, player, onRemove }: {
   index: number
-  player: ApiPlayer | undefined
+  player: Player | undefined
   onRemove?: () => void
 }) {
   return (
@@ -536,7 +537,7 @@ function MiniPickSlot({ index, player, onRemove }: {
 // ─── Player row ───────────────────────────────────────────────────────────────
 
 function PlayerRow({ player, disabled, onClick }: {
-  player: ApiPlayer
+  player: Player
   disabled: boolean
   onClick: () => void
 }) {
@@ -556,7 +557,7 @@ function PlayerRow({ player, disabled, onClick }: {
       <span className="text-base leading-none flex-shrink-0">{nationalityFlag(player.nationality)}</span>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-bold text-[#1a1a1a] truncate">{player.name}</div>
-        <div className="text-xs text-[#999] truncate">{player.currentTeam}</div>
+        <div className="text-xs text-[#999] truncate">{player.current_club}</div>
       </div>
       <div className="flex-shrink-0 text-[#ccc] text-sm">→</div>
     </button>
@@ -566,8 +567,8 @@ function PlayerRow({ player, disabled, onClick }: {
 // ─── Picks reveal ─────────────────────────────────────────────────────────────
 
 function PicksReveal({ picks, theme, total, target }: {
-  picks: ApiPlayer[]
-  theme: ApiTheme
+  picks: Player[]
+  theme: GameTheme
   total: number
   target: number
 }) {
@@ -582,7 +583,7 @@ function PicksReveal({ picks, theme, total, target }: {
           <span className="text-base leading-none flex-shrink-0">{nationalityFlag(p.nationality)}</span>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-bold text-[#1a1a1a] truncate">{p.name}</div>
-            <div className="text-xs text-[#999]">{p.currentTeam}</div>
+            <div className="text-xs text-[#999]">{p.current_club}</div>
           </div>
           <div className="text-right flex-shrink-0">
             <div className="text-xl font-black tabular-nums text-[#1a1a1a]">{theme.getStat(p)}</div>
