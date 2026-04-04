@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { type ApiPlayer } from '@/lib/football-api'
+import type { Player } from '@/lib/player'
 import { nationalityFlag, POS_COLOR, sixDegreesLabel } from '@/lib/football-utils'
 import { getDailySixDegreesPuzzle, type SixDegreesPuzzle } from '@/data/six-degrees-puzzles'
 
@@ -13,7 +13,7 @@ type Phase = 'loading' | 'playing' | 'won' | 'failed' | 'error'
 type VerificationStatus = 'verified' | 'unverified'
 
 interface ChainStep {
-  player: ApiPlayer
+  player: Player
   linkType: LinkType
   status: VerificationStatus
   note: string
@@ -96,13 +96,13 @@ function buildShareText(
 export default function SixDegreesGame() {
   const [puzzle, setPuzzle] = useState<SixDegreesPuzzle | null>(null)
   const [dateStr, setDateStr] = useState('')
-  const [aPlayer, setAPlayer] = useState<ApiPlayer | null>(null)
-  const [bPlayer, setBPlayer] = useState<ApiPlayer | null>(null)
+  const [aPlayer, setAPlayer] = useState<Player | null>(null)
+  const [bPlayer, setBPlayer] = useState<Player | null>(null)
   const [chain, setChain] = useState<ChainStep[]>([])
   const [pendingLinkType, setPendingLinkType] = useState<LinkType>('club')
   const [phase, setPhase] = useState<Phase>('loading')
   const [search, setSearch] = useState('')
-  const [searchResults, setSearchResults] = useState<ApiPlayer[]>([])
+  const [searchResults, setSearchResults] = useState<Player[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [searchError, setSearchError] = useState(false)
   const [isValidating, setIsValidating] = useState(false)
@@ -111,7 +111,7 @@ export default function SixDegreesGame() {
   const [copied, setCopied] = useState(false)
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const searchCache = useRef(new Map<string, ApiPlayer[]>())
+  const searchCache = useRef(new Map<string, Player[]>())
 
   // Load puzzle and seed players on mount
   useEffect(() => {
@@ -128,20 +128,20 @@ export default function SixDegreesGame() {
   }, [])
 
   // ── Find puzzle players from the API ────────────────────────────────────────
-  async function findPuzzlePlayers(p: SixDegreesPuzzle): Promise<[ApiPlayer | null, ApiPlayer | null]> {
+  async function findPuzzlePlayers(p: SixDegreesPuzzle): Promise<[Player | null, Player | null]> {
     function lastName(name: string): string {
       const parts = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().split(' ')
       return parts[parts.length - 1]
     }
 
-    async function findOne(name: string, team: string): Promise<ApiPlayer | null> {
+    async function findOne(name: string, team: string): Promise<Player | null> {
       const last = lastName(name)
       const res = await fetch(`/api/football/players?search=${encodeURIComponent(last)}`)
       if (!res.ok) return null
-      const { players } = await res.json() as { players: ApiPlayer[] }
+      const { players } = await res.json() as { players: Player[] }
       const teamKeyword = team.split(' ')[0].toLowerCase()
       return players.find(pl =>
-        pl.currentTeam.toLowerCase().includes(teamKeyword) ||
+        pl.current_club.toLowerCase().includes(teamKeyword) ||
         pl.name.toLowerCase().includes(last.toLowerCase())
       ) ?? players[0] ?? null
     }
@@ -159,7 +159,7 @@ export default function SixDegreesGame() {
     try {
       const res = await fetch(`/api/football/players?search=${encodeURIComponent(q)}`)
       if (!res.ok) throw new Error('api error')
-      const { players } = await res.json() as { players: ApiPlayer[] }
+      const { players } = await res.json() as { players: Player[] }
       searchCache.current.set(cacheKey, players)
       setSearchResults(players)
     } catch { setSearchError(true); setSearchResults([]) }
@@ -190,7 +190,7 @@ export default function SixDegreesGame() {
   )
 
   // ── Add a step ───────────────────────────────────────────────────────────────
-  async function addStep(player: ApiPlayer) {
+  async function addStep(player: Player) {
     if (phase !== 'playing' || !currentPlayer || !bPlayer || !puzzle) return
     setValidationError(null)
 
@@ -198,7 +198,7 @@ export default function SixDegreesGame() {
     const normName = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
     const willWin = normName(player.name) === normName(bPlayer.name)
 
-    if (pendingLinkType === 'club' && currentPlayer.id !== 0 && player.id !== 0) {
+    if (pendingLinkType === 'club') {
       // Both players have API IDs — validate against career data
       setIsValidating(true)
       try {
@@ -517,7 +517,7 @@ export default function SixDegreesGame() {
                   <span className="text-base leading-none flex-shrink-0">{nationalityFlag(player.nationality)}</span>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-bold text-[#1a1a1a] truncate">{player.name}</div>
-                    <div className="text-xs text-[#999] truncate">{player.currentTeam}</div>
+                    <div className="text-xs text-[#999] truncate">{player.current_club}</div>
                   </div>
                   <div className="flex-shrink-0 text-blue-400 text-sm">→</div>
                 </button>
@@ -539,8 +539,8 @@ function ChainTimeline({
   won,
   compact = false,
 }: {
-  aPlayer: ApiPlayer
-  bPlayer: ApiPlayer | null
+  aPlayer: Player
+  bPlayer: Player | null
   chain: ChainStep[]
   won: boolean
   compact?: boolean
@@ -585,7 +585,7 @@ function ChainNode({
   isEnd,
   isTarget,
 }: {
-  player: ApiPlayer
+  player: Player
   label: string
   compact: boolean
   isStart?: boolean
@@ -612,7 +612,7 @@ function ChainNode({
           {player.name}
         </div>
         {!compact && (
-          <div className="text-xs text-[#999] truncate">{player.currentTeam}</div>
+          <div className="text-xs text-[#999] truncate">{player.current_club}</div>
         )}
       </div>
       <div className="text-[10px] text-[#ccc] font-mono flex-shrink-0">{label}</div>
@@ -652,7 +652,7 @@ function ChainConnector({
 
 // ─── Player chip (small inline display) ───────────────────────────────────────
 
-function PlayerChip({ player, highlight }: { player: ApiPlayer; highlight?: boolean }) {
+function PlayerChip({ player, highlight }: { player: Player; highlight?: boolean }) {
   return (
     <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border flex-shrink-0 max-w-[120px] ${
       highlight ? 'border-[#1a7a3e] bg-[#f0f7f3]' : 'border-[#e5e5e5] bg-white'
