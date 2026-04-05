@@ -288,3 +288,34 @@ These are shared infrastructure. Changing them affects everyone.
 | CI workflow (`ci.yml`) | Affects every PR across the project |
 
 When in doubt, open a discussion. Three-person team — a quick Slack message is faster than a revert.
+
+---
+
+## Player Database
+
+The football player database lives at `src/data/players.json` (171+ players, sorted by popularity).
+Progress tracking lives at `scripts/build-progress.json`.
+
+To grow the player database, run:
+```
+npx tsx scripts/build-player-db.ts --incremental --batch-size {N}
+```
+where `{N}` is the number of players to add. The script prints a full list of every player added.
+
+**Automatically trigger this when asked:**
+- "add X players to Randomorium"
+- "add X players to the football database"
+- "grow the player database by X"
+- "top up the player database"
+- "add more players"
+
+Other useful commands:
+```
+npx tsx scripts/build-player-db.ts                               # full rebuild (~10 min)
+npx tsx scripts/build-player-db.ts --incremental                 # add next 50 players
+npx tsx scripts/build-player-db.ts --incremental --batch-size 200
+npx tsx scripts/build-player-db.ts --incremental --fill-months   # discover players from new months
+npx tsx scripts/build-player-db.ts --incremental --month 2019-06 # scan specific month
+```
+
+Safe to interrupt at any time — progress is checkpointed every 10 players.
