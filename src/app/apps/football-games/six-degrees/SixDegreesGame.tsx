@@ -4,6 +4,28 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import type { Player } from '@/lib/player'
 import { nationalityFlag, POS_COLOR, sixDegreesLabel } from '@/lib/football-utils'
+
+function StatusBadges({ player }: { player: Player }) {
+  return (
+    <div className="flex items-center gap-0.5 flex-wrap">
+      <span className={`text-[9px] font-black px-1.5 py-1 rounded w-8 text-center ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
+        {player.position}
+      </span>
+      {player.retired && (
+        <span className="text-[9px] font-black px-1 py-1 rounded bg-zinc-400 text-white">RET</span>
+      )}
+      {player.is_manager && (
+        <span className="text-[9px] font-black px-1 py-1 rounded bg-slate-700 text-white">MGR</span>
+      )}
+    </div>
+  )
+}
+
+function playerClubDisplay(player: Player): string {
+  if (player.is_manager && player.managing_club) return `${player.managing_club} (Manager)`
+  if (player.retired) return 'Retired'
+  return player.current_club
+}
 import { getDailySixDegreesPuzzle, type SixDegreesPuzzle } from '@/data/six-degrees-puzzles'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -413,9 +435,7 @@ export default function SixDegreesGame() {
             Now connecting from
           </div>
           <div className="flex items-center gap-2 mb-3">
-            <span className={`flex-shrink-0 text-[9px] font-black px-1.5 py-1 rounded w-8 text-center ${POS_COLOR[currentPlayer!.position] ?? 'bg-zinc-400 text-white'}`}>
-              {currentPlayer!.position}
-            </span>
+            <StatusBadges player={currentPlayer!} />
             <span className="text-base">{nationalityFlag(currentPlayer!.nationality)}</span>
             <span className="font-bold text-sm text-[#1a1a1a]">{currentPlayer!.name}</span>
           </div>
@@ -511,13 +531,13 @@ export default function SixDegreesGame() {
                       : 'border-[#e5e5e5] bg-white hover:border-blue-400 hover:bg-blue-50 active:bg-blue-100'
                   }`}
                 >
-                  <div className={`flex-shrink-0 text-[9px] font-black px-1.5 py-1 rounded w-8 text-center ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
-                    {player.position}
+                  <div className="flex-shrink-0">
+                    <StatusBadges player={player} />
                   </div>
                   <span className="text-base leading-none flex-shrink-0">{nationalityFlag(player.nationality)}</span>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-bold text-[#1a1a1a] truncate">{player.name}</div>
-                    <div className="text-xs text-[#999] truncate">{player.current_club}</div>
+                    <div className="text-xs text-[#999] truncate">{playerClubDisplay(player)}</div>
                   </div>
                   <div className="flex-shrink-0 text-blue-400 text-sm">→</div>
                 </button>
@@ -612,7 +632,7 @@ function ChainNode({
           {player.name}
         </div>
         {!compact && (
-          <div className="text-xs text-[#999] truncate">{player.current_club}</div>
+          <div className="text-xs text-[#999] truncate">{playerClubDisplay(player)}</div>
         )}
       </div>
       <div className="text-[10px] text-[#ccc] font-mono flex-shrink-0">{label}</div>

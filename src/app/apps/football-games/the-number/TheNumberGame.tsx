@@ -480,6 +480,31 @@ export default function TheNumberGame() {
 
 // ─── Pick slot (solo) ─────────────────────────────────────────────────────────
 
+function StatusBadges({ player, size = 'sm' }: { player: Player; size?: 'sm' | 'xs' }) {
+  const cls = size === 'xs'
+    ? 'text-[8px] font-black px-1 py-0.5 rounded'
+    : 'text-[9px] font-black px-1.5 py-0.5 rounded'
+  return (
+    <div className="flex items-center gap-0.5 flex-wrap">
+      <span className={`${cls} ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
+        {player.position}
+      </span>
+      {player.retired && (
+        <span className={`${cls} bg-zinc-400 text-white`}>RET</span>
+      )}
+      {player.is_manager && (
+        <span className={`${cls} bg-slate-700 text-white`}>MGR</span>
+      )}
+    </div>
+  )
+}
+
+function playerClubDisplay(player: Player): string {
+  if (player.is_manager && player.managing_club) return `${player.managing_club} (Manager)`
+  if (player.retired) return 'Retired'
+  return player.current_club
+}
+
 function PickSlot({ index, player, onRemove }: {
   index: number
   player: Player | undefined
@@ -490,14 +515,12 @@ function PickSlot({ index, player, onRemove }: {
       {player ? (
         <button onClick={onRemove} className="w-full h-full p-2.5 text-left flex flex-col justify-between group">
           <div className="flex items-center gap-1.5">
-            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
-              {player.position}
-            </span>
+            <StatusBadges player={player} />
             <span className="text-sm leading-none">{nationalityFlag(player.nationality)}</span>
           </div>
           <div>
             <div className="text-[11px] font-bold text-[#1a1a1a] leading-tight line-clamp-2">{player.name}</div>
-            <div className="text-[10px] text-[#999] truncate">{player.current_club}</div>
+            <div className="text-[10px] text-[#999] truncate">{playerClubDisplay(player)}</div>
           </div>
           <div className="absolute top-1.5 right-1.5 text-[#ccc] group-hover:text-[#999] text-[10px] transition-colors">✕</div>
         </button>
@@ -521,9 +544,7 @@ function MiniPickSlot({ index, player, onRemove }: {
     <div className={`h-9 rounded-lg border flex items-center px-2.5 bg-white relative overflow-hidden transition-colors ${player ? 'border-[#1a7a3e]' : 'border-dashed border-[#e0e0e0]'}`}>
       {player ? (
         <button onClick={onRemove} className="w-full flex items-center gap-2 group">
-          <span className={`text-[8px] font-black px-1 py-0.5 rounded flex-shrink-0 ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
-            {player.position}
-          </span>
+          <StatusBadges player={player} size="xs" />
           <span className="text-xs text-[#1a1a1a] font-medium truncate flex-1">{player.name}</span>
           <span className="text-[#ccc] group-hover:text-[#999] text-[10px] flex-shrink-0">✕</span>
         </button>
@@ -551,13 +572,13 @@ function PlayerRow({ player, disabled, onClick }: {
           : 'border-[#e5e5e5] bg-white hover:border-[#1a7a3e] hover:bg-[#f0f7f3] active:bg-[#e8f5ee]'
       }`}
     >
-      <div className={`flex-shrink-0 text-[9px] font-black px-1.5 py-1 rounded w-8 text-center ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
-        {player.position}
+      <div className="flex-shrink-0">
+        <StatusBadges player={player} />
       </div>
       <span className="text-base leading-none flex-shrink-0">{nationalityFlag(player.nationality)}</span>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-bold text-[#1a1a1a] truncate">{player.name}</div>
-        <div className="text-xs text-[#999] truncate">{player.current_club}</div>
+        <div className="text-xs text-[#999] truncate">{playerClubDisplay(player)}</div>
       </div>
       <div className="flex-shrink-0 text-[#ccc] text-sm">→</div>
     </button>
@@ -577,13 +598,13 @@ function PicksReveal({ picks, theme, total, target }: {
     <div className="bg-white border border-[#e5e5e5] rounded-xl overflow-hidden">
       {picks.map((p, i) => (
         <div key={p.id} className={`flex items-center gap-3 px-4 py-3 ${i < picks.length - 1 ? 'border-b border-[#f0f0f0]' : ''}`}>
-          <span className={`flex-shrink-0 text-[9px] font-black px-1.5 py-1 rounded w-8 text-center ${POS_COLOR[p.position] ?? 'bg-zinc-400 text-white'}`}>
-            {p.position}
-          </span>
+          <div className="flex-shrink-0">
+            <StatusBadges player={p} />
+          </div>
           <span className="text-base leading-none flex-shrink-0">{nationalityFlag(p.nationality)}</span>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-bold text-[#1a1a1a] truncate">{p.name}</div>
-            <div className="text-xs text-[#999]">{p.current_club}</div>
+            <div className="text-xs text-[#999]">{playerClubDisplay(p)}</div>
           </div>
           <div className="text-right flex-shrink-0">
             <div className="text-xl font-black tabular-nums text-[#1a1a1a]">{theme.getStat(p)}</div>

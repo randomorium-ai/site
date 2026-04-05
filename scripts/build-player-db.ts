@@ -18,8 +18,13 @@
 //
 //   Output — Sort by popularity_score desc, write players.json.
 //
-// Usage: npx tsx scripts/build-player-db.ts
-// Estimated runtime: ~10 minutes
+// Usage:
+//   npx tsx scripts/build-player-db.ts                          # full rebuild
+//   npx tsx scripts/build-player-db.ts --incremental            # add next 50 players
+//   npx tsx scripts/build-player-db.ts --incremental --batch-size 200
+//   npx tsx scripts/build-player-db.ts --incremental --month 2019-06
+//   npx tsx scripts/build-player-db.ts --incremental --fill-months
+// Estimated runtime (full): ~10 minutes
 
 import fs from "fs"
 import path from "path"
@@ -43,6 +48,8 @@ const VIEWS_60_DAY_MIN = 100          // Lowered threshold — catch more player
 const VIEWS_10YR_MIN = 10_000         // 10yr minimum (lowered to catch semi-obscure)
 const ENRICH_CONCURRENCY = 20         // Parallel enrichment requests (lower = fewer rate-limit failures)
 const MAX_RETRIES = 3
+const PROGRESS_PATH = path.join(process.cwd(), "scripts", "build-progress.json")
+const CHECKPOINT_INTERVAL = 10        // Write players.json every N new players
 
 // Hardcoded supplemental titles to always include regardless of view threshold.
 // Covers test players and historically important figures.
@@ -130,6 +137,58 @@ const SUPPLEMENTAL_TITLES = new Set([
 const TITLE_NATIONALITY_OVERRIDE: Record<string, string> = {
   "Josh_Maja":                      "Nigeria",  // Born in England, plays for Nigeria; infobox ambiguous
   "Ronaldo_(Brazilian_footballer)": "Brazil",   // parseNationality picks up Portuguese from article cross-refs
+}
+
+// ── Build progress tracking ───────────────────────────────────────────────────
+
+interface BuildProgress {
+  months_processed: string[]   // "2016-03" etc. — months fully scanned for new players
+  months_remaining: string[]   // months not yet scanned
+  players_queued: string[]     // Wikipedia titles discovered but not yet enriched
+  players_fetched: string[]    // player IDs already in players.json
+  last_run: string             // ISO timestamp of last incremental run
+  total_players: number
+}
+
+function allMonths(): string[] {
+  const months: string[] = []
+  for (let year = 2016; year <= 2026; year++) {
+    for (let month = 1; month <= 12; month++) {
+      if (year === 2016 && month < 3) continue
+      if (year === 2026 && month > 3) break
+      months.push(`${year}-${String(month).padStart(2, "0")}`)
+    }
+  }
+  return months
+}
+
+function loadProgress(): BuildProgress {
+  try {
+    if (fs.existsSync(PROGRESS_PATH)) {
+      return JSON.parse(fs.readFileSync(PROGRESS_PATH, "utf-8"))
+    }
+  } catch { /* fall through */ }
+  return {
+    months_processed: [],
+    months_remaining: allMonths(),
+    players_queued: [],
+    players_fetched: [],
+    last_run: "",
+    total_players: 0,
+  }
+}
+
+function saveProgress(progress: BuildProgress): void {
+  fs.writeFileSync(PROGRESS_PATH, JSON.stringify(progress, null, 2))
+}
+
+function loadExistingPlayers(): Player[] {
+  try {
+    if (fs.existsSync(OUTPUT_PATH)) {
+      return JSON.parse(fs.readFileSync(OUTPUT_PATH, "utf-8"))
+    }
+  } catch { /* fall through */ }
+  return []
 }
 
 // ── HTTP helpers ──────────────────────────────────────────────────────────────
@@ -254,6 +313,32 @@ async function fetchSearchBatch(offset: number): Promise<Map<string, number>> {
   }
 
   return result
+}
+
+// ── Monthly pageview discovery ────────────────────────────────────────────────
+// Fetches top Wikipedia articles for a given month (YYYY-MM) and returns
+// titles of pages that might be footballers (high-view pages to check).
+
+async function discoverFromMonth(yearMonth: string): Promise<string[]> {
+  const [year, month] = yearMonth.split("-")
+  const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/${year}/${month}/all-days`
+
+  interface TopPagesResponse {
+    items?: [{ articles?: Array<{ article: string; views: number }> }]
+  }
+
+  try {
+    const data = await fetchJson<TopPagesResponse>(url)
+    const articles = data.items?.[0]?.articles ?? []
+    // Return titles of pages with at least 5,000 views in that month
+    // enrichOne() will filter out non-footballers naturally
+    return articles
+      .filter((a) => a.views >= 5_000)
+      .map((a) => a.article.replace(/ /g, "_"))
+      .filter((t) => !t.startsWith("Wikipedia:") && !t.startsWith("Special:") && !t.startsWith("Portal:"))
+  } catch {
+    return []
+  }
 }
 
 // ── Phase 2: Enrichment ────────────────────────────────────────────────────────
@@ -481,11 +566,33 @@ function parseInfobox(title: string, wikitext: string, popularity_score: number)
     international_goals += parseNum(nationalGoalsRaw[i] ?? "0")
   }
 
+  // ── Manager detection ──────────────────────────────────────────────────────
+  // Parse managedclubs/managingclubs fields to detect player-managers.
+  // is_manager = true if the player has ever managed at professional level.
+  // managing_club = current club if actively managing, null otherwise.
+  const managedClubNames = fields("managedclubs").concat(fields("managingclubs"))
+  const managedYears = fields("managedyears").concat(fields("managingyears"))
+
+  let is_manager = false
+  let managing_club: string | null = null
+
+  for (let i = 0; i < managedClubNames.length; i++) {
+    const clubName = managedClubNames[i]
+    if (!clubName || clubName.includes("{{")) continue
+    is_manager = true
+    // Check if this stint is current (no end year)
+    const yearsStr = managedYears[i] ?? ""
+    const { to } = parseYears(yearsStr)
+    if (to === null && !managing_club) {
+      managing_club = clubName
+    }
+  }
+
   // ── Assemble ──────────────────────────────────────────────────────────────
   const id = slugify(name)
   if (!id) return null
 
-  return {
+  const player: Player = {
     id,
     name,
     nationality,
@@ -504,6 +611,11 @@ function parseInfobox(title: string, wikitext: string, popularity_score: number)
     popularity_score,
     wikipedia_url: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
   }
+
+  if (is_manager) player.is_manager = true
+  if (managing_club) player.managing_club = managing_club
+
+  return player
 }
 
 // ── Markup helpers ────────────────────────────────────────────────────────────
@@ -662,9 +774,153 @@ function deduplicatePlayers(players: Player[]): Player[] {
   return Array.from(best.values())
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// ── Incremental mode ──────────────────────────────────────────────────────────
 
-async function main() {
+async function runIncremental(batchSize: number, specificMonth?: string, fillMonths?: boolean) {
+  console.log("=== build-player-db (incremental) ===")
+  console.log(`Output: ${OUTPUT_PATH}`)
+  console.log(`Progress: ${PROGRESS_PATH}`)
+  console.log("")
+
+  const existingPlayers = loadExistingPlayers()
+  const progress = loadProgress()
+
+  // Build dedup sets from existing players
+  const fetchedIds = new Set(existingPlayers.map((p) => p.id))
+  const fetchedUrls = new Set(existingPlayers.map((p) => p.wikipedia_url))
+
+  // ── Month discovery phase ─────────────────────────────────────────────────
+  if (fillMonths || specificMonth) {
+    const monthsToProcess = specificMonth
+      ? [specificMonth].filter((m) => !progress.months_processed.includes(m))
+      : progress.months_remaining.slice()
+
+    if (monthsToProcess.length === 0) {
+      console.log("All months already processed.")
+    } else {
+      console.log(`Discovering players from ${monthsToProcess.length} months...`)
+      let totalNew = 0
+
+      for (const month of monthsToProcess) {
+        const titles = await discoverFromMonth(month)
+        let monthNew = 0
+        for (const title of titles) {
+          if (!fetchedIds.has(slugify(humaniseName(title))) &&
+              !progress.players_queued.includes(title) &&
+              !progress.players_fetched.includes(slugify(humaniseName(title)))) {
+            progress.players_queued.push(title)
+            monthNew++
+          }
+        }
+        if (!progress.months_processed.includes(month)) {
+          progress.months_processed.push(month)
+        }
+        progress.months_remaining = progress.months_remaining.filter((m) => m !== month)
+        totalNew += monthNew
+        console.log(`  ${month}: ${titles.length} candidates, ${monthNew} new titles queued`)
+        saveProgress(progress)
+        await sleep(200)
+      }
+      console.log(`Discovery complete. ${totalNew} new titles added to queue.`)
+      console.log(`Queue size: ${progress.players_queued.length}`)
+      console.log("")
+    }
+  }
+
+  // ── Enrichment phase ──────────────────────────────────────────────────────
+  const toProcess = progress.players_queued.slice(0, batchSize)
+  if (toProcess.length === 0) {
+    console.log("No players queued.")
+    console.log("Run with --fill-months to discover more players from monthly pageviews.")
+    console.log(`Total players in database: ${existingPlayers.length}`)
+    return
+  }
+
+  console.log(`Processing ${toProcess.length} players (${progress.players_queued.length} total in queue)...`)
+  console.log("")
+
+  const newPlayers: Player[] = []
+  const failed: { title: string; reason: string }[] = []
+  const currentPlayers = [...existingPlayers]
+
+  for (let i = 0; i < toProcess.length; i++) {
+    const title = toProcess[i]
+    const displayName = humaniseName(title)
+    console.log(`  Fetching player ${i + 1}/${toProcess.length}: ${displayName}...`)
+
+    try {
+      const player = await enrichOne(title)
+
+      if (player) {
+        if (!fetchedIds.has(player.id) && !fetchedUrls.has(player.wikipedia_url)) {
+          newPlayers.push(player)
+          fetchedIds.add(player.id)
+          fetchedUrls.add(player.wikipedia_url)
+          currentPlayers.push(player)
+          progress.players_fetched.push(player.id)
+
+          // Checkpoint: write every CHECKPOINT_INTERVAL new players
+          if (newPlayers.length % CHECKPOINT_INTERVAL === 0) {
+            const sorted = deduplicatePlayers(currentPlayers).sort((a, b) => b.popularity_score - a.popularity_score)
+            fs.writeFileSync(OUTPUT_PATH, JSON.stringify(sorted, null, 2))
+            progress.total_players = sorted.length
+            progress.players_queued = progress.players_queued.filter((t) => !toProcess.slice(0, i + 1).includes(t))
+            saveProgress(progress)
+            console.log(`    ✓ Checkpoint: ${sorted.length} total players in database`)
+          }
+        } else {
+          console.log(`    → Skipped duplicate: ${player.name}`)
+        }
+      } else {
+        failed.push({ title, reason: "Not a footballer or below view threshold" })
+      }
+    } catch (err) {
+      failed.push({ title, reason: String(err) })
+    }
+  }
+
+  // Final write
+  const finalPlayers = deduplicatePlayers(currentPlayers).sort((a, b) => b.popularity_score - a.popularity_score)
+  fs.writeFileSync(OUTPUT_PATH, JSON.stringify(finalPlayers, null, 2))
+
+  // Update progress
+  progress.players_queued = progress.players_queued.filter((t) => !toProcess.includes(t))
+  progress.total_players = finalPlayers.length
+  progress.last_run = new Date().toISOString()
+  saveProgress(progress)
+
+  // ── Summary ───────────────────────────────────────────────────────────────
+  console.log("")
+  console.log(`Run complete. ${newPlayers.length} new players added:`)
+  const addedSorted = [...newPlayers].sort((a, b) => b.popularity_score - a.popularity_score)
+  for (const p of addedSorted) {
+    const status = p.is_manager ? "manager" : p.retired ? "retired" : "active"
+    console.log(`- ${p.name} (${p.nationality}, ${p.position}, ${status}) — popularity: ${p.popularity_score.toLocaleString()}`)
+  }
+
+  console.log("")
+  console.log(`Total players now in database: ${finalPlayers.length}`)
+  console.log(`Remaining in queue: ${progress.players_queued.length}`)
+
+  if (addedSorted.length > 0) {
+    console.log("\nTop 5 most popular added this run:")
+    for (const p of addedSorted.slice(0, 5)) {
+      console.log(`  ${p.name} — ${p.popularity_score.toLocaleString()}`)
+    }
+  }
+
+  if (failed.length > 0) {
+    console.log(`\nFailed to fetch (${failed.length}):`)
+    for (const f of failed.slice(0, 10)) {
+      console.log(`  ${humaniseName(f.title)}: ${f.reason}`)
+    }
+    if (failed.length > 10) console.log(`  ... and ${failed.length - 10} more`)
+  }
+}
+
+// ── Full rebuild ──────────────────────────────────────────────────────────────
+
+async function runFullBuild() {
   console.log("=== build-player-db ===")
   console.log(`Output: ${OUTPUT_PATH}`)
   console.log("")
@@ -683,6 +939,14 @@ async function main() {
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(deduped, null, 2))
   console.log(`Written to ${OUTPUT_PATH}`)
 
+  // Update progress to reflect full build
+  const progress = loadProgress()
+  progress.players_fetched = deduped.map((p) => p.id)
+  progress.players_queued = []
+  progress.total_players = deduped.length
+  progress.last_run = new Date().toISOString()
+  saveProgress(progress)
+
   console.log("\nTop 10 by popularity:")
   for (const p of deduped.slice(0, 10)) {
     console.log(`  ${p.name} (${p.nationality}) — ${p.popularity_score.toLocaleString()} views, ${p.career_goals}g/${p.career_apps}a`)
@@ -695,6 +959,26 @@ async function main() {
   for (const name of testNames) {
     const found = deduped.find(p => normalise(p.name).includes(normalise(name)))
     console.log(`  ${name}: ${found ? `✓ (${found.name}, ${found.popularity_score.toLocaleString()} views)` : "✗ MISSING"}`)
+  }
+}
+
+// ── Entry point ───────────────────────────────────────────────────────────────
+
+async function main() {
+  const args = process.argv.slice(2)
+  const incremental = args.includes("--incremental")
+  const fillMonths = args.includes("--fill-months")
+
+  const batchSizeIdx = args.indexOf("--batch-size")
+  const batchSize = batchSizeIdx !== -1 ? parseInt(args[batchSizeIdx + 1] ?? "50") : 50
+
+  const monthIdx = args.indexOf("--month")
+  const specificMonth = monthIdx !== -1 ? args[monthIdx + 1] : undefined
+
+  if (incremental) {
+    await runIncremental(batchSize, specificMonth, fillMonths)
+  } else {
+    await runFullBuild()
   }
 }
 

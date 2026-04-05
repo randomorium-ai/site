@@ -27,6 +27,8 @@ export interface Player {
   peak_club: string     // club with most career appearances
   popularity_score: number  // sum of Wikipedia pageviews 2016–2026
   wikipedia_url: string
+  is_manager?: boolean        // has managed at professional level
+  managing_club?: string | null  // current club if actively managing, null otherwise
 }
 
 // ── Utilities ──────────────────────────────────────────────────────────────
