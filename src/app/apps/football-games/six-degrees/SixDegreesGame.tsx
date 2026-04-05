@@ -142,7 +142,6 @@ export default function SixDegreesGame() {
     setPuzzle(p)
     setDateStr(d)
     findPuzzlePlayers(p).then(([a, b]) => {
-      if (!a || !b) { setPhase('error'); return }
       setAPlayer(a)
       setBPlayer(b)
       setPhase('playing')
@@ -156,16 +155,44 @@ export default function SixDegreesGame() {
       return parts[parts.length - 1]
     }
 
-    async function findOne(name: string, team: string): Promise<Player | null> {
-      const last = lastName(name)
-      const res = await fetch(`/api/football/players?search=${encodeURIComponent(last)}`)
-      if (!res.ok) return null
-      const { players } = await res.json() as { players: Player[] }
-      const teamKeyword = team.split(' ')[0].toLowerCase()
-      return players.find(pl =>
-        pl.current_club.toLowerCase().includes(teamKeyword) ||
-        pl.name.toLowerCase().includes(last.toLowerCase())
-      ) ?? players[0] ?? null
+    // Stub player used when the puzzle player isn't in the local DB yet.
+    // The game can still load — club links just won't be validated against career data.
+    function stubPlayer(name: string, team: string): Player {
+      return {
+        id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        name,
+        nationality: '',
+        confederation: 'UEFA',
+        dob: '',
+        age: 0,
+        position: 'MID',
+        current_club: team,
+        retired: false,
+        career_clubs: [],
+        career_goals: 0,
+        career_apps: 0,
+        international_caps: 0,
+        international_goals: 0,
+        peak_club: team,
+        popularity_score: 0,
+        wikipedia_url: '',
+      }
+    }
+
+    async function findOne(name: string, team: string): Promise<Player> {
+      try {
+        const last = lastName(name)
+        const res = await fetch(`/api/football/players?search=${encodeURIComponent(last)}`)
+        if (!res.ok) return stubPlayer(name, team)
+        const { players } = await res.json() as { players: Player[] }
+        const teamKeyword = team.split(' ')[0].toLowerCase()
+        return players.find(pl =>
+          pl.current_club.toLowerCase().includes(teamKeyword) ||
+          pl.name.toLowerCase().includes(last.toLowerCase())
+        ) ?? players[0] ?? stubPlayer(name, team)
+      } catch {
+        return stubPlayer(name, team)
+      }
     }
 
     return Promise.all([findOne(p.a.name, p.a.team), findOne(p.b.name, p.b.team)])

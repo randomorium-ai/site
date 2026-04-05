@@ -130,6 +130,46 @@ const SUPPLEMENTAL_TITLES = new Set([
   "John_Terry",
   "Ashley_Cole",
   "Sol_Campbell",
+  // Six Degrees puzzle players — must always be present
+  "Kylian_Mbappé",
+  "Vinícius_Júnior",
+  "Rodri_(footballer)",
+  "Victor_Osimhen",
+  "Rafael_Leão",
+  "Khvicha_Kvaratskhelia",
+  "Alejandro_Garnacho",
+  "Jamal_Musiala",
+  "Rúben_Dias",
+  "Olivier_Giroud",
+  "Eduardo_Camavinga",
+  "Son_Heung-min",
+  "Darwin_Núñez",
+  "Rasmus_Højlund",
+  "Bruno_Fernandes",
+  "Martin_Ødegaard",
+  "Lautaro_Martínez",
+  "Dušan_Vlahović",
+  "Diogo_Jota",
+  "Christopher_Nkunku",
+  "Ousmane_Dembélé",
+  "Joshua_Kimmich",
+  "Nicolò_Barella",
+  "Serge_Gnabry",
+  "Leroy_Sané",
+  "Álvaro_Morata_(footballer)",
+  "Marcus_Thuram",
+  "Randal_Kolo_Muani",
+  "Theo_Hernández_(footballer)",
+  "Lucas_Hernández_(footballer)",
+  "Kai_Havertz",
+  "Hakim_Ziyech",
+  "Federico_Valverde",
+  "Frenkie_de_Jong",
+  "Dani_Olmo",
+  "Tammy_Abraham",
+  "Gabriel_Martinelli",
+  "Gabriel_Jesus",
+  "Lamine_Yamal",
 ])
 
 // Nationality overrides for players whose Wikipedia infobox/intro can't be
@@ -137,6 +177,7 @@ const SUPPLEMENTAL_TITLES = new Set([
 const TITLE_NATIONALITY_OVERRIDE: Record<string, string> = {
   "Josh_Maja":                      "Nigeria",  // Born in England, plays for Nigeria; infobox ambiguous
   "Ronaldo_(Brazilian_footballer)": "Brazil",   // parseNationality picks up Portuguese from article cross-refs
+  "Eduardo_Camavinga":              "France",   // Short description template hides nationality in intro
 }
 
 // ── Build progress tracking ───────────────────────────────────────────────────

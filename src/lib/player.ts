@@ -66,6 +66,7 @@ export const ISO_TO_COUNTRY: Record<string, string> = {
   CIV: 'Ivory Coast', MLI: 'Mali', COD: 'DR Congo', GAB: 'Gabon',
   JPN: 'Japan', KOR: 'South Korea', AUS: 'Australia', CHN: 'China',
   IRN: 'Iran', SAU: 'Saudi Arabia', UAE: 'United Arab Emirates',
+  GEO: 'Georgia',
   CRO: 'Croatia', POL: 'Poland', DEN: 'Denmark', SWE: 'Sweden',
   NOR: 'Norway', SCO: 'Scotland', WAL: 'Wales', NIR: 'Northern Ireland',
   IRL: 'Ireland', AUT: 'Austria', SUI: 'Switzerland', GRE: 'Greece',
@@ -99,7 +100,7 @@ export const ADJECTIVE_TO_COUNTRY: Record<string, string> = {
   slovak: 'Slovakia', hungarian: 'Hungary', romanian: 'Romania', bulgarian: 'Bulgaria',
   serbian: 'Serbia', montenegrin: 'Montenegro', albanian: 'Albania',
   bosnian: 'Bosnia and Herzegovina', slovenian: 'Slovenia', macedonian: 'North Macedonia',
-  icelandic: 'Iceland', finnish: 'Finland',
+  icelandic: 'Iceland', finnish: 'Finland', georgian: 'Georgia',
 }
 
 // Country → confederation
@@ -114,7 +115,7 @@ export const COUNTRY_TO_CONFEDERATION: Record<string, string> = {
   Albania: 'UEFA', 'Bosnia and Herzegovina': 'UEFA', Slovenia: 'UEFA',
   'North Macedonia': 'UEFA', Kosovo: 'UEFA', Iceland: 'UEFA', Finland: 'UEFA',
   Estonia: 'UEFA', Latvia: 'UEFA', Lithuania: 'UEFA', Luxembourg: 'UEFA',
-  Malta: 'UEFA', Andorra: 'UEFA',
+  Malta: 'UEFA', Andorra: 'UEFA', Georgia: 'UEFA',
   Brazil: 'CONMEBOL', Argentina: 'CONMEBOL', Uruguay: 'CONMEBOL', Colombia: 'CONMEBOL',
   Chile: 'CONMEBOL', Paraguay: 'CONMEBOL', Peru: 'CONMEBOL', Ecuador: 'CONMEBOL',
   Venezuela: 'CONMEBOL', Bolivia: 'CONMEBOL',

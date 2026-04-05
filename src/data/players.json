@@ -1502,6 +1502,61 @@
     "wikipedia_url": "https://en.wikipedia.org/wiki/Frank_Lampard"
   },
   {
+    "id": "son-heung-min",
+    "name": "Son Heung-min",
+    "nationality": "South Korea",
+    "confederation": "AFC",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Los Angeles FC",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Hamburger SV II",
+        "from": 2010,
+        "to": null,
+        "apps": 6,
+        "goals": 1
+      },
+      {
+        "club": "Hamburger SV",
+        "from": 2010,
+        "to": 2013,
+        "apps": 73,
+        "goals": 20
+      },
+      {
+        "club": "Bayer 04 Leverkusen",
+        "from": 2013,
+        "to": 2015,
+        "apps": 62,
+        "goals": 21
+      },
+      {
+        "club": "Tottenham Hotspur F.C.",
+        "from": 2015,
+        "to": 2025,
+        "apps": 333,
+        "goals": 127
+      },
+      {
+        "club": "Los Angeles FC",
+        "from": 2025,
+        "to": null,
+        "apps": 15,
+        "goals": 9
+      }
+    ],
+    "career_goals": 178,
+    "career_apps": 489,
+    "international_caps": 142,
+    "international_goals": 54,
+    "peak_club": "Tottenham Hotspur F.C.",
+    "popularity_score": 16022577,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Son_Heung-min"
+  },
+  {
     "id": "sadio-mane",
     "name": "Sadio Mané",
     "nationality": "Senegal",
@@ -1631,6 +1686,96 @@
     "peak_club": "Falkirk F.C.",
     "popularity_score": 15782400,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Alex%20Ferguson"
+  },
+  {
+    "id": "olivier-giroud",
+    "name": "Olivier Giroud",
+    "nationality": "France",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Lille OSC",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Grenoble Foot 38",
+        "from": 2005,
+        "to": 2008,
+        "apps": 23,
+        "goals": 2
+      },
+      {
+        "club": "→ FC Istres",
+        "from": 2007,
+        "to": 2008,
+        "apps": 33,
+        "goals": 14
+      },
+      {
+        "club": "Tours FC",
+        "from": 2008,
+        "to": 2010,
+        "apps": 44,
+        "goals": 24
+      },
+      {
+        "club": "Montpellier HSC",
+        "from": 2010,
+        "to": 2012,
+        "apps": 73,
+        "goals": 33
+      },
+      {
+        "club": "→ Tours FC",
+        "from": 2010,
+        "to": null,
+        "apps": 17,
+        "goals": 6
+      },
+      {
+        "club": "Arsenal F.C.",
+        "from": 2012,
+        "to": 2018,
+        "apps": 180,
+        "goals": 73
+      },
+      {
+        "club": "Chelsea F.C.",
+        "from": 2018,
+        "to": 2021,
+        "apps": 75,
+        "goals": 17
+      },
+      {
+        "club": "AC Milan",
+        "from": 2021,
+        "to": 2024,
+        "apps": 97,
+        "goals": 39
+      },
+      {
+        "club": "Los Angeles FC",
+        "from": 2024,
+        "to": 2025,
+        "apps": 21,
+        "goals": 3
+      },
+      {
+        "club": "Lille OSC",
+        "from": 2025,
+        "to": null,
+        "apps": 25,
+        "goals": 6
+      }
+    ],
+    "career_goals": 217,
+    "career_apps": 588,
+    "international_caps": 137,
+    "international_goals": 0,
+    "peak_club": "Arsenal F.C.",
+    "popularity_score": 14498771,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Olivier_Giroud"
   },
   {
     "id": "steven-gerrard",
@@ -1770,6 +1915,123 @@
     "wikipedia_url": "https://en.wikipedia.org/wiki/Michael_Owen"
   },
   {
+    "id": "ousmane-dembele",
+    "name": "Ousmane Dembélé",
+    "nationality": "France",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Paris Saint-Germain FC",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Stade Rennais FC",
+        "from": 2014,
+        "to": 2015,
+        "apps": 22,
+        "goals": 13
+      },
+      {
+        "club": "Stade Rennais FC",
+        "from": 2015,
+        "to": 2016,
+        "apps": 26,
+        "goals": 12
+      },
+      {
+        "club": "Borussia Dortmund",
+        "from": 2016,
+        "to": 2017,
+        "apps": 32,
+        "goals": 6
+      },
+      {
+        "club": "FC Barcelona",
+        "from": 2017,
+        "to": 2023,
+        "apps": 127,
+        "goals": 24
+      },
+      {
+        "club": "Paris Saint-Germain FC",
+        "from": 2023,
+        "to": null,
+        "apps": 72,
+        "goals": 34
+      }
+    ],
+    "career_goals": 89,
+    "career_apps": 279,
+    "international_caps": 58,
+    "international_goals": 7,
+    "peak_club": "FC Barcelona",
+    "popularity_score": 12272147,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Ousmane_Demb%C3%A9l%C3%A9"
+  },
+  {
+    "id": "diogo-jota",
+    "name": "Diogo Jota",
+    "nationality": "Portugal",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "",
+    "retired": true,
+    "career_clubs": [
+      {
+        "club": "F.C. Paços de Ferreira",
+        "from": 2014,
+        "to": 2016,
+        "apps": 41,
+        "goals": 14
+      },
+      {
+        "club": "Atlético Madrid",
+        "from": 2016,
+        "to": 2018,
+        "apps": 0,
+        "goals": 0
+      },
+      {
+        "club": "→ FC Porto",
+        "from": 2016,
+        "to": 2017,
+        "apps": 27,
+        "goals": 8
+      },
+      {
+        "club": "→ Wolverhampton Wanderers F.C.",
+        "from": 2017,
+        "to": 2018,
+        "apps": 44,
+        "goals": 17
+      },
+      {
+        "club": "Wolverhampton Wanderers F.C.",
+        "from": 2018,
+        "to": 2020,
+        "apps": 67,
+        "goals": 16
+      },
+      {
+        "club": "Liverpool F.C.",
+        "from": 2020,
+        "to": 2025,
+        "apps": 123,
+        "goals": 47
+      }
+    ],
+    "career_goals": 102,
+    "career_apps": 302,
+    "international_caps": 50,
+    "international_goals": 15,
+    "peak_club": "Liverpool F.C.",
+    "popularity_score": 12213574,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Diogo_Jota"
+  },
+  {
     "id": "andres-iniesta",
     "name": "Andrés Iniesta",
     "nationality": "Spain",
@@ -1816,6 +2078,103 @@
     "peak_club": "FC Barcelona",
     "popularity_score": 12179673,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Andr%C3%A9s_Iniesta"
+  },
+  {
+    "id": "alvaro-morata",
+    "name": "Álvaro Morata",
+    "nationality": "Spain",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Como 1907",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Real Madrid Castilla",
+        "from": 2010,
+        "to": 2013,
+        "apps": 83,
+        "goals": 45
+      },
+      {
+        "club": "Real Madrid CF",
+        "from": 2010,
+        "to": 2014,
+        "apps": 37,
+        "goals": 10
+      },
+      {
+        "club": "Juventus FC",
+        "from": 2014,
+        "to": 2016,
+        "apps": 64,
+        "goals": 15
+      },
+      {
+        "club": "Real Madrid CF",
+        "from": 2016,
+        "to": 2017,
+        "apps": 26,
+        "goals": 15
+      },
+      {
+        "club": "Chelsea F.C.",
+        "from": 2017,
+        "to": 2020,
+        "apps": 47,
+        "goals": 16
+      },
+      {
+        "club": "→ Atlético Madrid (loan)",
+        "from": 2019,
+        "to": 2020,
+        "apps": 49,
+        "goals": 18
+      },
+      {
+        "club": "Atlético Madrid",
+        "from": 2020,
+        "to": 2024,
+        "apps": 68,
+        "goals": 28
+      },
+      {
+        "club": "→ Juventus FC",
+        "from": 2020,
+        "to": 2022,
+        "apps": 67,
+        "goals": 20
+      },
+      {
+        "club": "AC Milan",
+        "from": 2024,
+        "to": null,
+        "apps": 16,
+        "goals": 5
+      },
+      {
+        "club": "→ Galatasaray S.K. (football)",
+        "from": 2025,
+        "to": null,
+        "apps": 12,
+        "goals": 6
+      },
+      {
+        "club": "→ Como 1907",
+        "from": 2025,
+        "to": null,
+        "apps": 18,
+        "goals": 0
+      }
+    ],
+    "career_goals": 178,
+    "career_apps": 487,
+    "international_caps": 87,
+    "international_goals": 37,
+    "peak_club": "Real Madrid Castilla",
+    "popularity_score": 12078083,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/%C3%81lvaro_Morata"
   },
   {
     "id": "vinicius-junior",
@@ -2010,6 +2369,185 @@
     "wikipedia_url": "https://en.wikipedia.org/wiki/Ruud_van_Nistelrooy"
   },
   {
+    "id": "martin-degaard",
+    "name": "Martin Ødegaard",
+    "nationality": "Norway",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "Arsenal F.C.",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Strømsgodset Toppfotball",
+        "from": 2013,
+        "to": null,
+        "apps": 11,
+        "goals": 4
+      },
+      {
+        "club": "Strømsgodset Toppfotball",
+        "from": 2013,
+        "to": 2014,
+        "apps": 5,
+        "goals": 1
+      },
+      {
+        "club": "Strømsgodset Toppfotball",
+        "from": 2014,
+        "to": 2015,
+        "apps": 23,
+        "goals": 5
+      },
+      {
+        "club": "Real Madrid Castilla",
+        "from": 2015,
+        "to": 2017,
+        "apps": 58,
+        "goals": 5
+      },
+      {
+        "club": "Real Madrid CF",
+        "from": 2015,
+        "to": 2021,
+        "apps": 8,
+        "goals": 0
+      },
+      {
+        "club": "→ SC Heerenveen",
+        "from": 2017,
+        "to": 2018,
+        "apps": 38,
+        "goals": 2
+      },
+      {
+        "club": "→ SBV Vitesse",
+        "from": 2018,
+        "to": 2019,
+        "apps": 31,
+        "goals": 8
+      },
+      {
+        "club": "→ Real Sociedad (loan)",
+        "from": 2019,
+        "to": 2020,
+        "apps": 31,
+        "goals": 4
+      },
+      {
+        "club": "→ Arsenal F.C.",
+        "from": 2021,
+        "to": null,
+        "apps": 14,
+        "goals": 1
+      },
+      {
+        "club": "Arsenal F.C.",
+        "from": 2021,
+        "to": null,
+        "apps": 159,
+        "goals": 34
+      }
+    ],
+    "career_goals": 64,
+    "career_apps": 378,
+    "international_caps": 67,
+    "international_goals": 4,
+    "peak_club": "Arsenal F.C.",
+    "popularity_score": 8921529,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Martin_%C3%98degaard"
+  },
+  {
+    "id": "gabriel-jesus",
+    "name": "Gabriel Jesus",
+    "nationality": "Brazil",
+    "confederation": "CONMEBOL",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Arsenal F.C.",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "SE Palmeiras",
+        "from": 2015,
+        "to": 2017,
+        "apps": 67,
+        "goals": 21
+      },
+      {
+        "club": "Manchester City F.C.",
+        "from": 2017,
+        "to": 2022,
+        "apps": 159,
+        "goals": 58
+      },
+      {
+        "club": "Arsenal F.C.",
+        "from": 2022,
+        "to": null,
+        "apps": 81,
+        "goals": 20
+      }
+    ],
+    "career_goals": 99,
+    "career_apps": 307,
+    "international_caps": 64,
+    "international_goals": 19,
+    "peak_club": "Manchester City F.C.",
+    "popularity_score": 8861718,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Gabriel_Jesus"
+  },
+  {
+    "id": "leroy-sane",
+    "name": "Leroy Sané",
+    "nationality": "Germany",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Galatasaray S.K. (football)",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "FC Schalke 04",
+        "from": 2014,
+        "to": 2016,
+        "apps": 47,
+        "goals": 11
+      },
+      {
+        "club": "Manchester City F.C.",
+        "from": 2016,
+        "to": 2020,
+        "apps": 90,
+        "goals": 25
+      },
+      {
+        "club": "FC Bayern Munich",
+        "from": 2020,
+        "to": 2025,
+        "apps": 153,
+        "goals": 40
+      },
+      {
+        "club": "Galatasaray S.K. (football)",
+        "from": 2025,
+        "to": null,
+        "apps": 21,
+        "goals": 6
+      }
+    ],
+    "career_goals": 82,
+    "career_apps": 311,
+    "international_caps": 74,
+    "international_goals": 16,
+    "peak_club": "FC Bayern Munich",
+    "popularity_score": 8557276,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Leroy_San%C3%A9"
+  },
+  {
     "id": "ilkay-gundogan",
     "name": "İlkay Gündoğan",
     "nationality": "Germany",
@@ -2084,6 +2622,82 @@
     "peak_club": "Manchester City F.C.",
     "popularity_score": 8278407,
     "wikipedia_url": "https://en.wikipedia.org/wiki/%C4%B0lkay_G%C3%BCndo%C4%9Fan"
+  },
+  {
+    "id": "tammy-abraham",
+    "name": "Tammy Abraham",
+    "nationality": "England",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Aston Villa F.C.",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Chelsea F.C.",
+        "from": 2016,
+        "to": 2021,
+        "apps": 58,
+        "goals": 21
+      },
+      {
+        "club": "→ Bristol City F.C.",
+        "from": 2016,
+        "to": 2017,
+        "apps": 41,
+        "goals": 23
+      },
+      {
+        "club": "→ Swansea City A.F.C.",
+        "from": 2017,
+        "to": 2018,
+        "apps": 31,
+        "goals": 5
+      },
+      {
+        "club": "→ Aston Villa F.C.",
+        "from": 2018,
+        "to": 2019,
+        "apps": 37,
+        "goals": 25
+      },
+      {
+        "club": "AS Roma",
+        "from": 2021,
+        "to": 2026,
+        "apps": 84,
+        "goals": 26
+      },
+      {
+        "club": "→ AC Milan (loan)",
+        "from": 2024,
+        "to": 2025,
+        "apps": 28,
+        "goals": 3
+      },
+      {
+        "club": "→ Beşiktaş J.K.",
+        "from": 2025,
+        "to": 2026,
+        "apps": 18,
+        "goals": 7
+      },
+      {
+        "club": "Aston Villa F.C.",
+        "from": 2026,
+        "to": null,
+        "apps": 8,
+        "goals": 1
+      }
+    ],
+    "career_goals": 111,
+    "career_apps": 305,
+    "international_caps": 11,
+    "international_goals": 3,
+    "peak_club": "AS Roma",
+    "popularity_score": 8240271,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Tammy_Abraham"
   },
   {
     "id": "bobby-charlton",
@@ -2265,6 +2879,81 @@
     "wikipedia_url": "https://en.wikipedia.org/wiki/Alex%20Oxlade-Chamberlain"
   },
   {
+    "id": "kai-havertz",
+    "name": "Kai Havertz",
+    "nationality": "Germany",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Arsenal F.C.",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Bayer 04 Leverkusen",
+        "from": 2016,
+        "to": 2020,
+        "apps": 118,
+        "goals": 36
+      },
+      {
+        "club": "Chelsea F.C.",
+        "from": 2020,
+        "to": 2023,
+        "apps": 91,
+        "goals": 19
+      },
+      {
+        "club": "Arsenal F.C.",
+        "from": 2023,
+        "to": null,
+        "apps": 66,
+        "goals": 22
+      }
+    ],
+    "career_goals": 77,
+    "career_apps": 275,
+    "international_caps": 57,
+    "international_goals": 21,
+    "peak_club": "Bayer 04 Leverkusen",
+    "popularity_score": 8047972,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Kai_Havertz"
+  },
+  {
+    "id": "jamal-musiala",
+    "name": "Jamal Musiala",
+    "nationality": "Germany",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "FC Bayern Munich",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "FC Bayern Munich II",
+        "from": 2020,
+        "to": 2021,
+        "apps": 10,
+        "goals": 2
+      },
+      {
+        "club": "FC Bayern Munich",
+        "from": 2020,
+        "to": null,
+        "apps": 147,
+        "goals": 46
+      }
+    ],
+    "career_goals": 48,
+    "career_apps": 157,
+    "international_caps": 40,
+    "international_goals": 8,
+    "peak_club": "FC Bayern Munich",
+    "popularity_score": 7740827,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Jamal_Musiala"
+  },
+  {
     "id": "patrick-vieira",
     "name": "Patrick Vieira",
     "nationality": "France",
@@ -2325,6 +3014,192 @@
     "peak_club": "Arsenal F.C.",
     "popularity_score": 7660137,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Patrick_Vieira"
+  },
+  {
+    "id": "darwin-nunez",
+    "name": "Darwin Núñez",
+    "nationality": "Uruguay",
+    "confederation": "CONMEBOL",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Al Hilal SFC",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Peñarol",
+        "from": 2017,
+        "to": 2019,
+        "apps": 14,
+        "goals": 4
+      },
+      {
+        "club": "UD Almería",
+        "from": 2019,
+        "to": 2020,
+        "apps": 30,
+        "goals": 16
+      },
+      {
+        "club": "S.L. Benfica",
+        "from": 2020,
+        "to": 2022,
+        "apps": 57,
+        "goals": 32
+      },
+      {
+        "club": "Liverpool F.C.",
+        "from": 2022,
+        "to": 2025,
+        "apps": 95,
+        "goals": 25
+      },
+      {
+        "club": "Al Hilal SFC",
+        "from": 2025,
+        "to": null,
+        "apps": 16,
+        "goals": 6
+      }
+    ],
+    "career_goals": 83,
+    "career_apps": 212,
+    "international_caps": 38,
+    "international_goals": 13,
+    "peak_club": "Liverpool F.C.",
+    "popularity_score": 7450918,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Darwin_N%C3%BA%C3%B1ez"
+  },
+  {
+    "id": "victor-osimhen",
+    "name": "Victor Osimhen",
+    "nationality": "Nigeria",
+    "confederation": "CAF",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Galatasaray S.K. (football)",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "VfL Wolfsburg",
+        "from": 2017,
+        "to": 2019,
+        "apps": 14,
+        "goals": 0
+      },
+      {
+        "club": "→ R. Charleroi S.C.",
+        "from": 2018,
+        "to": 2019,
+        "apps": 25,
+        "goals": 12
+      },
+      {
+        "club": "R. Charleroi S.C.",
+        "from": 2019,
+        "to": null,
+        "apps": 0,
+        "goals": 0
+      },
+      {
+        "club": "Lille OSC",
+        "from": 2019,
+        "to": 2020,
+        "apps": 27,
+        "goals": 13
+      },
+      {
+        "club": "SSC Napoli",
+        "from": 2020,
+        "to": 2025,
+        "apps": 108,
+        "goals": 65
+      },
+      {
+        "club": "→ Galatasaray S.K. (football)",
+        "from": 2024,
+        "to": 2025,
+        "apps": 30,
+        "goals": 26
+      },
+      {
+        "club": "Galatasaray S.K. (football)",
+        "from": 2025,
+        "to": null,
+        "apps": 19,
+        "goals": 12
+      }
+    ],
+    "career_goals": 128,
+    "career_apps": 223,
+    "international_caps": 52,
+    "international_goals": 35,
+    "peak_club": "SSC Napoli",
+    "popularity_score": 7411892,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Victor_Osimhen"
+  },
+  {
+    "id": "bruno-fernandes",
+    "name": "Bruno Fernandes",
+    "nationality": "Portugal",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "Manchester United F.C.",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Novara Calcio",
+        "from": 2012,
+        "to": 2013,
+        "apps": 23,
+        "goals": 4
+      },
+      {
+        "club": "Udinese Calcio",
+        "from": 2013,
+        "to": 2016,
+        "apps": 86,
+        "goals": 10
+      },
+      {
+        "club": "→ UC Sampdoria",
+        "from": 2016,
+        "to": 2017,
+        "apps": 33,
+        "goals": 5
+      },
+      {
+        "club": "UC Sampdoria",
+        "from": 2017,
+        "to": null,
+        "apps": 0,
+        "goals": 0
+      },
+      {
+        "club": "Sporting CP",
+        "from": 2017,
+        "to": 2020,
+        "apps": 83,
+        "goals": 39
+      },
+      {
+        "club": "Manchester United F.C.",
+        "from": 2020,
+        "to": null,
+        "apps": 223,
+        "goals": 70
+      }
+    ],
+    "career_goals": 128,
+    "career_apps": 448,
+    "international_caps": 89,
+    "international_goals": 0,
+    "peak_club": "Manchester United F.C.",
+    "popularity_score": 7141563,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Bruno_Fernandes"
   },
   {
     "id": "ange-postecoglou",
@@ -2464,6 +3339,226 @@
     "wikipedia_url": "https://en.wikipedia.org/wiki/Alexandre%20Lacazette"
   },
   {
+    "id": "alejandro-garnacho",
+    "name": "Alejandro Garnacho",
+    "nationality": "Argentina",
+    "confederation": "CONMEBOL",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Chelsea F.C.",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Manchester United F.C.",
+        "from": 2022,
+        "to": 2025,
+        "apps": 93,
+        "goals": 16
+      },
+      {
+        "club": "Chelsea F.C.",
+        "from": 2025,
+        "to": null,
+        "apps": 20,
+        "goals": 1
+      }
+    ],
+    "career_goals": 17,
+    "career_apps": 113,
+    "international_caps": 8,
+    "international_goals": 0,
+    "peak_club": "Manchester United F.C.",
+    "popularity_score": 6502988,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Alejandro_Garnacho"
+  },
+  {
+    "id": "hakim-ziyech",
+    "name": "Hakim Ziyech",
+    "nationality": "Morocco",
+    "confederation": "CAF",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Wydad AC",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "SC Heerenveen",
+        "from": 2012,
+        "to": 2013,
+        "apps": 31,
+        "goals": 14
+      },
+      {
+        "club": "SC Heerenveen",
+        "from": 2012,
+        "to": 2014,
+        "apps": 36,
+        "goals": 11
+      },
+      {
+        "club": "FC Twente",
+        "from": 2014,
+        "to": 2016,
+        "apps": 68,
+        "goals": 30
+      },
+      {
+        "club": "AFC Ajax",
+        "from": 2016,
+        "to": 2020,
+        "apps": 112,
+        "goals": 38
+      },
+      {
+        "club": "Chelsea F.C.",
+        "from": 2020,
+        "to": 2023,
+        "apps": 64,
+        "goals": 14
+      },
+      {
+        "club": "Galatasaray S.K. (football)",
+        "from": 2023,
+        "to": 2025,
+        "apps": 23,
+        "goals": 6
+      },
+      {
+        "club": "Al-Duhail SC",
+        "from": 2025,
+        "to": null,
+        "apps": 9,
+        "goals": 1
+      },
+      {
+        "club": "Wydad AC",
+        "from": 2025,
+        "to": null,
+        "apps": 4,
+        "goals": 2
+      }
+    ],
+    "career_goals": 116,
+    "career_apps": 347,
+    "international_caps": 64,
+    "international_goals": 25,
+    "peak_club": "AFC Ajax",
+    "popularity_score": 6497984,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Hakim_Ziyech"
+  },
+  {
+    "id": "rodri",
+    "name": "Rodri",
+    "nationality": "Spain",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "Manchester City F.C.",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Villarreal CF B",
+        "from": 2015,
+        "to": 2016,
+        "apps": 39,
+        "goals": 1
+      },
+      {
+        "club": "Villarreal CF",
+        "from": 2015,
+        "to": 2018,
+        "apps": 63,
+        "goals": 1
+      },
+      {
+        "club": "Atlético Madrid",
+        "from": 2018,
+        "to": 2019,
+        "apps": 34,
+        "goals": 3
+      },
+      {
+        "club": "Manchester City F.C.",
+        "from": 2019,
+        "to": null,
+        "apps": 193,
+        "goals": 23
+      }
+    ],
+    "career_goals": 28,
+    "career_apps": 329,
+    "international_caps": 61,
+    "international_goals": 4,
+    "peak_club": "Manchester City F.C.",
+    "popularity_score": 6419555,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Rodri_(footballer%2C_born_1996)"
+  },
+  {
+    "id": "serge-gnabry",
+    "name": "Serge Gnabry",
+    "nationality": "Germany",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "FC Bayern Munich",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Arsenal F.C.",
+        "from": 2012,
+        "to": 2016,
+        "apps": 10,
+        "goals": 1
+      },
+      {
+        "club": "→ West Bromwich Albion F.C.",
+        "from": 2015,
+        "to": 2016,
+        "apps": 1,
+        "goals": 0
+      },
+      {
+        "club": "SV Werder Bremen",
+        "from": 2016,
+        "to": 2017,
+        "apps": 27,
+        "goals": 11
+      },
+      {
+        "club": "FC Bayern Munich",
+        "from": 2017,
+        "to": null,
+        "apps": 214,
+        "goals": 78
+      },
+      {
+        "club": "→ TSG 1899 Hoffenheim II",
+        "from": 2017,
+        "to": 2018,
+        "apps": 1,
+        "goals": 0
+      },
+      {
+        "club": "→ TSG 1899 Hoffenheim",
+        "from": 2017,
+        "to": 2018,
+        "apps": 22,
+        "goals": 10
+      }
+    ],
+    "career_goals": 100,
+    "career_apps": 275,
+    "international_caps": 65,
+    "international_goals": 32,
+    "peak_club": "FC Bayern Munich",
+    "popularity_score": 6313028,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Serge_Gnabry"
+  },
+  {
     "id": "brendan-rodgers",
     "name": "Brendan Rodgers",
     "nationality": "Ireland",
@@ -2517,6 +3612,61 @@
     "peak_club": "",
     "popularity_score": 6302440,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Brendan%20Rodgers"
+  },
+  {
+    "id": "frenkie-de-jong",
+    "name": "Frenkie de Jong",
+    "nationality": "Netherlands",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "FC Barcelona",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Willem II (football club)",
+        "from": 2015,
+        "to": null,
+        "apps": 1,
+        "goals": 0
+      },
+      {
+        "club": "Jong Ajax",
+        "from": 2015,
+        "to": 2017,
+        "apps": 46,
+        "goals": 8
+      },
+      {
+        "club": "→ Willem II (football club)",
+        "from": 2015,
+        "to": null,
+        "apps": 1,
+        "goals": 0
+      },
+      {
+        "club": "AFC Ajax",
+        "from": 2016,
+        "to": 2019,
+        "apps": 57,
+        "goals": 4
+      },
+      {
+        "club": "FC Barcelona",
+        "from": 2019,
+        "to": null,
+        "apps": 196,
+        "goals": 15
+      }
+    ],
+    "career_goals": 27,
+    "career_apps": 301,
+    "international_caps": 64,
+    "international_goals": 2,
+    "peak_club": "FC Barcelona",
+    "popularity_score": 6176000,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Frenkie_de_Jong"
   },
   {
     "id": "alexandre-pato",
@@ -2706,6 +3856,95 @@
     "wikipedia_url": "https://en.wikipedia.org/wiki/Ivan_Toney"
   },
   {
+    "id": "lautaro-martinez",
+    "name": "Lautaro Martínez",
+    "nationality": "Argentina",
+    "confederation": "CONMEBOL",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Inter Milan",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Racing Club de Avellaneda",
+        "from": 2015,
+        "to": 2018,
+        "apps": 48,
+        "goals": 22
+      },
+      {
+        "club": "Inter Milan",
+        "from": 2018,
+        "to": null,
+        "apps": 262,
+        "goals": 129
+      }
+    ],
+    "career_goals": 151,
+    "career_apps": 310,
+    "international_caps": 75,
+    "international_goals": 36,
+    "peak_club": "Inter Milan",
+    "popularity_score": 6022438,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Lautaro_Mart%C3%ADnez"
+  },
+  {
+    "id": "rasmus-hjlund",
+    "name": "Rasmus Højlund",
+    "nationality": "Denmark",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "SSC Napoli",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "F.C. Copenhagen",
+        "from": 2020,
+        "to": 2022,
+        "apps": 19,
+        "goals": 0
+      },
+      {
+        "club": "SK Sturm Graz",
+        "from": 2022,
+        "to": null,
+        "apps": 18,
+        "goals": 9
+      },
+      {
+        "club": "Atalanta BC",
+        "from": 2022,
+        "to": 2023,
+        "apps": 32,
+        "goals": 9
+      },
+      {
+        "club": "Manchester United F.C.",
+        "from": 2023,
+        "to": null,
+        "apps": 62,
+        "goals": 14
+      },
+      {
+        "club": "→ SSC Napoli",
+        "from": 2025,
+        "to": null,
+        "apps": 26,
+        "goals": 10
+      }
+    ],
+    "career_goals": 42,
+    "career_apps": 157,
+    "international_caps": 32,
+    "international_goals": 13,
+    "peak_club": "Manchester United F.C.",
+    "popularity_score": 5637633,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Rasmus_H%C3%B8jlund"
+  },
+  {
     "id": "pedri",
     "name": "Pedri",
     "nationality": "Spain",
@@ -2850,6 +4089,184 @@
     "wikipedia_url": "https://en.wikipedia.org/wiki/Alfredo%20Di%20St%C3%A9fano"
   },
   {
+    "id": "joshua-kimmich",
+    "name": "Joshua Kimmich",
+    "nationality": "Germany",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "FC Bayern Munich",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "RB Leipzig",
+        "from": 2013,
+        "to": 2015,
+        "apps": 53,
+        "goals": 3
+      },
+      {
+        "club": "FC Bayern Munich",
+        "from": 2015,
+        "to": null,
+        "apps": 319,
+        "goals": 31
+      }
+    ],
+    "career_goals": 34,
+    "career_apps": 372,
+    "international_caps": 108,
+    "international_goals": 10,
+    "peak_club": "FC Bayern Munich",
+    "popularity_score": 4963562,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Joshua_Kimmich"
+  },
+  {
+    "id": "eduardo-camavinga",
+    "name": "Eduardo Camavinga",
+    "nationality": "France",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "DEF",
+    "current_club": "Real Madrid CF",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Stade Rennais F.C.",
+        "from": 2018,
+        "to": 2019,
+        "apps": 13,
+        "goals": 4
+      },
+      {
+        "club": "Stade Rennais F.C.",
+        "from": 2019,
+        "to": 2021,
+        "apps": 71,
+        "goals": 2
+      },
+      {
+        "club": "Real Madrid CF",
+        "from": 2021,
+        "to": null,
+        "apps": 135,
+        "goals": 4
+      }
+    ],
+    "career_goals": 10,
+    "career_apps": 219,
+    "international_caps": 29,
+    "international_goals": 2,
+    "peak_club": "Real Madrid CF",
+    "popularity_score": 4947396,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Eduardo_Camavinga"
+  },
+  {
+    "id": "khvicha-kvaratskhelia",
+    "name": "Khvicha Kvaratskhelia",
+    "nationality": "Georgia",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Paris Saint-Germain FC",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "FC Dinamo Tbilisi",
+        "from": 2017,
+        "to": 2018,
+        "apps": 4,
+        "goals": 1
+      },
+      {
+        "club": "FC Rustavi",
+        "from": 2018,
+        "to": 2019,
+        "apps": 18,
+        "goals": 3
+      },
+      {
+        "club": "→ FC Lokomotiv Moscow",
+        "from": 2019,
+        "to": null,
+        "apps": 7,
+        "goals": 1
+      },
+      {
+        "club": "FC Rubin Kazan",
+        "from": 2019,
+        "to": 2022,
+        "apps": 69,
+        "goals": 9
+      },
+      {
+        "club": "FC Dinamo Batumi",
+        "from": 2022,
+        "to": null,
+        "apps": 11,
+        "goals": 8
+      },
+      {
+        "club": "SSC Napoli",
+        "from": 2022,
+        "to": 2025,
+        "apps": 85,
+        "goals": 28
+      },
+      {
+        "club": "Paris Saint-Germain FC",
+        "from": 2025,
+        "to": null,
+        "apps": 37,
+        "goals": 8
+      }
+    ],
+    "career_goals": 58,
+    "career_apps": 231,
+    "international_caps": 49,
+    "international_goals": 22,
+    "peak_club": "SSC Napoli",
+    "popularity_score": 4912836,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Khvicha_Kvaratskhelia"
+  },
+  {
+    "id": "gabriel-martinelli",
+    "name": "Gabriel Martinelli",
+    "nationality": "Brazil",
+    "confederation": "CONMEBOL",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Arsenal F.C.",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Ituano FC",
+        "from": 2018,
+        "to": 2019,
+        "apps": 17,
+        "goals": 6
+      },
+      {
+        "club": "Arsenal F.C.",
+        "from": 2019,
+        "to": null,
+        "apps": 186,
+        "goals": 41
+      }
+    ],
+    "career_goals": 47,
+    "career_apps": 203,
+    "international_caps": 22,
+    "international_goals": 4,
+    "peak_club": "Arsenal F.C.",
+    "popularity_score": 4823865,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Gabriel_Martinelli"
+  },
+  {
     "id": "amad-diallo",
     "name": "Amad Diallo",
     "nationality": "Ivory Coast",
@@ -2896,6 +4313,54 @@
     "peak_club": "Manchester United F.C.",
     "popularity_score": 4752678,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Amad%20Diallo"
+  },
+  {
+    "id": "dani-olmo",
+    "name": "Dani Olmo",
+    "nationality": "Spain",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "FC Barcelona",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "GNK Dinamo Zagreb Academy",
+        "from": 2015,
+        "to": 2017,
+        "apps": 25,
+        "goals": 3
+      },
+      {
+        "club": "GNK Dinamo Zagreb",
+        "from": 2015,
+        "to": 2020,
+        "apps": 80,
+        "goals": 20
+      },
+      {
+        "club": "RB Leipzig",
+        "from": 2020,
+        "to": 2024,
+        "apps": 107,
+        "goals": 17
+      },
+      {
+        "club": "FC Barcelona",
+        "from": 2024,
+        "to": null,
+        "apps": 50,
+        "goals": 17
+      }
+    ],
+    "career_goals": 57,
+    "career_apps": 262,
+    "international_caps": 55,
+    "international_goals": 13,
+    "peak_club": "RB Leipzig",
+    "popularity_score": 4708929,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Dani_Olmo"
   },
   {
     "id": "daniel-james",
@@ -2951,6 +4416,150 @@
     "peak_club": "Leeds United F.C.",
     "popularity_score": 4570142,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Daniel_James_(footballer)"
+  },
+  {
+    "id": "federico-valverde",
+    "name": "Federico Valverde",
+    "nationality": "Uruguay",
+    "confederation": "CONMEBOL",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "Real Madrid",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Peñarol",
+        "from": 2015,
+        "to": 2016,
+        "apps": 12,
+        "goals": 0
+      },
+      {
+        "club": "Real Madrid Castilla",
+        "from": 2016,
+        "to": 2017,
+        "apps": 30,
+        "goals": 3
+      },
+      {
+        "club": "Real Madrid",
+        "from": 2017,
+        "to": null,
+        "apps": 239,
+        "goals": 24
+      },
+      {
+        "club": "→ Deportivo La Coruña (loan)",
+        "from": 2017,
+        "to": 2018,
+        "apps": 24,
+        "goals": 0
+      }
+    ],
+    "career_goals": 27,
+    "career_apps": 305,
+    "international_caps": 73,
+    "international_goals": 9,
+    "peak_club": "Real Madrid",
+    "popularity_score": 4518299,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Federico_Valverde"
+  },
+  {
+    "id": "christopher-nkunku",
+    "name": "Christopher Nkunku",
+    "nationality": "France",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "AC Milan",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Paris Saint-Germain B",
+        "from": 2015,
+        "to": 2016,
+        "apps": 27,
+        "goals": 5
+      },
+      {
+        "club": "Paris Saint-Germain F.C.",
+        "from": 2015,
+        "to": 2019,
+        "apps": 55,
+        "goals": 8
+      },
+      {
+        "club": "RB Leipzig",
+        "from": 2019,
+        "to": 2023,
+        "apps": 119,
+        "goals": 47
+      },
+      {
+        "club": "Chelsea F.C.",
+        "from": 2023,
+        "to": 2025,
+        "apps": 38,
+        "goals": 6
+      },
+      {
+        "club": "AC Milan",
+        "from": 2025,
+        "to": null,
+        "apps": 24,
+        "goals": 5
+      }
+    ],
+    "career_goals": 71,
+    "career_apps": 263,
+    "international_caps": 18,
+    "international_goals": 2,
+    "peak_club": "RB Leipzig",
+    "popularity_score": 4330446,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Christopher_Nkunku"
+  },
+  {
+    "id": "dusan-vlahovic",
+    "name": "Dušan Vlahović",
+    "nationality": "Serbia",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Juventus FC",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "FK Partizan",
+        "from": 2016,
+        "to": 2018,
+        "apps": 21,
+        "goals": 1
+      },
+      {
+        "club": "ACF Fiorentina",
+        "from": 2018,
+        "to": 2022,
+        "apps": 98,
+        "goals": 44
+      },
+      {
+        "club": "Juventus FC",
+        "from": 2022,
+        "to": null,
+        "apps": 118,
+        "goals": 46
+      }
+    ],
+    "career_goals": 91,
+    "career_apps": 237,
+    "international_caps": 41,
+    "international_goals": 16,
+    "peak_club": "Juventus FC",
+    "popularity_score": 4249965,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Du%C5%A1an_Vlahovi%C4%87"
   },
   {
     "id": "conor-gallagher",
@@ -3119,6 +4728,61 @@
     "wikipedia_url": "https://en.wikipedia.org/wiki/Adil%20Rami"
   },
   {
+    "id": "marcus-thuram",
+    "name": "Marcus Thuram",
+    "nationality": "France",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Inter Milan",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "FC Sochaux-Montbéliard",
+        "from": 2014,
+        "to": 2017,
+        "apps": 38,
+        "goals": 6
+      },
+      {
+        "club": "FC Sochaux-Montbéliard",
+        "from": 2015,
+        "to": 2017,
+        "apps": 37,
+        "goals": 1
+      },
+      {
+        "club": "En Avant Guingamp",
+        "from": 2017,
+        "to": 2019,
+        "apps": 64,
+        "goals": 12
+      },
+      {
+        "club": "Borussia Mönchengladbach",
+        "from": 2019,
+        "to": 2023,
+        "apps": 111,
+        "goals": 34
+      },
+      {
+        "club": "Inter Milan",
+        "from": 2023,
+        "to": null,
+        "apps": 90,
+        "goals": 34
+      }
+    ],
+    "career_goals": 87,
+    "career_apps": 340,
+    "international_caps": 33,
+    "international_goals": 3,
+    "peak_club": "Borussia Mönchengladbach",
+    "popularity_score": 4012824,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Marcus_Thuram"
+  },
+  {
     "id": "ally-mccoist",
     "name": "Ally McCoist",
     "nationality": "Scotland",
@@ -3236,6 +4900,54 @@
     "wikipedia_url": "https://en.wikipedia.org/wiki/Ander%20Herrera"
   },
   {
+    "id": "rafael-leao",
+    "name": "Rafael Leão",
+    "nationality": "Portugal",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "AC Milan",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Sporting CP B",
+        "from": 2017,
+        "to": 2018,
+        "apps": 12,
+        "goals": 7
+      },
+      {
+        "club": "Sporting CP",
+        "from": 2017,
+        "to": 2018,
+        "apps": 3,
+        "goals": 1
+      },
+      {
+        "club": "Lille OSC",
+        "from": 2018,
+        "to": 2019,
+        "apps": 24,
+        "goals": 8
+      },
+      {
+        "club": "AC Milan",
+        "from": 2019,
+        "to": null,
+        "apps": 220,
+        "goals": 64
+      }
+    ],
+    "career_goals": 80,
+    "career_apps": 259,
+    "international_caps": 43,
+    "international_goals": 5,
+    "peak_club": "AC Milan",
+    "popularity_score": 3788111,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Rafael_Le%C3%A3o"
+  },
+  {
     "id": "emile-smith-rowe",
     "name": "Emile Smith Rowe",
     "nationality": "England",
@@ -3282,6 +4994,47 @@
     "peak_club": "Arsenal F.C.",
     "popularity_score": 3704897,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Emile_Smith_Rowe"
+  },
+  {
+    "id": "ruben-dias",
+    "name": "Rúben Dias",
+    "nationality": "Portugal",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "DEF",
+    "current_club": "Manchester City F.C.",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "S.L. Benfica B",
+        "from": 2015,
+        "to": 2017,
+        "apps": 55,
+        "goals": 0
+      },
+      {
+        "club": "S.L. Benfica",
+        "from": 2017,
+        "to": 2020,
+        "apps": 91,
+        "goals": 9
+      },
+      {
+        "club": "Manchester City F.C.",
+        "from": 2020,
+        "to": null,
+        "apps": 169,
+        "goals": 5
+      }
+    ],
+    "career_goals": 14,
+    "career_apps": 315,
+    "international_caps": 74,
+    "international_goals": 3,
+    "peak_club": "Manchester City F.C.",
+    "popularity_score": 3522478,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/R%C3%BAben_Dias"
   },
   {
     "id": "jonjo-shelvey",
@@ -3648,6 +5401,75 @@
     "peak_club": "Leicester City F.C.",
     "popularity_score": 3329344,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Emile_Heskey"
+  },
+  {
+    "id": "randal-kolo-muani",
+    "name": "Randal Kolo Muani",
+    "nationality": "France",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "ATT",
+    "current_club": "Tottenham Hotspur F.C.",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "FC Nantes",
+        "from": 2016,
+        "to": 2020,
+        "apps": 62,
+        "goals": 19
+      },
+      {
+        "club": "FC Nantes",
+        "from": 2018,
+        "to": 2022,
+        "apps": 79,
+        "goals": 21
+      },
+      {
+        "club": "→ US Boulogne",
+        "from": 2019,
+        "to": 2020,
+        "apps": 14,
+        "goals": 3
+      },
+      {
+        "club": "Eintracht Frankfurt",
+        "from": 2022,
+        "to": 2023,
+        "apps": 34,
+        "goals": 16
+      },
+      {
+        "club": "Paris Saint-Germain FC",
+        "from": 2023,
+        "to": null,
+        "apps": 36,
+        "goals": 8
+      },
+      {
+        "club": "→ Juventus FC",
+        "from": 2025,
+        "to": null,
+        "apps": 16,
+        "goals": 8
+      },
+      {
+        "club": "→ Tottenham Hotspur F.C.",
+        "from": 2025,
+        "to": null,
+        "apps": 23,
+        "goals": 1
+      }
+    ],
+    "career_goals": 76,
+    "career_apps": 264,
+    "international_caps": 36,
+    "international_goals": 10,
+    "peak_club": "FC Nantes",
+    "popularity_score": 3069695,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Randal_Kolo_Muani"
   },
   {
     "id": "chris-coleman",
@@ -4500,6 +6322,54 @@
     "wikipedia_url": "https://en.wikipedia.org/wiki/Bruno%20Guimar%C3%A3es"
   },
   {
+    "id": "nicolo-barella",
+    "name": "Nicolò Barella",
+    "nationality": "Italy",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "MID",
+    "current_club": "Inter Milan",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Cagliari Calcio",
+        "from": 2015,
+        "to": 2020,
+        "apps": 105,
+        "goals": 7
+      },
+      {
+        "club": "→ Como 1907",
+        "from": 2016,
+        "to": null,
+        "apps": 16,
+        "goals": 0
+      },
+      {
+        "club": "→ Inter Milan (loan)",
+        "from": 2019,
+        "to": 2020,
+        "apps": 27,
+        "goals": 1
+      },
+      {
+        "club": "Inter Milan",
+        "from": 2020,
+        "to": null,
+        "apps": 204,
+        "goals": 18
+      }
+    ],
+    "career_goals": 26,
+    "career_apps": 352,
+    "international_caps": 69,
+    "international_goals": 10,
+    "peak_club": "Inter Milan",
+    "popularity_score": 2277178,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Nicol%C3%B2_Barella"
+  },
+  {
     "id": "aiden-mcgeady",
     "name": "Aiden McGeady",
     "nationality": "Ireland",
@@ -4982,6 +6852,68 @@
     "peak_club": "Olympique Lyonnais",
     "popularity_score": 2041972,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Baf%C3%A9timbi%20Gomis"
+  },
+  {
+    "id": "theo-hernandez",
+    "name": "Théo Hernandez",
+    "nationality": "France",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "DEF",
+    "current_club": "Al Hilal SFC",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Atlético Madrid B",
+        "from": 2015,
+        "to": 2017,
+        "apps": 9,
+        "goals": 0
+      },
+      {
+        "club": "→ Deportivo Alavés",
+        "from": 2016,
+        "to": 2017,
+        "apps": 32,
+        "goals": 1
+      },
+      {
+        "club": "Real Madrid CF",
+        "from": 2017,
+        "to": 2019,
+        "apps": 13,
+        "goals": 0
+      },
+      {
+        "club": "→ Real Sociedad (loan)",
+        "from": 2018,
+        "to": 2019,
+        "apps": 24,
+        "goals": 1
+      },
+      {
+        "club": "AC Milan",
+        "from": 2019,
+        "to": 2025,
+        "apps": 195,
+        "goals": 31
+      },
+      {
+        "club": "Al Hilal SFC",
+        "from": 2025,
+        "to": null,
+        "apps": 24,
+        "goals": 5
+      }
+    ],
+    "career_goals": 38,
+    "career_apps": 297,
+    "international_caps": 42,
+    "international_goals": 2,
+    "peak_club": "AC Milan",
+    "popularity_score": 2040704,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Th%C3%A9o_Hernandez"
   },
   {
     "id": "brian-laudrup",
@@ -6413,6 +8345,75 @@
     "peak_club": "Aston Villa F.C.",
     "popularity_score": 967342,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Andy%20Townsend"
+  },
+  {
+    "id": "andreas-brehme",
+    "name": "Andreas Brehme",
+    "nationality": "Germany",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "DEF",
+    "current_club": "",
+    "retired": true,
+    "career_clubs": [
+      {
+        "club": "HSV Barmbek-Uhlenhorst",
+        "from": 1978,
+        "to": 1980,
+        "apps": 66,
+        "goals": 10
+      },
+      {
+        "club": "1. FC Saarbrücken",
+        "from": 1980,
+        "to": 1981,
+        "apps": 36,
+        "goals": 3
+      },
+      {
+        "club": "1. FC Kaiserslautern",
+        "from": 1981,
+        "to": 1986,
+        "apps": 154,
+        "goals": 34
+      },
+      {
+        "club": "FC Bayern Munich",
+        "from": 1986,
+        "to": 1988,
+        "apps": 59,
+        "goals": 7
+      },
+      {
+        "club": "Inter Milan",
+        "from": 1988,
+        "to": 1992,
+        "apps": 116,
+        "goals": 11
+      },
+      {
+        "club": "Real Zaragoza",
+        "from": 1992,
+        "to": 1993,
+        "apps": 24,
+        "goals": 1
+      },
+      {
+        "club": "1. FC Kaiserslautern",
+        "from": 1993,
+        "to": 1998,
+        "apps": 120,
+        "goals": 9
+      }
+    ],
+    "career_goals": 75,
+    "career_apps": 575,
+    "international_caps": 96,
+    "international_goals": 10,
+    "peak_club": "1. FC Kaiserslautern",
+    "popularity_score": 966094,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Andreas%20Brehme"
   },
   {
     "id": "bert-van-marwijk",
@@ -10855,6 +12856,89 @@
     "peak_club": "",
     "popularity_score": 18187,
     "wikipedia_url": "https://en.wikipedia.org/wiki/Abdelkader%20Amrani"
+  },
+  {
+    "id": "lucas-hernandez",
+    "name": "Lucas Hernández",
+    "nationality": "France",
+    "confederation": "UEFA",
+    "dob": "",
+    "age": 0,
+    "position": "DEF",
+    "current_club": "Peñarol",
+    "retired": false,
+    "career_clubs": [
+      {
+        "club": "Montevideo Wanderers F.C.",
+        "from": 2012,
+        "to": 2013,
+        "apps": 2,
+        "goals": 0
+      },
+      {
+        "club": "→ Huracán F.C.",
+        "from": 2013,
+        "to": null,
+        "apps": 14,
+        "goals": 0
+      },
+      {
+        "club": "C.A. Cerro",
+        "from": 2014,
+        "to": 2017,
+        "apps": 60,
+        "goals": 5
+      },
+      {
+        "club": "→ Peñarol (loan)",
+        "from": 2017,
+        "to": null,
+        "apps": 36,
+        "goals": 0
+      },
+      {
+        "club": "Peñarol",
+        "from": 2018,
+        "to": 2019,
+        "apps": 39,
+        "goals": 5
+      },
+      {
+        "club": "Clube Atlético Mineiro",
+        "from": 2019,
+        "to": 2022,
+        "apps": 7,
+        "goals": 0
+      },
+      {
+        "club": "→ Cuiabá Esporte Clube",
+        "from": 2020,
+        "to": 2021,
+        "apps": 19,
+        "goals": 0
+      },
+      {
+        "club": "→ Sport Club do Recife",
+        "from": 2022,
+        "to": null,
+        "apps": 13,
+        "goals": 0
+      },
+      {
+        "club": "Peñarol",
+        "from": 2023,
+        "to": null,
+        "apps": 83,
+        "goals": 4
+      }
+    ],
+    "career_goals": 14,
+    "career_apps": 273,
+    "international_caps": 0,
+    "international_goals": 0,
+    "peak_club": "Peñarol",
+    "popularity_score": 17461,
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Lucas_Hern%C3%A1ndez_(footballer%2C_born_1992)"
   },
   {
     "id": "alberto-ormaetxea",
