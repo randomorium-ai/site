@@ -789,39 +789,55 @@ async function runIncremental(batchSize: number, specificMonth?: string, fillMon
   const fetchedIds = new Set(existingPlayers.map((p) => p.id))
   const fetchedUrls = new Set(existingPlayers.map((p) => p.wikipedia_url))
 
-  // ── Month discovery phase ─────────────────────────────────────────────────
+  // ── Discovery phase ───────────────────────────────────────────────────────
+  // --fill-months: uses football-specific CirrusSearch (template search)
+  // --month YYYY-MM: uses monthly top-pages API to find trending players
   if (fillMonths || specificMonth) {
-    const monthsToProcess = specificMonth
-      ? [specificMonth].filter((m) => !progress.months_processed.includes(m))
-      : progress.months_remaining.slice()
+    if (fillMonths) {
+      // Use CirrusSearch to find all football biography pages — football-specific
+      console.log("Running football biography discovery (CirrusSearch)...")
+      const candidates = await discoverFootballBios()
+      let newQueued = 0
+      const queuedSet = new Set(progress.players_queued)
+      const fetchedSet = new Set(progress.players_fetched)
 
-    if (monthsToProcess.length === 0) {
-      console.log("All months already processed.")
-    } else {
-      console.log(`Discovering players from ${monthsToProcess.length} months...`)
-      let totalNew = 0
-
-      for (const month of monthsToProcess) {
-        const titles = await discoverFromMonth(month)
-        let monthNew = 0
-        for (const title of titles) {
-          if (!fetchedIds.has(slugify(humaniseName(title))) &&
-              !progress.players_queued.includes(title) &&
-              !progress.players_fetched.includes(slugify(humaniseName(title)))) {
-            progress.players_queued.push(title)
-            monthNew++
-          }
+      for (const [title] of candidates) {
+        const id = slugify(humaniseName(title))
+        if (!fetchedIds.has(id) && !queuedSet.has(title) && !fetchedSet.has(id)) {
+          progress.players_queued.push(title)
+          newQueued++
         }
-        if (!progress.months_processed.includes(month)) {
-          progress.months_processed.push(month)
-        }
-        progress.months_remaining = progress.months_remaining.filter((m) => m !== month)
-        totalNew += monthNew
-        console.log(`  ${month}: ${titles.length} candidates, ${monthNew} new titles queued`)
-        saveProgress(progress)
-        await sleep(200)
       }
-      console.log(`Discovery complete. ${totalNew} new titles added to queue.`)
+
+      // Mark a synthetic "discovery" month so we don't re-run unless asked
+      const discoveryKey = `discovery-${new Date().toISOString().slice(0, 7)}`
+      if (!progress.months_processed.includes(discoveryKey)) {
+        progress.months_processed.push(discoveryKey)
+      }
+      saveProgress(progress)
+      console.log(`Discovery complete. ${newQueued} new titles queued.`)
+      console.log(`Queue size: ${progress.players_queued.length}`)
+      console.log("")
+    } else if (specificMonth) {
+      // Monthly top-pages approach: finds trending players in a specific month
+      const titles = await discoverFromMonth(specificMonth)
+      let monthNew = 0
+      const queuedSet = new Set(progress.players_queued)
+      const fetchedSet = new Set(progress.players_fetched)
+
+      for (const title of titles) {
+        const id = slugify(humaniseName(title))
+        if (!fetchedIds.has(id) && !queuedSet.has(title) && !fetchedSet.has(id)) {
+          progress.players_queued.push(title)
+          monthNew++
+        }
+      }
+      if (!progress.months_processed.includes(specificMonth)) {
+        progress.months_processed.push(specificMonth)
+      }
+      progress.months_remaining = progress.months_remaining.filter((m) => m !== specificMonth)
+      saveProgress(progress)
+      console.log(`Month ${specificMonth}: ${titles.length} candidates, ${monthNew} new titles queued`)
       console.log(`Queue size: ${progress.players_queued.length}`)
       console.log("")
     }
@@ -831,7 +847,7 @@ async function runIncremental(batchSize: number, specificMonth?: string, fillMon
   const toProcess = progress.players_queued.slice(0, batchSize)
   if (toProcess.length === 0) {
     console.log("No players queued.")
-    console.log("Run with --fill-months to discover more players from monthly pageviews.")
+    console.log("Run with --fill-months to discover more players via CirrusSearch.")
     console.log(`Total players in database: ${existingPlayers.length}`)
     return
   }
