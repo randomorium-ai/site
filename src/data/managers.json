@@ -1,0 +1,187 @@
+[
+  {
+    "id": "arsene-wenger",
+    "name": "Arsène Wenger",
+    "stints": [
+      { "club": "AS Nancy", "from": 1984, "to": 1987 },
+      { "club": "AS Monaco", "from": 1987, "to": 1994 },
+      { "club": "Nagoya Grampus", "from": 1995, "to": 1996 },
+      { "club": "Arsenal", "from": 1996, "to": 2018 }
+    ]
+  },
+  {
+    "id": "alex-ferguson",
+    "name": "Alex Ferguson",
+    "stints": [
+      { "club": "East Stirlingshire", "from": 1974, "to": 1974 },
+      { "club": "St Mirren", "from": 1974, "to": 1978 },
+      { "club": "Aberdeen", "from": 1978, "to": 1986 },
+      { "club": "Scotland", "from": 1985, "to": 1986 },
+      { "club": "Manchester United", "from": 1986, "to": 2013 }
+    ]
+  },
+  {
+    "id": "pep-guardiola",
+    "name": "Pep Guardiola",
+    "stints": [
+      { "club": "Barcelona B", "from": 2007, "to": 2008 },
+      { "club": "Barcelona", "from": 2008, "to": 2012 },
+      { "club": "Bayern Munich", "from": 2013, "to": 2016 },
+      { "club": "Manchester City", "from": 2016, "to": null }
+    ]
+  },
+  {
+    "id": "jurgen-klopp",
+    "name": "Jürgen Klopp",
+    "stints": [
+      { "club": "Mainz", "from": 2001, "to": 2008 },
+      { "club": "Borussia Dortmund", "from": 2008, "to": 2015 },
+      { "club": "Liverpool", "from": 2015, "to": 2024 }
+    ]
+  },
+  {
+    "id": "jose-mourinho",
+    "name": "José Mourinho",
+    "stints": [
+      { "club": "Benfica", "from": 2000, "to": 2000 },
+      { "club": "União de Leiria", "from": 2001, "to": 2002 },
+      { "club": "Porto", "from": 2002, "to": 2004 },
+      { "club": "Chelsea", "from": 2004, "to": 2007 },
+      { "club": "Inter Milan", "from": 2008, "to": 2010 },
+      { "club": "Real Madrid", "from": 2010, "to": 2013 },
+      { "club": "Chelsea", "from": 2013, "to": 2015 },
+      { "club": "Manchester United", "from": 2016, "to": 2018 },
+      { "club": "Tottenham Hotspur", "from": 2019, "to": 2021 },
+      { "club": "AS Roma", "from": 2021, "to": 2024 },
+      { "club": "Fenerbahce", "from": 2024, "to": null }
+    ]
+  },
+  {
+    "id": "carlo-ancelotti",
+    "name": "Carlo Ancelotti",
+    "stints": [
+      { "club": "Reggiana", "from": 1995, "to": 1996 },
+      { "club": "Parma", "from": 1996, "to": 1998 },
+      { "club": "Juventus", "from": 1999, "to": 2001 },
+      { "club": "AC Milan", "from": 2001, "to": 2009 },
+      { "club": "Chelsea", "from": 2009, "to": 2011 },
+      { "club": "Paris Saint-Germain", "from": 2011, "to": 2013 },
+      { "club": "Real Madrid", "from": 2013, "to": 2015 },
+      { "club": "Bayern Munich", "from": 2016, "to": 2017 },
+      { "club": "Napoli", "from": 2018, "to": 2019 },
+      { "club": "Everton", "from": 2019, "to": 2021 },
+      { "club": "Real Madrid", "from": 2021, "to": null }
+    ]
+  },
+  {
+    "id": "zinedine-zidane",
+    "name": "Zinedine Zidane",
+    "stints": [
+      { "club": "Real Madrid", "from": 2016, "to": 2018 },
+      { "club": "Real Madrid", "from": 2019, "to": 2021 }
+    ]
+  },
+  {
+    "id": "thomas-tuchel",
+    "name": "Thomas Tuchel",
+    "stints": [
+      { "club": "Augsburg", "from": 2010, "to": 2012 },
+      { "club": "Borussia Dortmund", "from": 2015, "to": 2017 },
+      { "club": "Paris Saint-Germain", "from": 2018, "to": 2020 },
+      { "club": "Chelsea", "from": 2021, "to": 2022 },
+      { "club": "Bayern Munich", "from": 2023, "to": 2024 },
+      { "club": "England", "from": 2024, "to": null }
+    ]
+  },
+  {
+    "id": "antonio-conte",
+    "name": "Antonio Conte",
+    "stints": [
+      { "club": "Arezzo", "from": 2006, "to": 2007 },
+      { "club": "Bari", "from": 2007, "to": 2009 },
+      { "club": "Atalanta", "from": 2009, "to": 2010 },
+      { "club": "Siena", "from": 2010, "to": 2011 },
+      { "club": "Juventus", "from": 2011, "to": 2014 },
+      { "club": "Italy", "from": 2014, "to": 2016 },
+      { "club": "Chelsea", "from": 2016, "to": 2018 },
+      { "club": "Inter Milan", "from": 2019, "to": 2021 },
+      { "club": "Tottenham Hotspur", "from": 2021, "to": 2023 },
+      { "club": "Napoli", "from": 2024, "to": null }
+    ]
+  },
+  {
+    "id": "roberto-mancini",
+    "name": "Roberto Mancini",
+    "stints": [
+      { "club": "Fiorentina", "from": 2001, "to": 2002 },
+      { "club": "Lazio", "from": 2002, "to": 2004 },
+      { "club": "Inter Milan", "from": 2004, "to": 2008 },
+      { "club": "Manchester City", "from": 2009, "to": 2013 },
+      { "club": "Galatasaray", "from": 2013, "to": 2014 },
+      { "club": "Sampdoria", "from": 2014, "to": 2015 },
+      { "club": "Inter Milan", "from": 2016, "to": 2016 },
+      { "club": "Zenit Saint Petersburg", "from": 2017, "to": 2018 },
+      { "club": "Italy", "from": 2018, "to": 2023 },
+      { "club": "Saudi Arabia", "from": 2023, "to": 2024 }
+    ]
+  },
+  {
+    "id": "frank-lampard",
+    "name": "Frank Lampard",
+    "stints": [
+      { "club": "Derby County", "from": 2018, "to": 2019 },
+      { "club": "Chelsea", "from": 2019, "to": 2021 },
+      { "club": "Everton", "from": 2022, "to": 2023 },
+      { "club": "Chelsea", "from": 2023, "to": 2023 }
+    ]
+  },
+  {
+    "id": "steven-gerrard",
+    "name": "Steven Gerrard",
+    "stints": [
+      { "club": "Rangers", "from": 2018, "to": 2021 },
+      { "club": "Aston Villa", "from": 2021, "to": 2022 }
+    ]
+  },
+  {
+    "id": "patrick-vieira",
+    "name": "Patrick Vieira",
+    "stints": [
+      { "club": "New York City", "from": 2016, "to": 2018 },
+      { "club": "Nice", "from": 2018, "to": 2021 },
+      { "club": "Crystal Palace", "from": 2021, "to": 2023 }
+    ]
+  },
+  {
+    "id": "didier-deschamps",
+    "name": "Didier Deschamps",
+    "stints": [
+      { "club": "Monaco", "from": 2001, "to": 2005 },
+      { "club": "Juventus", "from": 2006, "to": 2006 },
+      { "club": "Marseille", "from": 2009, "to": 2012 },
+      { "club": "France", "from": 2012, "to": null }
+    ]
+  },
+  {
+    "id": "luis-enrique",
+    "name": "Luis Enrique",
+    "stints": [
+      { "club": "Roma", "from": 2011, "to": 2012 },
+      { "club": "Celta Vigo", "from": 2013, "to": 2014 },
+      { "club": "Barcelona", "from": 2014, "to": 2017 },
+      { "club": "Spain", "from": 2019, "to": 2022 }
+    ]
+  },
+  {
+    "id": "brendan-rodgers",
+    "name": "Brendan Rodgers",
+    "stints": [
+      { "club": "Watford", "from": 2008, "to": 2009 },
+      { "club": "Reading", "from": 2009, "to": 2012 },
+      { "club": "Swansea City", "from": 2010, "to": 2012 },
+      { "club": "Liverpool", "from": 2012, "to": 2015 },
+      { "club": "Celtic", "from": 2016, "to": 2019 },
+      { "club": "Leicester City", "from": 2019, "to": 2023 }
+    ]
+  }
+]

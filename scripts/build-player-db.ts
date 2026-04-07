@@ -842,7 +842,11 @@ async function runIncremental(batchSize: number, specificMonth?: string, fillMon
       const queuedSet = new Set(progress.players_queued)
       const fetchedSet = new Set(progress.players_fetched)
 
-      for (const [title] of candidates) {
+      // Sort by 60-day views descending so most popular players are processed first
+      const sortedCandidates = Array.from(candidates.entries())
+        .sort((a, b) => b[1] - a[1])
+
+      for (const [title] of sortedCandidates) {
         const id = slugify(humaniseName(title))
         if (!fetchedIds.has(id) && !queuedSet.has(title) && !fetchedSet.has(id)) {
           progress.players_queued.push(title)

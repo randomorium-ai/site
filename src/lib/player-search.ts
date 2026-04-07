@@ -54,3 +54,32 @@ export function findPlayerByName(name: string): Player | undefined {
   const normName = normalise(name)
   return PLAYERS.find((p) => normalise(p.name) === normName)
 }
+
+// ── Club search ───────────────────────────────────────────────────────────────
+
+let _clubCache: string[] | null = null
+
+function allClubs(): string[] {
+  if (_clubCache) return _clubCache
+  const seen = new Set<string>()
+  const clubs: string[] = []
+  for (const p of PLAYERS) {
+    for (const c of p.career_clubs ?? []) {
+      const key = c.club.toLowerCase().trim()
+      if (!seen.has(key)) {
+        seen.add(key)
+        clubs.push(c.club)
+      }
+    }
+  }
+  _clubCache = clubs.sort((a, b) => a.localeCompare(b))
+  return _clubCache
+}
+
+export function searchClubs(query: string, limit = 20): string[] {
+  if (query.length < 2) return []
+  const normQ = normalise(query)
+  return allClubs()
+    .filter(c => normalise(c).includes(normQ))
+    .slice(0, limit)
+}

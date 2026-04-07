@@ -1,55 +1,34 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import type { Player } from '@/lib/player'
+import type { ManagerRecord } from '@/lib/overlap'
 import { nationalityFlag, POS_COLOR, sixDegreesLabel } from '@/lib/football-utils'
-
-function StatusBadges({ player }: { player: Player }) {
-  return (
-    <div className="flex items-center gap-0.5 flex-wrap">
-      <span className={`text-[9px] font-black px-1.5 py-1 rounded w-8 text-center ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
-        {player.position}
-      </span>
-      {player.retired && (
-        <span className="text-[9px] font-black px-1 py-1 rounded bg-zinc-400 text-white">RET</span>
-      )}
-      {player.is_manager && (
-        <span className="text-[9px] font-black px-1 py-1 rounded bg-slate-700 text-white">MGR</span>
-      )}
-    </div>
-  )
-}
-
-function playerClubDisplay(player: Player): string {
-  if (player.is_manager && player.managing_club) return `${player.managing_club} (Manager)`
-  if (player.retired) return 'Retired'
-  return player.current_club
-}
-import { getDailySixDegreesPuzzle, type SixDegreesPuzzle } from '@/data/six-degrees-puzzles'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type LinkType = 'club' | 'international' | 'manager'
+type WizardStep = 'type' | 'entity' | 'player'
 type Phase = 'loading' | 'playing' | 'won' | 'failed' | 'error'
-type VerificationStatus = 'verified' | 'unverified'
 
 interface ChainStep {
   player: Player
   linkType: LinkType
-  status: VerificationStatus
-  note: string
+  entity: string      // club name / country / manager name
+  evidence: string    // returned by validate-link
 }
 
 interface GameStorage {
   streak: number
   lastDate: string
-  history: { steps: number; dateStr: string }[]
+  history: { steps: number; strikes: number; dateStr: string }[]
 }
 
-const STORAGE_KEY = 'nf_six_degrees_v1'
+const STORAGE_KEY = 'nf_six_degrees_v2'
 const MAX_STEPS = 6
-const SEARCH_DEBOUNCE_MS = 400
+const MAX_STRIKES = 3
+const SEARCH_DEBOUNCE_MS = 350
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
@@ -62,25 +41,19 @@ function getStorage(): GameStorage {
   }
 }
 
-function saveStorage(dateStr: string, steps: number): GameStorage {
+function saveStorage(dateStr: string, steps: number, strikes: number): GameStorage {
   const stored = getStorage()
   const diffDays = Math.round(
     (new Date(dateStr).getTime() - new Date(stored.lastDate || '2000-01-01').getTime()) / 86400000
   )
   const streak = diffDays === 1 ? stored.streak + 1 : diffDays === 0 ? stored.streak : 1
-  const history = [{ steps, dateStr }, ...stored.history.filter(e => e.dateStr !== dateStr)].slice(0, 30)
+  const history = [{ steps, strikes, dateStr }, ...stored.history.filter(e => e.dateStr !== dateStr)].slice(0, 30)
   const next = { streak, lastDate: dateStr, history }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   return next
 }
 
-// ─── Link type labels ─────────────────────────────────────────────────────────
-
-const LINK_LABELS: Record<LinkType, string> = {
-  club: 'Club teammates',
-  international: 'International teammates',
-  manager: 'Same manager',
-}
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const LINK_ICONS: Record<LinkType, string> = {
   club: '🏟️',
@@ -88,25 +61,55 @@ const LINK_ICONS: Record<LinkType, string> = {
   manager: '📋',
 }
 
-// ─── Build share text ─────────────────────────────────────────────────────────
+const LINK_LABELS: Record<LinkType, string> = {
+  club: 'Club teammates',
+  international: 'International teammates',
+  manager: 'Same manager',
+}
+
+function normaliseStr(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+}
+
+function StatusBadges({ player }: { player: Player }) {
+  return (
+    <div className="flex items-center gap-0.5 flex-wrap">
+      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${POS_COLOR[player.position] ?? 'bg-zinc-400 text-white'}`}>
+        {player.position}
+      </span>
+      {player.retired && <span className="text-[9px] font-black px-1 py-0.5 rounded bg-zinc-400 text-white">RET</span>}
+      {player.is_manager && <span className="text-[9px] font-black px-1 py-0.5 rounded bg-slate-700 text-white">MGR</span>}
+    </div>
+  )
+}
+
+function playerClubDisplay(player: Player): string {
+  if (player.is_manager && player.managing_club) return `${player.managing_club} (Manager)`
+  if (player.retired) return 'Retired'
+  return player.current_club || '—'
+}
 
 function buildShareText(
   dateStr: string,
-  puzzle: SixDegreesPuzzle,
+  aPlayer: Player,
+  bPlayer: Player,
   chain: ChainStep[],
-  won: boolean
+  strikes: number,
+  won: boolean,
 ): string {
   const steps = chain.length
   const label = won ? sixDegreesLabel(steps) : "Couldn't find the connection"
-  const dots = won
+  const stepDots = won
     ? Array(steps).fill('🟢').join('') + Array(MAX_STEPS - steps).fill('⬜').join('')
-    : Array(MAX_STEPS).fill('🔴').join('')
+    : Array(steps).fill('🟢').join('') + Array(MAX_STEPS - steps).fill('🔴').join('')
+  const strikeDots = Array(strikes).fill('❌').join('') + Array(MAX_STRIKES - strikes).fill('🫀').join('')
 
   return [
     `⚽ SIX DEGREES — ${dateStr}`,
-    `${puzzle.a.name} → ${puzzle.b.name}`,
+    `${aPlayer.name} → ${bPlayer.name}`,
     '',
-    dots,
+    stepDots,
+    strikeDots,
     '',
     won ? `${steps} step${steps === 1 ? '' : 's'} · ${label}` : label,
     'randomorium.ai/apps/football-games/six-degrees',
@@ -116,206 +119,247 @@ function buildShareText(
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function SixDegreesGame() {
-  const [puzzle, setPuzzle] = useState<SixDegreesPuzzle | null>(null)
   const [dateStr, setDateStr] = useState('')
   const [aPlayer, setAPlayer] = useState<Player | null>(null)
   const [bPlayer, setBPlayer] = useState<Player | null>(null)
   const [chain, setChain] = useState<ChainStep[]>([])
-  const [pendingLinkType, setPendingLinkType] = useState<LinkType>('club')
+  const [strikes, setStrikes] = useState(0)
   const [phase, setPhase] = useState<Phase>('loading')
-  const [search, setSearch] = useState('')
-  const [searchResults, setSearchResults] = useState<Player[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [searchError, setSearchError] = useState(false)
-  const [isValidating, setIsValidating] = useState(false)
-  const [validationError, setValidationError] = useState<string | null>(null)
   const [storage, setStorage] = useState<GameStorage>({ streak: 0, lastDate: '', history: [] })
   const [copied, setCopied] = useState(false)
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const searchCache = useRef(new Map<string, Player[]>())
+  // Wizard state
+  const [wizardStep, setWizardStep] = useState<WizardStep>('type')
+  const [pendingLinkType, setPendingLinkType] = useState<LinkType>('club')
+  const [pendingEntity, setPendingEntity] = useState('')
 
-  // Load puzzle and seed players on mount
+  // Entity search
+  const [entitySearch, setEntitySearch] = useState('')
+  const [entityResults, setEntityResults] = useState<string[]>([])
+  const [isEntitySearching, setIsEntitySearching] = useState(false)
+
+  // Player search
+  const [playerSearch, setPlayerSearch] = useState('')
+  const [playerResults, setPlayerResults] = useState<Player[]>([])
+  const [isPlayerSearching, setIsPlayerSearching] = useState(false)
+  const [playerSearchError, setPlayerSearchError] = useState(false)
+
+  // Validation
+  const [isValidating, setIsValidating] = useState(false)
+  const [lastError, setLastError] = useState<string | null>(null)
+
+  const entityDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const playerDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const playerSearchCache = useRef(new Map<string, Player[]>())
+  const entitySearchCache = useRef(new Map<string, string[]>())
+  const playerInputRef = useRef<HTMLInputElement>(null)
+  const entityInputRef = useRef<HTMLInputElement>(null)
+
+  // ── Load daily puzzle ──────────────────────────────────────────────────────
   useEffect(() => {
     setStorage(getStorage())
-    const { puzzle: p, dateStr: d } = getDailySixDegreesPuzzle()
-    setPuzzle(p)
-    setDateStr(d)
-    findPuzzlePlayers(p).then(([a, b]) => {
-      setAPlayer(a)
-      setBPlayer(b)
-      setPhase('playing')
-    })
+    fetch('/api/football/daily-puzzle')
+      .then(r => r.json())
+      .then(({ aPlayer: a, bPlayer: b, dateStr: d }: { aPlayer: Player; bPlayer: Player; dateStr: string }) => {
+        setAPlayer(a)
+        setBPlayer(b)
+        setDateStr(d)
+        setPhase('playing')
+      })
+      .catch(() => setPhase('error'))
   }, [])
 
-  // ── Find puzzle players from the API ────────────────────────────────────────
-  async function findPuzzlePlayers(p: SixDegreesPuzzle): Promise<[Player | null, Player | null]> {
-    function lastName(name: string): string {
-      const parts = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().split(' ')
-      return parts[parts.length - 1]
-    }
+  // ── Entity search ──────────────────────────────────────────────────────────
+  const runEntitySearch = useCallback(async (q: string, lt: LinkType) => {
+    if (q.length < 2) { setEntityResults([]); setIsEntitySearching(false); return }
+    const cacheKey = `${lt}:${q.toLowerCase().trim()}`
+    const cached = entitySearchCache.current.get(cacheKey)
+    if (cached) { setEntityResults(cached); setIsEntitySearching(false); return }
 
-    // Stub player used when the puzzle player isn't in the local DB yet.
-    // The game can still load — club links just won't be validated against career data.
-    function stubPlayer(name: string, team: string): Player {
-      return {
-        id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        name,
-        nationality: '',
-        confederation: 'UEFA',
-        dob: '',
-        age: 0,
-        position: 'MID',
-        current_club: team,
-        retired: false,
-        career_clubs: [],
-        career_goals: 0,
-        career_apps: 0,
-        international_caps: 0,
-        international_goals: 0,
-        peak_club: team,
-        popularity_score: 0,
-        wikipedia_url: '',
-      }
-    }
-
-    async function findOne(name: string, team: string): Promise<Player> {
-      try {
-        const last = lastName(name)
-        const res = await fetch(`/api/football/players?search=${encodeURIComponent(last)}`)
-        if (!res.ok) return stubPlayer(name, team)
-        const { players } = await res.json() as { players: Player[] }
-        const teamKeyword = team.split(' ')[0].toLowerCase()
-        return players.find(pl =>
-          pl.current_club.toLowerCase().includes(teamKeyword) ||
-          pl.name.toLowerCase().includes(last.toLowerCase())
-        ) ?? players[0] ?? stubPlayer(name, team)
-      } catch {
-        return stubPlayer(name, team)
-      }
-    }
-
-    return Promise.all([findOne(p.a.name, p.a.team), findOne(p.b.name, p.b.team)])
-  }
-
-  // ── Player search ────────────────────────────────────────────────────────────
-  const runSearch = useCallback(async (q: string) => {
-    if (q.length < 2) { setSearchResults([]); setIsSearching(false); return }
-    const cacheKey = q.toLowerCase().trim()
-    const cached = searchCache.current.get(cacheKey)
-    if (cached) { setSearchResults(cached); setIsSearching(false); return }
-    setIsSearching(true); setSearchError(false)
+    setIsEntitySearching(true)
     try {
-      const res = await fetch(`/api/football/players?search=${encodeURIComponent(q)}`)
-      if (!res.ok) throw new Error('api error')
-      const { players } = await res.json() as { players: Player[] }
-      searchCache.current.set(cacheKey, players)
-      setSearchResults(players)
-    } catch { setSearchError(true); setSearchResults([]) }
-    finally { setIsSearching(false) }
+      let results: string[] = []
+      if (lt === 'club') {
+        const res = await fetch(`/api/football/clubs?search=${encodeURIComponent(q)}`)
+        if (res.ok) results = ((await res.json()) as { clubs: string[] }).clubs
+      } else if (lt === 'manager') {
+        const res = await fetch(`/api/football/managers?search=${encodeURIComponent(q)}`)
+        if (res.ok) results = ((await res.json()) as { managers: ManagerRecord[] }).managers.map(m => m.name)
+      } else if (lt === 'international') {
+        // Static country list — filter client-side
+        const normQ = normaliseStr(q)
+        results = COUNTRIES.filter(c => normaliseStr(c).includes(normQ)).slice(0, 15)
+      }
+      entitySearchCache.current.set(cacheKey, results)
+      setEntityResults(results)
+    } catch {
+      setEntityResults([])
+    } finally {
+      setIsEntitySearching(false)
+    }
   }, [])
 
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (search.length < 2) { setSearchResults([]); setIsSearching(false); return }
-    setIsSearching(true)
-    debounceRef.current = setTimeout(() => runSearch(search), SEARCH_DEBOUNCE_MS)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [search, runSearch])
+    if (wizardStep !== 'entity') return
+    if (entityDebounceRef.current) clearTimeout(entityDebounceRef.current)
+    if (entitySearch.length < 2) { setEntityResults([]); setIsEntitySearching(false); return }
+    setIsEntitySearching(true)
+    entityDebounceRef.current = setTimeout(() => runEntitySearch(entitySearch, pendingLinkType), SEARCH_DEBOUNCE_MS)
+    return () => { if (entityDebounceRef.current) clearTimeout(entityDebounceRef.current) }
+  }, [entitySearch, wizardStep, pendingLinkType, runEntitySearch])
 
-  // ── Derived state ────────────────────────────────────────────────────────────
+  // ── Player search ──────────────────────────────────────────────────────────
+  const runPlayerSearch = useCallback(async (q: string) => {
+    if (q.length < 2) { setPlayerResults([]); setIsPlayerSearching(false); return }
+    const cacheKey = q.toLowerCase().trim()
+    const cached = playerSearchCache.current.get(cacheKey)
+    if (cached) { setPlayerResults(cached); setIsPlayerSearching(false); return }
+    setIsPlayerSearching(true); setPlayerSearchError(false)
+    try {
+      const res = await fetch(`/api/football/players?search=${encodeURIComponent(q)}`)
+      if (!res.ok) throw new Error()
+      const { players } = await res.json() as { players: Player[] }
+      playerSearchCache.current.set(cacheKey, players)
+      setPlayerResults(players)
+    } catch { setPlayerSearchError(true); setPlayerResults([]) }
+    finally { setIsPlayerSearching(false) }
+  }, [])
+
+  useEffect(() => {
+    if (wizardStep !== 'player') return
+    if (playerDebounceRef.current) clearTimeout(playerDebounceRef.current)
+    if (playerSearch.length < 2) { setPlayerResults([]); setIsPlayerSearching(false); return }
+    setIsPlayerSearching(true)
+    playerDebounceRef.current = setTimeout(() => runPlayerSearch(playerSearch), SEARCH_DEBOUNCE_MS)
+    return () => { if (playerDebounceRef.current) clearTimeout(playerDebounceRef.current) }
+  }, [playerSearch, wizardStep, runPlayerSearch])
+
+  // ── Wizard navigation ──────────────────────────────────────────────────────
+  function selectType(lt: LinkType) {
+    setPendingLinkType(lt)
+    setPendingEntity('')
+    setEntitySearch('')
+    setEntityResults([])
+    setLastError(null)
+    setWizardStep('entity')
+    setTimeout(() => entityInputRef.current?.focus(), 50)
+  }
+
+  function selectEntity(entity: string) {
+    setPendingEntity(entity)
+    setEntitySearch(entity)
+    setEntityResults([])
+    setWizardStep('player')
+    setPlayerSearch('')
+    setPlayerResults([])
+    setTimeout(() => playerInputRef.current?.focus(), 50)
+  }
+
+  function goBackToType() {
+    setWizardStep('type')
+    setLastError(null)
+    setPendingEntity('')
+    setEntitySearch('')
+    setEntityResults([])
+    setPlayerSearch('')
+    setPlayerResults([])
+  }
+
+  function goBackToEntity() {
+    setWizardStep('entity')
+    setLastError(null)
+    setPlayerSearch('')
+    setPlayerResults([])
+    setTimeout(() => entityInputRef.current?.focus(), 50)
+  }
+
+  // ── Derived state ──────────────────────────────────────────────────────────
   const currentPlayer = chain.length === 0 ? aPlayer : chain[chain.length - 1].player
-  const allUsedNames = useMemo(() => {
-    const names = new Set<string>()
-    if (aPlayer) names.add(aPlayer.name)
-    chain.forEach(s => names.add(s.player.name))
-    // bPlayer excluded so user can select it to win
-    return names
-  }, [aPlayer, chain])
+  const usedNames = new Set<string>([
+    aPlayer?.name ?? '',
+    ...chain.map(s => s.player.name),
+  ])
+  const filteredPlayerResults = playerResults.filter(p => !usedNames.has(p.name))
 
-  const filteredResults = useMemo(() =>
-    searchResults.filter(p => !allUsedNames.has(p.name)),
-    [searchResults, allUsedNames]
-  )
-
-  // ── Add a step ───────────────────────────────────────────────────────────────
+  // ── Add a step ─────────────────────────────────────────────────────────────
   async function addStep(player: Player) {
-    if (phase !== 'playing' || !currentPlayer || !bPlayer || !puzzle) return
-    setValidationError(null)
+    if (phase !== 'playing' || !currentPlayer || !bPlayer) return
+    setLastError(null)
 
-    // Check win by name (id may be 0 for local players)
-    const normName = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+    const normName = (s: string) => normaliseStr(s)
     const willWin = normName(player.name) === normName(bPlayer.name)
 
-    if (pendingLinkType === 'club') {
-      // Both players have API IDs — validate against career data
-      setIsValidating(true)
-      try {
-        const res = await fetch('/api/football/validate-link', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            playerAId: currentPlayer.id,
-            playerBId: player.id,
-            linkType: 'club',
-          }),
-        })
-        const data = await res.json() as { valid: boolean; evidence: string | null }
-        if (!data.valid) {
-          setValidationError(`No shared club found for ${currentPlayer.name} and ${player.name} (2020–2024)`)
-          setIsValidating(false)
-          return
+    setIsValidating(true)
+    try {
+      const res = await fetch('/api/football/validate-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playerAId: currentPlayer.id,
+          playerBId: player.id,
+          linkType: pendingLinkType,
+          entity: pendingEntity,
+        }),
+      })
+      const data = await res.json() as { valid: boolean; evidence: string | null; reason?: string }
+
+      if (!data.valid) {
+        const newStrikes = strikes + 1
+        setStrikes(newStrikes)
+        setLastError(data.reason ?? `No ${LINK_LABELS[pendingLinkType].toLowerCase()} connection found`)
+        // Stay on player step so user can try another player
+        if (newStrikes >= MAX_STRIKES) {
+          const next = saveStorage(dateStr, chain.length, newStrikes)
+          setStorage(next)
+          setPhase('failed')
         }
-        const step: ChainStep = {
-          player,
-          linkType: 'club',
-          status: 'verified',
-          note: data.evidence ?? 'Club link verified',
-        }
-        commitStep(step, willWin)
-      } catch {
-        setValidationError('Validation failed — check your connection')
-      } finally {
-        setIsValidating(false)
+        return
       }
-    } else {
-      // Honor system
+
       const step: ChainStep = {
         player,
         linkType: pendingLinkType,
-        status: 'unverified',
-        note: `${LINK_LABELS[pendingLinkType]} — play fair ⚽`,
+        entity: pendingEntity,
+        evidence: data.evidence ?? LINK_LABELS[pendingLinkType],
       }
-      commitStep(step, willWin)
+      const newChain = [...chain, step]
+      setChain(newChain)
+
+      if (willWin) {
+        const next = saveStorage(dateStr, newChain.length, strikes)
+        setStorage(next)
+        setPhase('won')
+      } else if (newChain.length >= MAX_STEPS) {
+        const next = saveStorage(dateStr, newChain.length, strikes)
+        setStorage(next)
+        setPhase('failed')
+      } else {
+        // Reset wizard to type step for next link
+        setWizardStep('type')
+        setPendingEntity('')
+        setEntitySearch('')
+        setPlayerSearch('')
+        setPlayerResults([])
+        setLastError(null)
+      }
+    } catch {
+      setLastError('Connection error — check your internet and try again')
+    } finally {
+      setIsValidating(false)
     }
   }
 
-  function commitStep(step: ChainStep, willWin: boolean) {
-    const newChain = [...chain, step]
-    setChain(newChain)
-    setSearch('')
-    setSearchResults([])
-
-    if (willWin) {
-      const next = saveStorage(dateStr, newChain.length)
-      setStorage(next)
-      setPhase('won')
-    } else if (newChain.length >= MAX_STEPS) {
-      setPhase('failed')
-    }
-  }
-
-  // ── Share ────────────────────────────────────────────────────────────────────
+  // ── Share ──────────────────────────────────────────────────────────────────
   async function share() {
-    if (!puzzle) return
-    const text = buildShareText(dateStr, puzzle, chain, phase === 'won')
+    if (!aPlayer || !bPlayer) return
+    const text = buildShareText(dateStr, aPlayer, bPlayer, chain, strikes, phase === 'won')
     try {
       if (navigator.share) await navigator.share({ text })
       else { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000) }
     } catch { /* ignore */ }
   }
 
-  // ── Loading / error states ───────────────────────────────────────────────────
+  // ── Loading / error ────────────────────────────────────────────────────────
   if (phase === 'loading') {
     return (
       <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
@@ -324,7 +368,7 @@ export default function SixDegreesGame() {
     )
   }
 
-  if (phase === 'error' || !puzzle || !aPlayer || !bPlayer) {
+  if (phase === 'error' || !aPlayer || !bPlayer) {
     return (
       <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center px-5 gap-4">
         <div className="text-3xl">⚠️</div>
@@ -335,9 +379,7 @@ export default function SixDegreesGame() {
     )
   }
 
-  const stepsLeft = MAX_STEPS - chain.length
-
-  // ── Won / Failed ─────────────────────────────────────────────────────────────
+  // ── Won / Failed ───────────────────────────────────────────────────────────
   if (phase === 'won' || phase === 'failed') {
     const won = phase === 'won'
     const label = won ? sixDegreesLabel(chain.length) : "Couldn't find the connection"
@@ -357,6 +399,11 @@ export default function SixDegreesGame() {
               {won ? `${chain.length} step${chain.length === 1 ? '' : 's'}` : 'Out of moves'}
             </div>
             <div className={`text-sm mt-1 ${won ? 'text-[#1a7a3e]' : 'text-rose-500'}`}>{label}</div>
+            {strikes > 0 && (
+              <div className="text-xs text-[#aaa] mt-2">
+                {strikes} strike{strikes === 1 ? '' : 's'}
+              </div>
+            )}
             {storage.streak > 1 && won && (
               <div className="text-[#1a7a3e] text-sm font-bold mt-2">🔥 {storage.streak} day streak</div>
             )}
@@ -401,10 +448,7 @@ export default function SixDegreesGame() {
     )
   }
 
-  // ── Playing ──────────────────────────────────────────────────────────────────
-  const hasSearch = search.length >= 2
-  const showEmpty = hasSearch && !isSearching && filteredResults.length === 0 && !searchError
-
+  // ── Playing ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-[100dvh] bg-[#fafafa]">
 
@@ -414,29 +458,32 @@ export default function SixDegreesGame() {
           <Link href="/apps/football-games" className="text-blue-500 text-sm font-medium hover:underline">← Back</Link>
           <div className="text-center">
             <div className="text-[10px] text-[#999] font-mono uppercase tracking-widest">Six Degrees</div>
-            <div className="text-xs font-bold text-[#1a1a1a]">
-              {stepsLeft} step{stepsLeft === 1 ? '' : 's'} left
+            <div className="flex items-center gap-2 justify-center mt-0.5">
+              <div className="text-xs font-bold text-[#1a1a1a]">
+                {MAX_STEPS - chain.length} step{MAX_STEPS - chain.length === 1 ? '' : 's'} left
+              </div>
+              <div className="flex gap-0.5">
+                {Array(MAX_STRIKES).fill(null).map((_, i) => (
+                  <span key={i} className={`text-xs ${i < MAX_STRIKES - strikes ? 'opacity-100' : 'opacity-20'}`}>🫀</span>
+                ))}
+              </div>
             </div>
           </div>
           <div className="text-[10px] font-mono text-[#ccc]">{dateStr}</div>
         </div>
       </div>
 
-      {/* The challenge — always visible */}
+      {/* Progress bar — A → [dots] → B */}
       <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-3">
         <div className="max-w-xl mx-auto">
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2">
             <PlayerChip player={aPlayer} />
-            <div className="flex-1 flex items-center justify-center gap-0.5">
+            <div className="flex-1 flex items-center gap-0.5">
               {Array(MAX_STEPS).fill(null).map((_, i) => (
                 <div
                   key={i}
                   className={`h-1.5 flex-1 rounded-full transition-colors ${
-                    i < chain.length
-                      ? 'bg-blue-500'
-                      : i === chain.length
-                      ? 'bg-[#e5e5e5]'
-                      : 'bg-[#f0f0f0]'
+                    i < chain.length ? 'bg-[#1a7a3e]' : 'bg-[#f0f0f0]'
                   }`}
                 />
               ))}
@@ -448,127 +495,182 @@ export default function SixDegreesGame() {
 
       {/* Chain so far */}
       {chain.length > 0 && (
-        <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-2 max-h-48 overflow-y-auto">
-          <div className="max-w-xl mx-auto">
+        <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] max-h-44 overflow-y-auto">
+          <div className="max-w-xl mx-auto px-4 py-2">
             <ChainTimeline aPlayer={aPlayer} bPlayer={null} chain={chain} won={false} compact />
           </div>
         </div>
       )}
 
-      {/* Current player + link type selector */}
-      <div className="flex-shrink-0 bg-[#fafafa] border-b border-[#e5e5e5] px-4 py-3">
-        <div className="max-w-xl mx-auto">
-          <div className="text-xs text-[#999] font-mono uppercase tracking-widest mb-2">
-            Now connecting from
-          </div>
-          <div className="flex items-center gap-2 mb-3">
-            <StatusBadges player={currentPlayer!} />
-            <span className="text-base">{nationalityFlag(currentPlayer!.nationality)}</span>
-            <span className="font-bold text-sm text-[#1a1a1a]">{currentPlayer!.name}</span>
-          </div>
-
-          {/* Link type buttons */}
-          <div className="flex gap-1.5 flex-wrap">
-            {(['club', 'international', 'manager'] as LinkType[]).map(lt => (
-              <button
-                key={lt}
-                onClick={() => setPendingLinkType(lt)}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                  pendingLinkType === lt
-                    ? 'bg-blue-500 border-blue-500 text-white'
-                    : 'bg-white border-[#e5e5e5] text-[#666] hover:border-blue-300'
-                }`}
-              >
-                <span>{LINK_ICONS[lt]}</span>
-                <span>{lt === 'club' ? 'Club' : lt === 'international' ? 'International' : 'Manager'}</span>
-                {lt !== 'club' && (
-                  <span className="text-[9px] opacity-60 ml-0.5">♟</span>
-                )}
-              </button>
-            ))}
-          </div>
-          {pendingLinkType !== 'club' && (
-            <div className="text-[10px] text-[#aaa] mt-1.5">Honor system — play fair ⚽</div>
-          )}
-        </div>
-      </div>
-
-      {/* Validation error */}
-      {validationError && (
+      {/* Strike error banner */}
+      {lastError && (
         <div className="flex-shrink-0 bg-rose-50 border-b border-rose-200 px-4 py-2">
-          <div className="max-w-xl mx-auto text-xs text-rose-600 font-medium">{validationError}</div>
+          <div className="max-w-xl mx-auto flex items-center gap-2">
+            <span className="text-rose-500 text-sm">❌</span>
+            <div className="text-xs text-rose-600 font-medium">{lastError}</div>
+          </div>
         </div>
       )}
 
-      {/* Search */}
-      <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 pt-3 pb-3">
+      {/* "Now connecting from" */}
+      <div className="flex-shrink-0 bg-[#fafafa] border-b border-[#e5e5e5] px-4 py-3">
         <div className="max-w-xl mx-auto">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder={isValidating ? 'Checking link…' : 'Search for a player…'}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              disabled={isValidating}
-              className="w-full bg-[#fafafa] border border-[#e0e0e0] rounded-lg pl-4 pr-10 py-2.5 text-sm text-[#1a1a1a] placeholder-[#bbb] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20 transition-colors disabled:opacity-50"
-            />
-            {isSearching || isValidating ? (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] text-xs font-mono">…</div>
-            ) : search.length > 0 ? (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] hover:text-[#666] transition-colors text-sm">✕</button>
-            ) : null}
+          <div className="text-[10px] text-[#999] font-mono uppercase tracking-widest mb-1.5">Connecting from</div>
+          <div className="flex items-center gap-2">
+            <StatusBadges player={currentPlayer!} />
+            <span className="text-base">{nationalityFlag(currentPlayer!.nationality)}</span>
+            <span className="font-bold text-sm text-[#1a1a1a]">{currentPlayer!.name}</span>
+            <span className="text-xs text-[#aaa] truncate">{playerClubDisplay(currentPlayer!)}</span>
           </div>
         </div>
       </div>
 
-      {/* Results */}
-      <div className="flex-1 overflow-y-auto bg-[#fafafa]">
-        <div className="max-w-xl mx-auto px-4 py-3 pb-6">
-          {!hasSearch && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="text-3xl mb-3">🔗</div>
-              <div className="text-[#1a1a1a] font-bold mb-1">Who links {currentPlayer!.name} forward?</div>
-              <div className="text-[#999] text-sm">Search for a player they&apos;ve shared a club, country, or manager with</div>
-            </div>
-          )}
-          {searchError && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="text-3xl mb-3">⚠️</div>
-              <div className="text-[#1a1a1a] font-bold mb-1">Search unavailable</div>
-              <div className="text-[#999] text-sm">Check your connection and try again</div>
-            </div>
-          )}
-          {showEmpty && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="text-3xl mb-3">⚽</div>
-              <div className="text-[#1a1a1a] font-bold mb-1">No results for &quot;{search}&quot;</div>
-              <div className="text-[#999] text-sm">No results — try a different spelling</div>
-            </div>
-          )}
-          {hasSearch && !searchError && filteredResults.length > 0 && (
-            <div className="space-y-1.5">
-              {filteredResults.map(player => (
+      {/* ── Wizard ──────────────────────────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-xl mx-auto px-4 py-3">
+
+          {/* STEP 1: Link type */}
+          {wizardStep === 'type' && (
+            <div className="space-y-3">
+              <div className="text-xs text-[#999] font-mono uppercase tracking-widest">How are they connected?</div>
+              {(['club', 'international', 'manager'] as LinkType[]).map(lt => (
                 <button
-                  key={player.name}
-                  onClick={() => addStep(player)}
-                  disabled={isValidating}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
-                    isValidating
-                      ? 'border-[#f0f0f0] bg-white opacity-40 cursor-not-allowed'
-                      : 'border-[#e5e5e5] bg-white hover:border-blue-400 hover:bg-blue-50 active:bg-blue-100'
-                  }`}
+                  key={lt}
+                  onClick={() => selectType(lt)}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 bg-white border border-[#e5e5e5] rounded-xl text-left hover:border-blue-400 hover:bg-blue-50 transition-all"
                 >
-                  <div className="flex-shrink-0">
-                    <StatusBadges player={player} />
+                  <span className="text-xl w-8 text-center">{LINK_ICONS[lt]}</span>
+                  <div>
+                    <div className="text-sm font-bold text-[#1a1a1a]">{LINK_LABELS[lt]}</div>
+                    <div className="text-xs text-[#999]">{LINK_TYPE_HINTS[lt]}</div>
                   </div>
-                  <span className="text-base leading-none flex-shrink-0">{nationalityFlag(player.nationality)}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-bold text-[#1a1a1a] truncate">{player.name}</div>
-                    <div className="text-xs text-[#999] truncate">{playerClubDisplay(player)}</div>
-                  </div>
-                  <div className="flex-shrink-0 text-blue-400 text-sm">→</div>
+                  <span className="ml-auto text-[#ccc] text-sm">→</span>
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* STEP 2: Entity */}
+          {wizardStep === 'entity' && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <button onClick={goBackToType} className="text-blue-500 text-sm hover:underline">← Back</button>
+                <div className="text-xs text-[#999] font-mono uppercase tracking-widest">
+                  {ENTITY_PROMPTS[pendingLinkType]}
+                </div>
+              </div>
+              <div className="relative">
+                <input
+                  ref={entityInputRef}
+                  type="text"
+                  placeholder={ENTITY_PLACEHOLDERS[pendingLinkType]}
+                  value={entitySearch}
+                  onChange={e => setEntitySearch(e.target.value)}
+                  className="w-full bg-white border border-[#e0e0e0] rounded-lg pl-4 pr-10 py-2.5 text-sm text-[#1a1a1a] placeholder-[#bbb] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20 transition-colors"
+                />
+                {isEntitySearching ? (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] text-xs font-mono">…</div>
+                ) : entitySearch.length > 0 ? (
+                  <button onClick={() => { setEntitySearch(''); setEntityResults([]) }} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] hover:text-[#666] text-sm">✕</button>
+                ) : null}
+              </div>
+              {entityResults.length > 0 && (
+                <div className="space-y-1">
+                  {entityResults.map(entity => (
+                    <button
+                      key={entity}
+                      onClick={() => selectEntity(entity)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 bg-white border border-[#e5e5e5] rounded-lg text-left hover:border-blue-400 hover:bg-blue-50 transition-all"
+                    >
+                      <span className="text-base">{LINK_ICONS[pendingLinkType]}</span>
+                      <span className="text-sm font-medium text-[#1a1a1a] flex-1">{entity}</span>
+                      <span className="text-blue-400 text-sm">→</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {entitySearch.length >= 2 && !isEntitySearching && entityResults.length === 0 && (
+                <div className="text-center py-8 text-[#999] text-sm">No results for &quot;{entitySearch}&quot;</div>
+              )}
+              {entitySearch.length < 2 && (
+                <div className="text-center py-8 text-[#bbb] text-sm">
+                  {pendingLinkType === 'club' ? 'Type a club name to search' :
+                   pendingLinkType === 'international' ? 'Type a country name' :
+                   'Type a manager name'}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* STEP 3: Player */}
+          {wizardStep === 'player' && (
+            <div className="space-y-3">
+              {/* Entity breadcrumb */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <button onClick={goBackToType} className="text-blue-500 text-xs hover:underline">← Change link</button>
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 border border-blue-200 rounded-full text-xs text-blue-700 font-medium">
+                  <span>{LINK_ICONS[pendingLinkType]}</span>
+                  <span>{pendingEntity}</span>
+                  <button onClick={goBackToEntity} className="text-blue-400 hover:text-blue-600 ml-0.5">✕</button>
+                </div>
+              </div>
+
+              <div className="text-xs text-[#999] font-mono uppercase tracking-widest">Now pick the next player</div>
+              <div className="relative">
+                <input
+                  ref={playerInputRef}
+                  type="text"
+                  placeholder={isValidating ? 'Checking…' : 'Search for a player…'}
+                  value={playerSearch}
+                  onChange={e => setPlayerSearch(e.target.value)}
+                  disabled={isValidating}
+                  className="w-full bg-white border border-[#e0e0e0] rounded-lg pl-4 pr-10 py-2.5 text-sm text-[#1a1a1a] placeholder-[#bbb] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20 transition-colors disabled:opacity-50"
+                />
+                {isPlayerSearching || isValidating ? (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] text-xs font-mono">…</div>
+                ) : playerSearch.length > 0 ? (
+                  <button onClick={() => { setPlayerSearch(''); setPlayerResults([]) }} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] hover:text-[#666] text-sm">✕</button>
+                ) : null}
+              </div>
+
+              {playerSearchError && (
+                <div className="text-center py-4 text-[#999] text-sm">Search unavailable — check your connection</div>
+              )}
+
+              {!playerSearchError && playerSearch.length >= 2 && !isPlayerSearching && filteredPlayerResults.length === 0 && (
+                <div className="text-center py-4 text-[#999] text-sm">No results for &quot;{playerSearch}&quot;</div>
+              )}
+
+              {!playerSearchError && filteredPlayerResults.length > 0 && (
+                <div className="space-y-1.5 pb-6">
+                  {filteredPlayerResults.map(player => (
+                    <button
+                      key={player.id}
+                      onClick={() => addStep(player)}
+                      disabled={isValidating}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
+                        isValidating
+                          ? 'border-[#f0f0f0] bg-white opacity-40 cursor-not-allowed'
+                          : 'border-[#e5e5e5] bg-white hover:border-blue-400 hover:bg-blue-50 active:bg-blue-100'
+                      }`}
+                    >
+                      <StatusBadges player={player} />
+                      <span className="text-base flex-shrink-0">{nationalityFlag(player.nationality)}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-[#1a1a1a] truncate">{player.name}</div>
+                        <div className="text-xs text-[#999] truncate">{playerClubDisplay(player)}</div>
+                      </div>
+                      <span className="flex-shrink-0 text-blue-400 text-sm">→</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {playerSearch.length < 2 && filteredPlayerResults.length === 0 && (
+                <div className="text-center py-10 text-[#bbb] text-sm">
+                  Who was {LINK_TYPE_CONNECTORS[pendingLinkType]} {pendingEntity} with {currentPlayer?.name}?
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -594,12 +696,16 @@ function ChainTimeline({
 }) {
   return (
     <div className={compact ? 'space-y-0' : 'px-4 pb-4 space-y-0'}>
-      {/* Start player */}
       <ChainNode player={aPlayer} label="Start" compact={compact} isStart />
 
       {chain.map((step, i) => (
         <div key={i}>
-          <ChainConnector linkType={step.linkType} note={step.note} status={step.status} compact={compact} />
+          <ChainConnector
+            linkType={step.linkType}
+            entity={step.entity}
+            evidence={step.evidence}
+            compact={compact}
+          />
           <ChainNode
             player={step.player}
             label={`Step ${i + 1}`}
@@ -609,14 +715,13 @@ function ChainTimeline({
         </div>
       ))}
 
-      {/* End player — always shown in full result view */}
-      {bPlayer && (
+      {bPlayer && !won && (
         <>
-          {chain.length < 6 && !won && (
-            <div className="flex items-center gap-2 py-1 pl-4">
-              <div className="w-px h-6 bg-[#e5e5e5] ml-3" />
+          <div className="flex items-center gap-3 py-0.5">
+            <div className="w-6 flex justify-center">
+              <div className="w-px h-5 bg-[#e5e5e5]" />
             </div>
-          )}
+          </div>
           <ChainNode player={bPlayer} label="Target" compact={compact} isTarget />
         </>
       )}
@@ -639,7 +744,6 @@ function ChainNode({
   isEnd?: boolean
   isTarget?: boolean
 }) {
-  const highlight = isStart || isEnd
   const dimmed = isTarget && !isEnd
 
   return (
@@ -648,16 +752,14 @@ function ChainNode({
         isEnd ? 'border-[#1a7a3e] bg-[#1a7a3e]' :
         isStart ? 'border-blue-500 bg-blue-500' :
         isTarget ? 'border-dashed border-[#ccc] bg-white' :
-        'border-blue-500 bg-blue-500'
+        'border-[#1a7a3e] bg-[#1a7a3e]'
       }`}>
         {isEnd ? <span className="text-white text-[8px]">✓</span> :
          isTarget ? <span className="text-[#ccc] text-[8px]">?</span> :
          <span className="text-white text-[8px]">•</span>}
       </div>
       <div className={`flex-1 min-w-0 ${dimmed ? 'opacity-40' : ''}`}>
-        <div className={`text-sm font-bold truncate ${highlight ? 'text-[#1a1a1a]' : 'text-[#1a1a1a]'}`}>
-          {player.name}
-        </div>
+        <div className="text-sm font-bold text-[#1a1a1a] truncate">{player.name}</div>
         {!compact && (
           <div className="text-xs text-[#999] truncate">{playerClubDisplay(player)}</div>
         )}
@@ -669,35 +771,31 @@ function ChainNode({
 
 function ChainConnector({
   linkType,
-  note,
-  status,
+  entity,
+  evidence,
   compact,
 }: {
   linkType: LinkType
-  note: string
-  status: VerificationStatus
+  entity: string
+  evidence: string
   compact: boolean
 }) {
   return (
-    <div className="flex items-center gap-3 py-0.5">
+    <div className="flex items-stretch gap-3">
       <div className="w-6 flex justify-center flex-shrink-0">
-        <div className="w-px h-full bg-[#e5e5e5] min-h-[20px]" />
+        <div className="w-px bg-[#e5e5e5]" />
       </div>
-      <div className={`flex items-center gap-1.5 ${compact ? '' : 'bg-[#f8f8f8] rounded-lg px-2 py-1'}`}>
+      <div className={`flex items-center gap-1.5 my-0.5 ${compact ? 'py-0.5' : 'bg-[#f8f8f8] rounded-lg px-2 py-1.5 flex-1'}`}>
         <span className="text-xs">{LINK_ICONS[linkType]}</span>
         {!compact && (
-          <>
-            <span className="text-[11px] text-[#666]">{note}</span>
-            {status === 'verified' && <span className="text-[10px] text-[#1a7a3e] font-bold">✓</span>}
-            {status === 'unverified' && <span className="text-[10px] text-[#aaa]">♟</span>}
-          </>
+          <span className="text-[11px] text-[#666] truncate">{evidence || entity}</span>
         )}
       </div>
     </div>
   )
 }
 
-// ─── Player chip (small inline display) ───────────────────────────────────────
+// ─── Player chip ───────────────────────────────────────────────────────────────
 
 function PlayerChip({ player, highlight }: { player: Player; highlight?: boolean }) {
   return (
@@ -709,3 +807,48 @@ function PlayerChip({ player, highlight }: { player: Player; highlight?: boolean
     </div>
   )
 }
+
+// ─── Static text ───────────────────────────────────────────────────────────────
+
+const LINK_TYPE_HINTS: Record<LinkType, string> = {
+  club: 'Both played for the same club at the same time',
+  international: 'Both played for the same national team',
+  manager: 'Both managed by the same person at the same club',
+}
+
+const ENTITY_PROMPTS: Record<LinkType, string> = {
+  club: 'Which club did they both play for?',
+  international: 'Which national team?',
+  manager: 'Who managed them both?',
+}
+
+const ENTITY_PLACEHOLDERS: Record<LinkType, string> = {
+  club: 'e.g. Arsenal, Bayern Munich…',
+  international: 'e.g. France, Brazil…',
+  manager: 'e.g. Arsène Wenger, Guardiola…',
+}
+
+const LINK_TYPE_CONNECTORS: Record<LinkType, string> = {
+  club: 'at',
+  international: 'in the national team of',
+  manager: 'under manager',
+}
+
+// ─── Static country list ───────────────────────────────────────────────────────
+
+const COUNTRIES = [
+  'Afghanistan', 'Albania', 'Algeria', 'Argentina', 'Armenia', 'Australia',
+  'Austria', 'Belgium', 'Bolivia', 'Bosnia and Herzegovina', 'Brazil', 'Bulgaria',
+  'Cameroon', 'Canada', 'Chile', 'China', 'Colombia', 'Costa Rica', 'Croatia',
+  'Czech Republic', 'Denmark', 'DR Congo', 'Ecuador', 'Egypt', 'England',
+  'Estonia', 'Finland', 'France', 'Gabon', 'Georgia', 'Germany', 'Ghana',
+  'Greece', 'Honduras', 'Hungary', 'Iceland', 'Iran', 'Iraq', 'Ireland',
+  'Italy', 'Ivory Coast', 'Jamaica', 'Japan', 'Jordan', 'Kosovo',
+  'Latvia', 'Lithuania', 'Luxembourg', 'Mali', 'Malta', 'Mexico',
+  'Montenegro', 'Morocco', 'Netherlands', 'Nigeria', 'North Macedonia',
+  'Northern Ireland', 'Norway', 'Panama', 'Paraguay', 'Peru', 'Poland',
+  'Portugal', 'Romania', 'Russia', 'Saudi Arabia', 'Scotland', 'Senegal',
+  'Serbia', 'Sierra Leone', 'Slovakia', 'Slovenia', 'South Korea', 'Spain',
+  'Sweden', 'Switzerland', 'Trinidad and Tobago', 'Tunisia', 'Turkey',
+  'Ukraine', 'United States', 'Uruguay', 'Venezuela', 'Wales', 'Zambia',
+]
