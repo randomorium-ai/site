@@ -7,11 +7,17 @@ import {
   type ManagerRecord,
 } from "@/lib/overlap"
 import managersData from "@/data/managers.json"
+import type { Player } from "@/lib/player"
 
 const MANAGERS = managersData as unknown as ManagerRecord[]
 
 function findManager(id: string): ManagerRecord | undefined {
   return MANAGERS.find(m => m.id === id || m.name.toLowerCase() === id.toLowerCase())
+}
+
+function wasActiveInYear(player: Player, year: number): boolean {
+  if (!player.career_clubs || player.career_clubs.length === 0) return false
+  return player.career_clubs.some(c => c.from <= year && (c.to === null || c.to >= year))
 }
 
 interface RequestBody {
@@ -31,34 +37,51 @@ export async function POST(req: NextRequest) {
 
   const { playerAId, playerBId, linkType, entity } = body
 
-  // ── International: both must share the same nationality ───────────────────
+  // ── International: both must be same nationality + active in tournament year ─
   if (linkType === "international") {
     const playerA = findPlayerById(playerAId)
     const playerB = findPlayerById(playerBId)
     if (!playerA || !playerB) {
-      // Unknown players — accept on honor system
       return NextResponse.json({ valid: true, evidence: null })
     }
 
-    const normNat = (s: string) => s.toLowerCase().trim()
-    const target = normNat(entity)
+    // Parse tournament year from entity string e.g. "World Cup 2018" → 2018
+    const yearMatch = entity.match(/(\d{4})/)
+    const tournamentYear = yearMatch ? parseInt(yearMatch[1]) : null
 
-    const aMatch = normNat(playerA.nationality) === target
-    const bMatch = normNat(playerB.nationality) === target
-
-    if (aMatch && bMatch) {
+    // Both must share the same nationality
+    if (playerA.nationality !== playerB.nationality) {
       return NextResponse.json({
-        valid: true,
-        evidence: `Both played for ${entity}`,
+        valid: false,
+        evidence: null,
+        reason: `${playerA.name} (${playerA.nationality}) and ${playerB.name} (${playerB.nationality}) play for different national teams`,
       })
     }
 
-    // If either player isn't in the DB, honor system
-    const reason = !aMatch
-      ? `${playerA.name} plays for ${playerA.nationality}, not ${entity}`
-      : `${playerB.name} plays for ${playerB.nationality}, not ${entity}`
+    // Both must have been active in the tournament year
+    if (tournamentYear) {
+      const aActive = wasActiveInYear(playerA, tournamentYear)
+      const bActive = wasActiveInYear(playerB, tournamentYear)
+      if (!aActive) {
+        return NextResponse.json({
+          valid: false,
+          evidence: null,
+          reason: `${playerA.name} wasn't active in ${tournamentYear}`,
+        })
+      }
+      if (!bActive) {
+        return NextResponse.json({
+          valid: false,
+          evidence: null,
+          reason: `${playerB.name} wasn't active in ${tournamentYear}`,
+        })
+      }
+    }
 
-    return NextResponse.json({ valid: false, evidence: null, reason })
+    return NextResponse.json({
+      valid: true,
+      evidence: `Both played for ${playerA.nationality} at ${entity}`,
+    })
   }
 
   // ── Manager: both players managed by entity at same club/time ─────────────

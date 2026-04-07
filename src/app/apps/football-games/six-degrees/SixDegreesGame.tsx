@@ -179,16 +179,13 @@ export default function SixDegreesGame() {
     setIsEntitySearching(true)
     try {
       let results: string[] = []
-      if (lt === 'club') {
-        const res = await fetch(`/api/football/clubs?search=${encodeURIComponent(q)}`)
-        if (res.ok) results = ((await res.json()) as { clubs: string[] }).clubs
-      } else if (lt === 'manager') {
+      if (lt === 'manager') {
         const res = await fetch(`/api/football/managers?search=${encodeURIComponent(q)}`)
         if (res.ok) results = ((await res.json()) as { managers: ManagerRecord[] }).managers.map(m => m.name)
       } else if (lt === 'international') {
-        // Static country list — filter client-side
+        // Tournament list — filter client-side
         const normQ = normaliseStr(q)
-        results = COUNTRIES.filter(c => normaliseStr(c).includes(normQ)).slice(0, 15)
+        results = TOURNAMENTS.filter(t => normaliseStr(t.name).includes(normQ)).map(t => t.name).slice(0, 12)
       }
       entitySearchCache.current.set(cacheKey, results)
       setEntityResults(results)
@@ -241,8 +238,14 @@ export default function SixDegreesGame() {
     setEntitySearch('')
     setEntityResults([])
     setLastError(null)
-    setWizardStep('entity')
-    setTimeout(() => entityInputRef.current?.focus(), 50)
+    if (lt === 'club') {
+      // Club: skip entity step, go straight to player search
+      setWizardStep('player')
+      setTimeout(() => playerInputRef.current?.focus(), 50)
+    } else {
+      setWizardStep('entity')
+      setTimeout(() => entityInputRef.current?.focus(), 50)
+    }
   }
 
   function selectEntity(entity: string) {
@@ -271,6 +274,12 @@ export default function SixDegreesGame() {
     setPlayerSearch('')
     setPlayerResults([])
     setTimeout(() => entityInputRef.current?.focus(), 50)
+  }
+
+  function goBackFromPlayer() {
+    // Club has no entity step — go straight back to type
+    if (pendingLinkType === 'club') goBackToType()
+    else goBackToEntity()
   }
 
   // ── Derived state ──────────────────────────────────────────────────────────
@@ -592,11 +601,21 @@ export default function SixDegreesGame() {
               {entitySearch.length >= 2 && !isEntitySearching && entityResults.length === 0 && (
                 <div className="text-center py-8 text-[#999] text-sm">No results for &quot;{entitySearch}&quot;</div>
               )}
-              {entitySearch.length < 2 && (
+              {entitySearch.length < 2 && pendingLinkType === 'international' && (
+                <div className="space-y-1 mt-1">
+                  {TOURNAMENTS.slice(0, 8).map(t => (
+                    <button key={t.name} onClick={() => selectEntity(t.name)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 bg-white border border-[#e5e5e5] rounded-lg text-left hover:border-blue-400 hover:bg-blue-50 transition-all">
+                      <span className="text-base">🌍</span>
+                      <span className="text-sm font-medium text-[#1a1a1a] flex-1">{t.name}</span>
+                      <span className="text-blue-400 text-sm">→</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {entitySearch.length < 2 && pendingLinkType !== 'international' && (
                 <div className="text-center py-8 text-[#bbb] text-sm">
-                  {pendingLinkType === 'club' ? 'Type a club name to search' :
-                   pendingLinkType === 'international' ? 'Type a country name' :
-                   'Type a manager name'}
+                  Type a manager name to search
                 </div>
               )}
             </div>
@@ -605,13 +624,19 @@ export default function SixDegreesGame() {
           {/* STEP 3: Player */}
           {wizardStep === 'player' && (
             <div className="space-y-3">
-              {/* Entity breadcrumb */}
+              {/* Breadcrumb */}
               <div className="flex items-center gap-2 flex-wrap">
-                <button onClick={goBackToType} className="text-blue-500 text-xs hover:underline">← Change link</button>
+                <button onClick={goBackFromPlayer} className="text-blue-500 text-xs hover:underline">← Change link</button>
                 <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 border border-blue-200 rounded-full text-xs text-blue-700 font-medium">
                   <span>{LINK_ICONS[pendingLinkType]}</span>
-                  <span>{pendingEntity}</span>
-                  <button onClick={goBackToEntity} className="text-blue-400 hover:text-blue-600 ml-0.5">✕</button>
+                  {pendingEntity ? (
+                    <>
+                      <span>{pendingEntity}</span>
+                      <button onClick={goBackToEntity} className="text-blue-400 hover:text-blue-600 ml-0.5">✕</button>
+                    </>
+                  ) : (
+                    <span>{LINK_LABELS[pendingLinkType]}</span>
+                  )}
                 </div>
               </div>
 
@@ -812,43 +837,86 @@ function PlayerChip({ player, highlight }: { player: Player; highlight?: boolean
 
 const LINK_TYPE_HINTS: Record<LinkType, string> = {
   club: 'Both played for the same club at the same time',
-  international: 'Both played for the same national team',
+  international: 'Both represented the same country at the same tournament',
   manager: 'Both managed by the same person at the same club',
 }
 
 const ENTITY_PROMPTS: Record<LinkType, string> = {
-  club: 'Which club did they both play for?',
-  international: 'Which national team?',
+  club: '',
+  international: 'Which tournament?',
   manager: 'Who managed them both?',
 }
 
 const ENTITY_PLACEHOLDERS: Record<LinkType, string> = {
-  club: 'e.g. Arsenal, Bayern Munich…',
-  international: 'e.g. France, Brazil…',
+  club: '',
+  international: 'e.g. World Cup 2018, Euro 2020…',
   manager: 'e.g. Arsène Wenger, Guardiola…',
 }
 
 const LINK_TYPE_CONNECTORS: Record<LinkType, string> = {
-  club: 'at',
-  international: 'in the national team of',
+  club: 'as a club teammate of',
+  international: 'at',
   manager: 'under manager',
 }
 
-// ─── Static country list ───────────────────────────────────────────────────────
+// ─── Tournament list ───────────────────────────────────────────────────────────
 
-const COUNTRIES = [
-  'Afghanistan', 'Albania', 'Algeria', 'Argentina', 'Armenia', 'Australia',
-  'Austria', 'Belgium', 'Bolivia', 'Bosnia and Herzegovina', 'Brazil', 'Bulgaria',
-  'Cameroon', 'Canada', 'Chile', 'China', 'Colombia', 'Costa Rica', 'Croatia',
-  'Czech Republic', 'Denmark', 'DR Congo', 'Ecuador', 'Egypt', 'England',
-  'Estonia', 'Finland', 'France', 'Gabon', 'Georgia', 'Germany', 'Ghana',
-  'Greece', 'Honduras', 'Hungary', 'Iceland', 'Iran', 'Iraq', 'Ireland',
-  'Italy', 'Ivory Coast', 'Jamaica', 'Japan', 'Jordan', 'Kosovo',
-  'Latvia', 'Lithuania', 'Luxembourg', 'Mali', 'Malta', 'Mexico',
-  'Montenegro', 'Morocco', 'Netherlands', 'Nigeria', 'North Macedonia',
-  'Northern Ireland', 'Norway', 'Panama', 'Paraguay', 'Peru', 'Poland',
-  'Portugal', 'Romania', 'Russia', 'Saudi Arabia', 'Scotland', 'Senegal',
-  'Serbia', 'Sierra Leone', 'Slovakia', 'Slovenia', 'South Korea', 'Spain',
-  'Sweden', 'Switzerland', 'Trinidad and Tobago', 'Tunisia', 'Turkey',
-  'Ukraine', 'United States', 'Uruguay', 'Venezuela', 'Wales', 'Zambia',
+const TOURNAMENTS: { name: string; year: number }[] = [
+  // FIFA World Cup
+  { name: 'World Cup 2022', year: 2022 },
+  { name: 'World Cup 2018', year: 2018 },
+  { name: 'World Cup 2014', year: 2014 },
+  { name: 'World Cup 2010', year: 2010 },
+  { name: 'World Cup 2006', year: 2006 },
+  { name: 'World Cup 2002', year: 2002 },
+  { name: 'World Cup 1998', year: 1998 },
+  { name: 'World Cup 1994', year: 1994 },
+  { name: 'World Cup 1990', year: 1990 },
+  // UEFA Euro
+  { name: 'Euro 2024', year: 2024 },
+  { name: 'Euro 2020', year: 2021 },
+  { name: 'Euro 2016', year: 2016 },
+  { name: 'Euro 2012', year: 2012 },
+  { name: 'Euro 2008', year: 2008 },
+  { name: 'Euro 2004', year: 2004 },
+  { name: 'Euro 2000', year: 2000 },
+  { name: 'Euro 1996', year: 1996 },
+  { name: 'Euro 1992', year: 1992 },
+  // Copa América
+  { name: 'Copa América 2024', year: 2024 },
+  { name: 'Copa América 2021', year: 2021 },
+  { name: 'Copa América 2019', year: 2019 },
+  { name: 'Copa América 2016', year: 2016 },
+  { name: 'Copa América 2015', year: 2015 },
+  { name: 'Copa América 2011', year: 2011 },
+  { name: 'Copa América 2007', year: 2007 },
+  { name: 'Copa América 2004', year: 2004 },
+  { name: 'Copa América 2001', year: 2001 },
+  { name: 'Copa América 1999', year: 1999 },
+  // Africa Cup of Nations
+  { name: 'AFCON 2024', year: 2024 },
+  { name: 'AFCON 2022', year: 2022 },
+  { name: 'AFCON 2019', year: 2019 },
+  { name: 'AFCON 2017', year: 2017 },
+  { name: 'AFCON 2015', year: 2015 },
+  { name: 'AFCON 2013', year: 2013 },
+  { name: 'AFCON 2012', year: 2012 },
+  { name: 'AFCON 2010', year: 2010 },
+  { name: 'AFCON 2008', year: 2008 },
+  { name: 'AFCON 2006', year: 2006 },
+  { name: 'AFCON 2004', year: 2004 },
+  // AFC Asian Cup
+  { name: 'Asian Cup 2023', year: 2023 },
+  { name: 'Asian Cup 2019', year: 2019 },
+  { name: 'Asian Cup 2015', year: 2015 },
+  { name: 'Asian Cup 2011', year: 2011 },
+  { name: 'Asian Cup 2007', year: 2007 },
+  { name: 'Asian Cup 2004', year: 2004 },
+  // CONCACAF Gold Cup
+  { name: 'Gold Cup 2023', year: 2023 },
+  { name: 'Gold Cup 2021', year: 2021 },
+  { name: 'Gold Cup 2019', year: 2019 },
+  { name: 'Gold Cup 2017', year: 2017 },
+  { name: 'Gold Cup 2015', year: 2015 },
+  { name: 'Gold Cup 2013', year: 2013 },
 ]
