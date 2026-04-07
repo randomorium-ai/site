@@ -3,7 +3,7 @@
 
 import type { Player } from './player'
 
-const CURRENT_YEAR = 2025
+const CURRENT_YEAR = new Date().getFullYear()
 
 // ── Club name normalisation ────────────────────────────────────────────────────
 // Strips suffixes (F.C., A.C., CF, etc.), parentheticals, diacritics, and
