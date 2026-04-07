@@ -3,13 +3,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import type { Player } from '@/lib/player'
-import type { ManagerRecord } from '@/lib/overlap'
 import { nationalityFlag, POS_COLOR, sixDegreesLabel } from '@/lib/football-utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type LinkType = 'club' | 'international' | 'manager'
-type WizardStep = 'type' | 'entity' | 'player'
+type LinkType = 'club' | 'international'
+type WizardStep = 'type' | 'entity' | 'player' | 'club-entity'
 type Phase = 'loading' | 'playing' | 'won' | 'failed' | 'error'
 
 interface ChainStep {
@@ -58,13 +57,11 @@ function saveStorage(dateStr: string, steps: number, strikes: number): GameStora
 const LINK_ICONS: Record<LinkType, string> = {
   club: '🏟️',
   international: '🌍',
-  manager: '📋',
 }
 
 const LINK_LABELS: Record<LinkType, string> = {
   club: 'Club teammates',
   international: 'International teammates',
-  manager: 'Same manager',
 }
 
 function normaliseStr(s: string): string {
@@ -132,6 +129,7 @@ export default function SixDegreesGame() {
   const [wizardStep, setWizardStep] = useState<WizardStep>('type')
   const [pendingLinkType, setPendingLinkType] = useState<LinkType>('club')
   const [pendingEntity, setPendingEntity] = useState('')
+  const [pendingPlayer, setPendingPlayer] = useState<Player | null>(null)
 
   // Entity search
   const [entitySearch, setEntitySearch] = useState('')
@@ -179,9 +177,9 @@ export default function SixDegreesGame() {
     setIsEntitySearching(true)
     try {
       let results: string[] = []
-      if (lt === 'manager') {
-        const res = await fetch(`/api/football/managers?search=${encodeURIComponent(q)}`)
-        if (res.ok) results = ((await res.json()) as { managers: ManagerRecord[] }).managers.map(m => m.name)
+      if (lt === 'club') {
+        const res = await fetch(`/api/football/clubs?search=${encodeURIComponent(q)}`)
+        if (res.ok) results = ((await res.json()) as { clubs: string[] }).clubs
       } else if (lt === 'international') {
         // Tournament list — filter client-side
         const normQ = normaliseStr(q)
@@ -197,7 +195,7 @@ export default function SixDegreesGame() {
   }, [])
 
   useEffect(() => {
-    if (wizardStep !== 'entity') return
+    if (wizardStep !== 'entity' && wizardStep !== 'club-entity') return
     if (entityDebounceRef.current) clearTimeout(entityDebounceRef.current)
     if (entitySearch.length < 2) { setEntityResults([]); setIsEntitySearching(false); return }
     setIsEntitySearching(true)
@@ -262,6 +260,7 @@ export default function SixDegreesGame() {
     setWizardStep('type')
     setLastError(null)
     setPendingEntity('')
+    setPendingPlayer(null)
     setEntitySearch('')
     setEntityResults([])
     setPlayerSearch('')
@@ -277,9 +276,26 @@ export default function SixDegreesGame() {
   }
 
   function goBackFromPlayer() {
-    // Club has no entity step — go straight back to type
     if (pendingLinkType === 'club') goBackToType()
     else goBackToEntity()
+  }
+
+  function selectPlayerForClub(player: Player) {
+    setPendingPlayer(player)
+    setPlayerSearch('')
+    setPlayerResults([])
+    setEntitySearch('')
+    setEntityResults([])
+    setWizardStep('club-entity')
+    setTimeout(() => entityInputRef.current?.focus(), 50)
+  }
+
+  function goBackFromClubEntity() {
+    setWizardStep('player')
+    setPendingPlayer(null)
+    setEntitySearch('')
+    setEntityResults([])
+    setTimeout(() => playerInputRef.current?.focus(), 50)
   }
 
   // ── Derived state ──────────────────────────────────────────────────────────
@@ -291,10 +307,11 @@ export default function SixDegreesGame() {
   const filteredPlayerResults = playerResults.filter(p => !usedNames.has(p.name))
 
   // ── Add a step ─────────────────────────────────────────────────────────────
-  async function addStep(player: Player) {
+  async function addStep(player: Player, entityOverride?: string) {
     if (phase !== 'playing' || !currentPlayer || !bPlayer) return
     setLastError(null)
 
+    const entity = entityOverride ?? pendingEntity
     const normName = (s: string) => normaliseStr(s)
     const willWin = normName(player.name) === normName(bPlayer.name)
 
@@ -307,7 +324,7 @@ export default function SixDegreesGame() {
           playerAId: currentPlayer.id,
           playerBId: player.id,
           linkType: pendingLinkType,
-          entity: pendingEntity,
+          entity,
         }),
       })
       const data = await res.json() as { valid: boolean; evidence: string | null; reason?: string }
@@ -316,7 +333,7 @@ export default function SixDegreesGame() {
         const newStrikes = strikes + 1
         setStrikes(newStrikes)
         setLastError(data.reason ?? `No ${LINK_LABELS[pendingLinkType].toLowerCase()} connection found`)
-        // Stay on player step so user can try another player
+        // Stay on current step so user can try again
         if (newStrikes >= MAX_STRIKES) {
           const next = saveStorage(dateStr, chain.length, newStrikes)
           setStorage(next)
@@ -328,7 +345,7 @@ export default function SixDegreesGame() {
       const step: ChainStep = {
         player,
         linkType: pendingLinkType,
-        entity: pendingEntity,
+        entity,
         evidence: data.evidence ?? LINK_LABELS[pendingLinkType],
       }
       const newChain = [...chain, step]
@@ -346,6 +363,7 @@ export default function SixDegreesGame() {
         // Reset wizard to type step for next link
         setWizardStep('type')
         setPendingEntity('')
+        setPendingPlayer(null)
         setEntitySearch('')
         setPlayerSearch('')
         setPlayerResults([])
@@ -542,7 +560,7 @@ export default function SixDegreesGame() {
           {wizardStep === 'type' && (
             <div className="space-y-3">
               <div className="text-xs text-[#999] font-mono uppercase tracking-widest">How are they connected?</div>
-              {(['club', 'international', 'manager'] as LinkType[]).map(lt => (
+              {(['club', 'international'] as LinkType[]).map(lt => (
                 <button
                   key={lt}
                   onClick={() => selectType(lt)}
@@ -613,11 +631,6 @@ export default function SixDegreesGame() {
                   ))}
                 </div>
               )}
-              {entitySearch.length < 2 && pendingLinkType !== 'international' && (
-                <div className="text-center py-8 text-[#bbb] text-sm">
-                  Type a manager name to search
-                </div>
-              )}
             </div>
           )}
 
@@ -671,7 +684,7 @@ export default function SixDegreesGame() {
                   {filteredPlayerResults.map(player => (
                     <button
                       key={player.id}
-                      onClick={() => addStep(player)}
+                      onClick={() => pendingLinkType === 'club' ? selectPlayerForClub(player) : addStep(player)}
                       disabled={isValidating}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
                         isValidating
@@ -694,6 +707,60 @@ export default function SixDegreesGame() {
               {playerSearch.length < 2 && filteredPlayerResults.length === 0 && (
                 <div className="text-center py-10 text-[#bbb] text-sm">
                   Who was {LINK_TYPE_CONNECTORS[pendingLinkType]} {pendingEntity} with {currentPlayer?.name}?
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* STEP: Club entity (after player is chosen) */}
+          {wizardStep === 'club-entity' && pendingPlayer && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <button onClick={goBackFromClubEntity} className="text-blue-500 text-sm hover:underline">← Back</button>
+                <div className="text-xs text-[#999] font-mono uppercase tracking-widest">Which club?</div>
+              </div>
+              {/* Selected player chip */}
+              <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                <span className="text-base">{LINK_ICONS.club}</span>
+                <span className="text-sm font-bold text-blue-700 flex-1">{pendingPlayer.name}</span>
+                <button onClick={goBackFromClubEntity} className="text-blue-400 hover:text-blue-600 text-sm">✕</button>
+              </div>
+              <div className="relative">
+                <input
+                  ref={entityInputRef}
+                  type="text"
+                  placeholder="Which club did they share?"
+                  value={entitySearch}
+                  onChange={e => setEntitySearch(e.target.value)}
+                  className="w-full bg-white border border-[#e0e0e0] rounded-lg pl-4 pr-10 py-2.5 text-sm text-[#1a1a1a] placeholder-[#bbb] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20 transition-colors"
+                />
+                {isEntitySearching ? (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] text-xs font-mono">…</div>
+                ) : entitySearch.length > 0 ? (
+                  <button onClick={() => { setEntitySearch(''); setEntityResults([]) }} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] hover:text-[#666] text-sm">✕</button>
+                ) : null}
+              </div>
+              {entityResults.length > 0 && (
+                <div className="space-y-1">
+                  {entityResults.map(club => (
+                    <button
+                      key={club}
+                      onClick={() => { setPendingEntity(club); addStep(pendingPlayer, club) }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 bg-white border border-[#e5e5e5] rounded-lg text-left hover:border-blue-400 hover:bg-blue-50 transition-all"
+                    >
+                      <span className="text-base">🏟️</span>
+                      <span className="text-sm font-medium text-[#1a1a1a] flex-1">{club}</span>
+                      <span className="text-blue-400 text-sm">→</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {entitySearch.length >= 2 && !isEntitySearching && entityResults.length === 0 && (
+                <div className="text-center py-8 text-[#999] text-sm">No clubs found for &quot;{entitySearch}&quot;</div>
+              )}
+              {entitySearch.length < 2 && (
+                <div className="text-center py-8 text-[#bbb] text-sm">
+                  Which club did {currentPlayer?.name} and {pendingPlayer.name} both play for?
                 </div>
               )}
             </div>
@@ -838,25 +905,21 @@ function PlayerChip({ player, highlight }: { player: Player; highlight?: boolean
 const LINK_TYPE_HINTS: Record<LinkType, string> = {
   club: 'Both played for the same club at the same time',
   international: 'Both represented the same country at the same tournament',
-  manager: 'Both managed by the same person at the same club',
 }
 
 const ENTITY_PROMPTS: Record<LinkType, string> = {
   club: '',
   international: 'Which tournament?',
-  manager: 'Who managed them both?',
 }
 
 const ENTITY_PLACEHOLDERS: Record<LinkType, string> = {
   club: '',
   international: 'e.g. World Cup 2018, Euro 2020…',
-  manager: 'e.g. Arsène Wenger, Guardiola…',
 }
 
 const LINK_TYPE_CONNECTORS: Record<LinkType, string> = {
   club: 'as a club teammate of',
   international: 'at',
-  manager: 'under manager',
 }
 
 // ─── Tournament list ───────────────────────────────────────────────────────────
