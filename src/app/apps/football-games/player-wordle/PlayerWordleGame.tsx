@@ -232,7 +232,7 @@ export default function PlayerWordleGame() {
       case 2: return g.player.current_club || 'Retired'
       case 3: return String(g.player.age) + (g.ageArrow ?? '')
       case 4: {
-        const v = mystery.position === 'GK' ? g.player.career_apps : g.player.career_goals
+        const v = mystery!.position === 'GK' ? g.player.career_apps : g.player.career_goals
         return String(v) + (g.statArrow ?? '')
       }
     }
