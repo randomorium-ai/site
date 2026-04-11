@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { getFormationPositions } from '@/lib/formation-layout'
-import { fuzzyMatchPlayer } from '@/lib/fuzzy-match'
+import type { Player } from '@/lib/player'
 import { nationalityFlag } from '@/lib/football-utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -15,27 +15,32 @@ interface LineupPlayer {
   nationality?: string
 }
 
-interface Match {
-  id: string
-  title: string
-  subtitle: string
-  teams: [string, string]
-  score: string
-  date: string
-  competition: string
+interface TeamSheet {
+  team: string
   formation: string
   lineup: LineupPlayer[]
 }
 
-interface SlotHints {
-  nationality: boolean
-  firstLetter: boolean
+interface Match {
+  id: string
+  competition: string
+  year: number
+  round: string
+  date: string
+  score: string
+  significance: string
+  home: TeamSheet
+  away: TeamSheet
 }
 
-const STORAGE_KEY = 'nf_teamsheet_v1'
+type SlotKey = `${'home' | 'away'}-${number}`
+
+interface SlotHints { firstLetter: boolean; nationality: boolean }
+
+const STORAGE_KEY = 'nf_teamsheet_v2'
 const MAX_SCORE_PER_PLAYER = 100
-const NATIONALITY_HINT_COST = 10
-const FIRST_LETTER_HINT_COST = 5
+const FIRST_LETTER_COST = 5
+const NATIONALITY_COST = 10
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
@@ -68,13 +73,116 @@ function scoreLabel(score: number, max: number): string {
   return 'Were you even born?'
 }
 
-// ─── Pitch slot colours ───────────────────────────────────────────────────────
+// ─── Fuzzy name matching ──────────────────────────────────────────────────────
+
+function norm(s: string) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+}
+
+function nameMatches(guess: string, playerName: string): boolean {
+  const g = norm(guess)
+  const parts = norm(playerName).split(/\s+/)
+  if (g === norm(playerName)) return true
+  if (parts.length > 0 && g === parts[parts.length - 1]) return true
+  if (parts.length > 1 && g === parts[0]) return true
+  return false
+}
+
+// ─── Pitch colours by position ────────────────────────────────────────────────
 
 const POS_BG: Record<string, string> = {
   GK: 'bg-amber-500',
   DEF: 'bg-blue-600',
   MID: 'bg-[#1a7a3e]',
   ATT: 'bg-red-600',
+}
+
+// ─── Pitch component ──────────────────────────────────────────────────────────
+
+interface PitchProps {
+  sheet: TeamSheet
+  correct: Set<SlotKey>
+  hints: Map<SlotKey, SlotHints>
+  wrongFlash: SlotKey | null
+  selectedSlot: SlotKey | null
+  teamSide: 'home' | 'away'
+  onSlotClick: (key: SlotKey) => void
+  accentColor: string
+}
+
+function Pitch({ sheet, correct, hints, wrongFlash, selectedSlot, teamSide, onSlotClick, accentColor }: PitchProps) {
+  const positions = getFormationPositions(sheet.formation)
+
+  return (
+    <div
+      className="relative w-full rounded-xl overflow-hidden border border-[#c8e6c9]"
+      style={{ background: 'linear-gradient(180deg, #2d8a4e 0%, #1a7a3e 100%)', aspectRatio: '0.68' }}
+    >
+      {/* Pitch markings */}
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 70 100" preserveAspectRatio="none" aria-hidden>
+        <rect x="5" y="3" width="60" height="94" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
+        <line x1="5" y1="50" x2="65" y2="50" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
+        <circle cx="35" cy="50" r="9" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
+        <rect x="18" y="3" width="34" height="14" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
+        <rect x="18" y="83" width="34" height="14" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
+        <rect x="26" y="3" width="18" height="7" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
+        <rect x="26" y="90" width="18" height="7" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
+      </svg>
+
+      {/* Team label on pitch */}
+      <div className={`absolute top-2 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest text-white/60 z-10`}>
+        {sheet.team}
+      </div>
+
+      {/* Player slots */}
+      {sheet.lineup.map((player, idx) => {
+        const pos = positions[idx]
+        if (!pos) return null
+        const key: SlotKey = `${teamSide}-${idx}`
+        const isCorrect = correct.has(key)
+        const isWrong = wrongFlash === key
+        const isSelected = selectedSlot === key
+        const slotHints = hints.get(key) ?? { firstLetter: false, nationality: false }
+
+        return (
+          <button
+            key={idx}
+            onClick={() => onSlotClick(key)}
+            disabled={isCorrect}
+            style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}
+            className={`absolute flex flex-col items-center gap-0.5 transition-all ${isCorrect ? 'cursor-default' : 'cursor-pointer hover:scale-110 active:scale-95'}`}
+          >
+            <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-black transition-colors ${
+              isCorrect ? 'bg-white border-white text-[#1a7a3e]' :
+              isWrong ? 'bg-red-500 border-red-300 text-white animate-pulse' :
+              isSelected ? `bg-yellow-400 border-yellow-200 text-[#1a1a1a]` :
+              'bg-white/20 border-white/50 text-white hover:bg-white/30'
+            }`}>
+              {isCorrect ? (
+                <span className="leading-tight text-center px-0.5 truncate w-full" style={{ fontSize: '7px', fontWeight: 900 }}>
+                  {player.name.split(' ').pop()}
+                </span>
+              ) : slotHints.firstLetter ? (
+                <span style={{ fontSize: '9px' }}>{player.name.split(' ').pop()![0].toUpperCase()}…</span>
+              ) : (
+                <span style={{ fontSize: '11px' }}>{player.number}</span>
+              )}
+            </div>
+            {isCorrect ? null : slotHints.nationality && player.nationality ? (
+              <span className="text-sm leading-none">{nationalityFlag(player.nationality)}</span>
+            ) : (
+              <span className={`text-[8px] font-bold text-white/70`}>{player.position}</span>
+            )}
+          </button>
+        )
+      })}
+
+      {/* Formation label */}
+      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[8px] font-mono text-white/40">
+        {sheet.formation}
+      </div>
+    </div>
+  )
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -84,18 +192,22 @@ export default function TeamsheetGame() {
   const [dateStr, setDateStr] = useState('')
   const [phase, setPhase] = useState<'loading' | 'playing' | 'won' | 'error'>('loading')
 
-  const [correct, setCorrect] = useState<Set<number>>(new Set())
-  const [hints, setHints] = useState<Map<number, SlotHints>>(new Map())
-  const [wrongFlash, setWrongFlash] = useState<number | null>(null)
+  const [correct, setCorrect] = useState<Set<SlotKey>>(new Set())
+  const [hints, setHints] = useState<Map<SlotKey, SlotHints>>(new Map())
+  const [wrongFlash, setWrongFlash] = useState<SlotKey | null>(null)
   const [score, setScore] = useState(0)
 
-  const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
-  const [inputValue, setInputValue] = useState('')
+  const [activeTeam, setActiveTeam] = useState<'home' | 'away'>('home')
+  const [selectedSlot, setSelectedSlot] = useState<SlotKey | null>(null)
+
+  const [searchValue, setSearchValue] = useState('')
+  const [searchResults, setSearchResults] = useState<Player[]>([])
+  const [streak, setStreak] = useState(0)
   const [copied, setCopied] = useState(false)
 
-  const [streak, setStreak] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const storageRef = useRef<GameStorage>({ streak: 0, lastDate: '', history: [] })
+  const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     storageRef.current = getStorage()
@@ -113,6 +225,23 @@ export default function TeamsheetGame() {
     if (selectedSlot !== null) setTimeout(() => inputRef.current?.focus(), 50)
   }, [selectedSlot])
 
+  // Player search
+  useEffect(() => {
+    const q = searchValue.trim()
+    if (q.length < 2) return
+
+    abortRef.current?.abort()
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+
+    fetch(`/api/football/players?search=${encodeURIComponent(q)}`, { signal: ctrl.signal })
+      .then(r => r.json())
+      .then(({ players }: { players: Player[] }) => {
+        setSearchResults((players ?? []).slice(0, 6))
+      })
+      .catch(() => { })
+  }, [searchValue])
+
   if (phase === 'loading') {
     return <div className="min-h-screen bg-[#fafafa] flex items-center justify-center"><div className="text-[#999] text-sm font-mono">Loading today&apos;s teamsheet…</div></div>
   }
@@ -126,29 +255,37 @@ export default function TeamsheetGame() {
     )
   }
 
-  const positions = getFormationPositions(match.formation)
-  const maxScore = match.lineup.length * MAX_SCORE_PER_PLAYER
+  const totalPlayers = match.home.lineup.length + match.away.lineup.length
+  const maxScore = totalPlayers * MAX_SCORE_PER_PLAYER
 
-  function handleSlotClick(idx: number) {
-    if (correct.has(idx) || phase === 'won') return
-    setSelectedSlot(idx)
-    setInputValue('')
+  function handleSlotClick(key: SlotKey) {
+    if (correct.has(key) || phase === 'won') return
+    const [team] = key.split('-') as ['home' | 'away', string]
+    if (team !== activeTeam) setActiveTeam(team)
+    setSelectedSlot(key)
+    setSearchValue('')
+    setSearchResults([])
   }
 
-  function submitGuess() {
-    if (selectedSlot === null || !inputValue.trim()) return
-    const player = match!.lineup[selectedSlot]
-    if (fuzzyMatchPlayer(inputValue.trim(), player.name)) {
-      const slotHints = hints.get(selectedSlot) ?? { nationality: false, firstLetter: false }
-      const deduction = (slotHints.nationality ? NATIONALITY_HINT_COST : 0) + (slotHints.firstLetter ? FIRST_LETTER_HINT_COST : 0)
+  function attemptGuess(playerName: string) {
+    if (!selectedSlot || !playerName.trim()) return
+    const [team, idxStr] = selectedSlot.split('-') as ['home' | 'away', string]
+    const idx = parseInt(idxStr)
+    const sheet = match![team]
+    const player = sheet.lineup[idx]
+
+    if (nameMatches(playerName, player.name)) {
+      const slotHints = hints.get(selectedSlot) ?? { firstLetter: false, nationality: false }
+      const deduction = (slotHints.firstLetter ? FIRST_LETTER_COST : 0) + (slotHints.nationality ? NATIONALITY_COST : 0)
       const earned = MAX_SCORE_PER_PLAYER - deduction
       const newCorrect = new Set(correct).add(selectedSlot)
       const newScore = score + earned
       setCorrect(newCorrect)
       setScore(newScore)
       setSelectedSlot(null)
-      setInputValue('')
-      if (newCorrect.size === match!.lineup.length) {
+      setSearchValue('')
+      setSearchResults([])
+      if (newCorrect.size === totalPlayers) {
         const stored = saveStorage(dateStr, newScore)
         storageRef.current = stored
         setStreak(stored.streak)
@@ -160,9 +297,9 @@ export default function TeamsheetGame() {
     }
   }
 
-  function giveHint(type: 'nationality' | 'firstLetter') {
-    if (selectedSlot === null) return
-    const current = hints.get(selectedSlot) ?? { nationality: false, firstLetter: false }
+  function giveHint(type: 'firstLetter' | 'nationality') {
+    if (!selectedSlot) return
+    const current = hints.get(selectedSlot) ?? { firstLetter: false, nationality: false }
     if (current[type]) return
     setHints(prev => {
       const next = new Map(prev)
@@ -172,57 +309,69 @@ export default function TeamsheetGame() {
   }
 
   function share() {
-    if (!match) return
-    const filled = correct.size
-    const blocks = match.lineup.map((_, i) => correct.has(i) ? '🟩' : '⬜').join('')
+    const homeRow = match!.home.lineup.map((_, i) => correct.has(`home-${i}`) ? '🟩' : '⬜').join('')
+    const awayRow = match!.away.lineup.map((_, i) => correct.has(`away-${i}`) ? '🟩' : '⬜').join('')
     const text = [
       `⚽ TEAMSHEET — ${dateStr}`,
-      `${match.title}`,
-      blocks,
-      `${filled}/${match.lineup.length} players · ${score} pts`,
+      `${match!.home.team} vs ${match!.away.team}`,
+      homeRow,
+      awayRow,
+      `${correct.size}/${totalPlayers} · ${score} pts`,
       'randomorium.ai/apps/football-games/teamsheet',
     ].join('\n')
     if (navigator.share) navigator.share({ text }).catch(() => { })
     else navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
 
-  const selectedPlayer = selectedSlot !== null ? match.lineup[selectedSlot] : null
-  const selectedHints = selectedSlot !== null ? (hints.get(selectedSlot) ?? { nationality: false, firstLetter: false }) : null
+  const selectedTeam = selectedSlot ? (selectedSlot.split('-')[0] as 'home' | 'away') : null
+  const selectedIdx = selectedSlot ? parseInt(selectedSlot.split('-')[1]) : null
+  const selectedPlayer = (selectedTeam !== null && selectedIdx !== null) ? match[selectedTeam].lineup[selectedIdx] : null
+  const selectedHints = selectedSlot ? (hints.get(selectedSlot) ?? { firstLetter: false, nationality: false }) : null
 
-  // ── Won screen ──────────────────────────────────────────────────────────────
+  const homeFound = match.home.lineup.filter((_, i) => correct.has(`home-${i}`)).length
+  const awayFound = match.away.lineup.filter((_, i) => correct.has(`away-${i}`)).length
+
+  // ── Won screen ────────────────────────────────────────────────────────────────
   if (phase === 'won') {
     const label = scoreLabel(score, maxScore)
     return (
       <div className="min-h-screen bg-[#fafafa] px-5 py-10">
         <div className="max-w-sm mx-auto">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-black uppercase tracking-tight">Teamsheet</h1>
-            <div className="text-[#999] text-xs font-mono mt-1">{dateStr}</div>
+          <div className="text-center mb-5">
+            <div className="text-[10px] text-[#999] font-mono uppercase tracking-widest">{match.competition}</div>
+            <h1 className="text-xl font-black uppercase tracking-tight mt-1">{match.home.team} vs {match.away.team}</h1>
+            <div className="text-[#999] text-xs font-mono mt-1">{match.round} · {match.year}</div>
           </div>
-          <div className="bg-[#f0f7f3] border border-[#1a7a3e] rounded-xl p-5 mb-5 text-center">
+
+          <div className="bg-[#f0f7f3] border border-[#1a7a3e] rounded-xl p-5 mb-4 text-center">
             <div className="text-4xl mb-2">🏆</div>
             <div className="font-black text-xl text-[#1a7a3e]">{score} / {maxScore}</div>
             <div className="text-sm text-[#1a7a3e] mt-1">{label}</div>
             {streak > 1 && <div className="text-sm font-bold text-[#1a7a3e] mt-2">🔥 {streak} day streak</div>}
           </div>
+
           <div className="bg-white border border-[#e5e5e5] rounded-xl p-4 mb-4">
-            <div className="text-xs text-[#999] font-mono uppercase tracking-widest mb-2">Today&apos;s match</div>
-            <div className="font-bold text-[#1a1a1a]">{match.title}</div>
-            <div className="text-sm text-[#666] mt-0.5">{match.subtitle} · {match.score}</div>
-            <div className="text-xs text-[#999] mt-1">{match.date} · {match.competition}</div>
+            <div className="text-xs text-[#999] font-mono uppercase tracking-widest mb-1">Result</div>
+            <div className="font-bold text-lg">{match.score}</div>
+            <div className="text-xs text-[#aaa] mt-0.5">{match.date} · {match.competition}</div>
+            <div className="text-sm text-[#555] mt-2">{match.significance}</div>
           </div>
-          <div className="bg-white border border-[#e5e5e5] rounded-xl p-4 mb-5">
-            <div className="text-xs text-[#999] font-mono uppercase tracking-widest mb-2">Full lineup ({match.formation})</div>
-            <div className="space-y-1">
-              {match.lineup.map((p, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <span className={`text-[9px] font-black px-1 py-0.5 rounded ${POS_BG[p.position]} text-white`}>{p.position}</span>
-                  <span className="font-medium text-[#1a1a1a]">{p.name}</span>
-                  <span className="text-[#999] text-xs ml-auto">#{p.number}</span>
-                </div>
-              ))}
+
+          {[{ side: 'home', sheet: match.home }, { side: 'away', sheet: match.away }].map(({ side, sheet }) => (
+            <div key={side} className="bg-white border border-[#e5e5e5] rounded-xl p-4 mb-3">
+              <div className="text-xs text-[#999] font-mono uppercase tracking-widest mb-2">{sheet.team} · {sheet.formation}</div>
+              <div className="space-y-1">
+                {sheet.lineup.map((p, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <span className={`text-[9px] font-black px-1 py-0.5 rounded ${POS_BG[p.position]} text-white`}>{p.position}</span>
+                    <span className="font-medium text-[#1a1a1a]">{p.name}</span>
+                    <span className="text-[#999] text-xs ml-auto">#{p.number}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          ))}
+
           <div className="flex gap-2">
             <button onClick={share} className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold hover:border-[#ccc] transition-colors">
               {copied ? '✓ Copied' : '↗ Share'}
@@ -236,7 +385,10 @@ export default function TeamsheetGame() {
     )
   }
 
-  // ── Playing ─────────────────────────────────────────────────────────────────
+  // ── Playing ───────────────────────────────────────────────────────────────────
+  const allFound = correct.size === totalPlayers
+  const activeSheet = match[activeTeam]
+
   return (
     <div className="flex flex-col h-[100dvh] bg-[#fafafa]">
 
@@ -246,99 +398,78 @@ export default function TeamsheetGame() {
           <Link href="/apps/football-games" className="text-blue-500 text-sm font-medium hover:underline">← Back</Link>
           <div className="text-center">
             <div className="text-[10px] text-[#999] font-mono uppercase tracking-widest">Teamsheet</div>
-            <div className="text-xs font-bold text-[#1a1a1a] mt-0.5">{correct.size}/{match.lineup.length} found</div>
+            <div className="text-xs font-bold text-[#1a1a1a] mt-0.5">{correct.size}/{totalPlayers} found</div>
           </div>
           <div className="text-xs font-bold text-[#1a7a3e]">{score} pts</div>
         </div>
       </div>
 
-      {/* Match info (blurred until complete) */}
+      {/* Match info */}
       <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-3">
         <div className="max-w-xl mx-auto">
-          <div className="text-xs font-bold text-[#1a1a1a]">{match.competition}</div>
-          <div className="flex items-center justify-between mt-1">
-            <span className="text-sm text-[#666]">{match.teams[0]} vs {match.teams[1]}</span>
-            <span className={`text-sm font-bold ${correct.size < match.lineup.length ? 'blur-sm select-none' : 'text-[#1a1a1a]'}`}>{match.score}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-white bg-[#1a7a3e] px-2 py-0.5 rounded">{match.competition}</span>
+            <span className="text-[10px] font-mono text-[#999]">{match.round}</span>
+            <span className="text-[10px] font-mono text-[#999]">{match.year}</span>
           </div>
-          <div className={`text-xs text-[#aaa] mt-0.5 ${correct.size < match.lineup.length ? 'blur-sm select-none' : ''}`}>{match.date}</div>
+          <div className="flex items-center justify-between mt-1.5">
+            <span className="text-sm font-bold text-[#1a1a1a]">{match.home.team}</span>
+            <span className={`text-sm font-black tabular-nums ${allFound ? 'text-[#1a1a1a]' : 'blur-sm select-none'}`}>{match.score}</span>
+            <span className="text-sm font-bold text-[#1a1a1a]">{match.away.team}</span>
+          </div>
+          <div className="text-xs text-[#aaa] mt-1 leading-snug">{match.significance}</div>
+        </div>
+      </div>
+
+      {/* Team tabs */}
+      <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4">
+        <div className="max-w-xl mx-auto flex">
+          {(['home', 'away'] as const).map(side => {
+            const sheet = match[side]
+            const found = side === 'home' ? homeFound : awayFound
+            const total = sheet.lineup.length
+            const isActive = activeTeam === side
+            return (
+              <button
+                key={side}
+                onClick={() => { setActiveTeam(side); setSelectedSlot(null) }}
+                className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${
+                  isActive ? 'border-[#1a7a3e] text-[#1a7a3e]' : 'border-transparent text-[#999] hover:text-[#666]'
+                }`}
+              >
+                {sheet.team}
+                <span className={`ml-1.5 text-[10px] font-mono ${isActive ? 'text-[#1a7a3e]' : 'text-[#bbb]'}`}>{found}/{total}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 
       {/* Pitch */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-xl mx-auto px-4 py-3">
-          <div
-            className="relative w-full rounded-xl overflow-hidden border border-[#c8e6c9]"
-            style={{ background: 'linear-gradient(180deg, #2d8a4e 0%, #1a7a3e 100%)', aspectRatio: '0.7' }}
-          >
-            {/* Pitch markings */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 70 100" preserveAspectRatio="none" aria-hidden>
-              <rect x="5" y="3" width="60" height="94" fill="none" stroke="white" strokeOpacity="0.25" strokeWidth="0.6" />
-              <line x1="5" y1="50" x2="65" y2="50" stroke="white" strokeOpacity="0.25" strokeWidth="0.6" />
-              <circle cx="35" cy="50" r="9" fill="none" stroke="white" strokeOpacity="0.25" strokeWidth="0.6" />
-              <rect x="18" y="3" width="34" height="14" fill="none" stroke="white" strokeOpacity="0.25" strokeWidth="0.6" />
-              <rect x="18" y="83" width="34" height="14" fill="none" stroke="white" strokeOpacity="0.25" strokeWidth="0.6" />
-              <rect x="26" y="3" width="18" height="7" fill="none" stroke="white" strokeOpacity="0.25" strokeWidth="0.6" />
-              <rect x="26" y="90" width="18" height="7" fill="none" stroke="white" strokeOpacity="0.25" strokeWidth="0.6" />
-            </svg>
-
-            {/* Player slots */}
-            {match.lineup.map((player, idx) => {
-              const pos = positions[idx]
-              if (!pos) return null
-              const isCorrect = correct.has(idx)
-              const isWrong = wrongFlash === idx
-              const isSelected = selectedSlot === idx
-              const slotHints = hints.get(idx) ?? { nationality: false, firstLetter: false }
-
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleSlotClick(idx)}
-                  disabled={isCorrect}
-                  style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}
-                  className={`absolute flex flex-col items-center gap-0.5 transition-all ${isCorrect ? 'cursor-default' : 'cursor-pointer hover:scale-110 active:scale-95'}`}
-                >
-                  <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-black transition-colors ${
-                    isCorrect ? 'bg-white border-white text-[#1a7a3e]' :
-                    isWrong ? 'bg-red-500 border-red-300 text-white animate-pulse' :
-                    isSelected ? 'bg-yellow-400 border-yellow-200 text-[#1a1a1a]' :
-                    'bg-white/20 border-white/50 text-white hover:bg-white/30'
-                  }`}>
-                    {isCorrect ? (
-                      <span className="text-[9px] font-black leading-tight px-0.5 text-center truncate w-full" style={{ fontSize: '7px' }}>
-                        {player.name.split(' ').pop()}
-                      </span>
-                    ) : slotHints.firstLetter ? (
-                      player.name.split(' ').pop()![0].toUpperCase() + '…'
-                    ) : (
-                      player.number
-                    )}
-                  </div>
-                  {isCorrect ? null : slotHints.nationality && player.nationality ? (
-                    <span className="text-sm">{nationalityFlag(player.nationality)}</span>
-                  ) : (
-                    <span className={`text-[8px] font-bold ${isCorrect ? 'text-white' : 'text-white/70'}`}>{player.position}</span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Formation label */}
-          <div className="text-center text-xs text-[#aaa] font-mono mt-2">{match.formation}</div>
+          <Pitch
+            sheet={activeSheet}
+            correct={correct}
+            hints={hints}
+            wrongFlash={wrongFlash}
+            selectedSlot={selectedSlot}
+            teamSide={activeTeam}
+            onSlotClick={handleSlotClick}
+            accentColor="#1a7a3e"
+          />
         </div>
       </div>
 
       {/* Input panel */}
-      <div className="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-4 py-3">
+      <div className="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-4 py-3 relative">
         <div className="max-w-xl mx-auto">
           {selectedSlot !== null && selectedPlayer ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className={`text-[9px] font-black px-1.5 py-0.5 rounded ${POS_BG[selectedPlayer.position]} text-white`}>{selectedPlayer.position}</div>
-                <span className="text-xs text-[#999]">#{selectedPlayer.number} — who played here?</span>
-                <button onClick={() => setSelectedSlot(null)} className="ml-auto text-[#bbb] hover:text-[#666] text-sm">✕</button>
+                <span className="text-xs text-[#999]">#{selectedPlayer.number} · {selectedTeam === 'home' ? match.home.team : match.away.team}</span>
+                <button onClick={() => { setSelectedSlot(null); setSearchValue(''); setSearchResults([]) }} className="ml-auto text-[#bbb] hover:text-[#666] text-sm">✕</button>
               </div>
 
               {/* Hint buttons */}
@@ -348,30 +479,49 @@ export default function TeamsheetGame() {
                   disabled={selectedHints?.firstLetter}
                   className={`text-xs px-2 py-1 rounded border transition-colors ${selectedHints?.firstLetter ? 'bg-[#f0f0f0] border-[#e0e0e0] text-[#aaa]' : 'bg-white border-[#e0e0e0] text-[#666] hover:border-blue-400 hover:text-blue-600'}`}
                 >
-                  🔤 First letter (−{FIRST_LETTER_HINT_COST} pts)
+                  🔤 First letter (−{FIRST_LETTER_COST})
                 </button>
                 <button
                   onClick={() => giveHint('nationality')}
                   disabled={selectedHints?.nationality || !selectedPlayer.nationality}
                   className={`text-xs px-2 py-1 rounded border transition-colors ${selectedHints?.nationality ? 'bg-[#f0f0f0] border-[#e0e0e0] text-[#aaa]' : 'bg-white border-[#e0e0e0] text-[#666] hover:border-blue-400 hover:text-blue-600'}`}
                 >
-                  🏳️ Nationality (−{NATIONALITY_HINT_COST} pts)
+                  🏳️ Nationality (−{NATIONALITY_COST})
                 </button>
               </div>
+
+              {/* Search autocomplete dropdown */}
+              {searchResults.length > 0 && (
+                <div className="absolute bottom-full left-4 right-4 mb-1 bg-white border border-[#e5e5e5] rounded-xl shadow-lg overflow-hidden z-10 max-w-xl mx-auto">
+                  {searchResults.map(p => (
+                    <button
+                      key={p.id}
+                      onMouseDown={() => attemptGuess(p.name)}
+                      className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-[#f5f5f5] border-b border-[#f0f0f0] last:border-0 transition-colors"
+                    >
+                      <span className="text-base">{nationalityFlag(p.nationality)}</span>
+                      <div>
+                        <div className="text-sm font-medium text-[#1a1a1a]">{p.name}</div>
+                        <div className="text-xs text-[#999]">{p.nationality} · {p.position}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <div className="flex gap-2">
                 <input
                   ref={inputRef}
                   type="text"
-                  placeholder="Type player name…"
-                  value={inputValue}
-                  onChange={e => setInputValue(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') submitGuess() }}
-                  className="flex-1 bg-white border border-[#e0e0e0] rounded-lg px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#bbb] outline-none focus:border-blue-400"
+                  placeholder="Search or type player name…"
+                  value={searchValue}
+                  onChange={e => { setSearchValue(e.target.value); if (e.target.value.trim().length < 2) setSearchResults([]) }}
+                  onKeyDown={e => { if (e.key === 'Enter' && !searchResults.length) attemptGuess(searchValue) }}
+                  className="flex-1 bg-white border border-[#e0e0e0] rounded-lg px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#bbb] outline-none focus:border-amber-400"
                 />
                 <button
-                  onClick={submitGuess}
-                  disabled={!inputValue.trim()}
+                  onClick={() => attemptGuess(searchValue)}
+                  disabled={!searchValue.trim()}
                   className="px-4 py-2 bg-[#1a7a3e] text-white rounded-lg text-sm font-bold disabled:opacity-40 hover:bg-[#155f30] transition-colors"
                 >
                   Go
@@ -380,9 +530,7 @@ export default function TeamsheetGame() {
             </div>
           ) : (
             <div className="text-center text-sm text-[#999]">
-              {correct.size < match.lineup.length
-                ? 'Tap a numbered slot to guess the player'
-                : 'All players found!'}
+              {allFound ? 'All 22 players found! 🎉' : 'Tap a shirt number to guess the player'}
             </div>
           )}
         </div>

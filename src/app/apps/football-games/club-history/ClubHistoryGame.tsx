@@ -54,6 +54,17 @@ function scoreLabel(score: number): string {
   return 'Confused him with someone else'
 }
 
+// ─── Date display ─────────────────────────────────────────────────────────────
+// `to: null` means the scraper didn't find an end year — not necessarily current.
+// Only show "present" if the club name matches the player's current_club.
+function clubYears(c: CareerClub, currentClub: string): string {
+  if (c.to !== null) {
+    return c.to === c.from ? String(c.from) : `${c.from}–${c.to}`
+  }
+  const norm = (s: string) => s.toLowerCase().trim()
+  return norm(c.club) === norm(currentClub) ? `${c.from}–present` : String(c.from)
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function ClubHistoryGame() {
@@ -206,7 +217,7 @@ export default function ClubHistoryGame() {
                   <div key={i} className={`flex items-center gap-2 text-sm rounded-lg px-2 py-1 ${wasFound ? 'bg-[#f0f7f3]' : 'bg-[#fafafa]'}`}>
                     <span className={`text-base ${wasFound ? '' : 'grayscale opacity-40'}`}>{wasFound ? '✅' : '❌'}</span>
                     <span className={`font-medium ${wasFound ? 'text-[#1a1a1a]' : 'text-[#999]'}`}>{c.club}</span>
-                    <span className="ml-auto text-xs text-[#aaa]">{c.from}–{c.to ?? 'present'}</span>
+                    <span className="ml-auto text-xs text-[#aaa]">{clubYears(c, player.current_club)}</span>
                   </div>
                 )
               })}
@@ -275,7 +286,7 @@ export default function ClubHistoryGame() {
                 {wasFound ? (
                   <>
                     <span className="font-bold text-[#1a7a3e]">{c.club}</span>
-                    <span className="text-xs text-[#aaa]">{c.from}–{c.to ?? 'present'}</span>
+                    <span className="text-xs text-[#aaa]">{clubYears(c, player.current_club)}</span>
                   </>
                 ) : (
                   <>
@@ -284,7 +295,7 @@ export default function ClubHistoryGame() {
                         <span key={j} className={`inline-block w-1.5 h-1.5 rounded-full ${c.club[j] === ' ' ? 'opacity-0' : 'bg-[#d0d0d0]'}`} />
                       ))}
                     </div>
-                    <span className="text-xs text-[#aaa]">{c.from}–{c.to ?? 'present'}</span>
+                    <span className="text-xs text-[#aaa]">{clubYears(c, player.current_club)}</span>
                   </>
                 )}
               </div>

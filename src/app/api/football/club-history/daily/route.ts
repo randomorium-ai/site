@@ -28,7 +28,7 @@ export async function GET() {
   // Pool: popular players with at least 3 qualifying clubs
   const pool = PLAYERS.filter(p => {
     const clubs = qualifyingClubs(p)
-    return p.popularity_score > 200_000 && clubs.length >= 3
+    return p.popularity_score > 500_000 && clubs.length >= 3
   })
 
   let seed = parseInt(dateStr.replace(/-/g, ""), 10)

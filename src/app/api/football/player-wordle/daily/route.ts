@@ -13,7 +13,7 @@ export async function GET() {
   const dateStr = now.toISOString().split("T")[0]
 
   // Pool: recognisable players
-  const pool = PLAYERS.filter(p => p.popularity_score > 100_000)
+  const pool = PLAYERS.filter(p => p.popularity_score > 500_000)
 
   let seed = parseInt(dateStr.replace(/-/g, ""), 10)
   seed = lcg(seed + 11)

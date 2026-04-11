@@ -1,692 +1,1292 @@
 [
   {
     "id": "cl-final-2005",
-    "title": "Champions League Final 2005",
-    "subtitle": "The Miracle of Istanbul",
-    "teams": ["Liverpool", "AC Milan"],
-    "score": "3-3 (Liverpool win on pens)",
-    "date": "2005-05-25",
     "competition": "Champions League",
-    "formation": "4-4-2",
-    "lineup": [
-      { "number": 1, "name": "Jerzy Dudek", "position": "GK" },
-      { "number": 3, "name": "Djimi Traoré", "position": "DEF" },
-      { "number": 4, "name": "Sami Hyypiä", "position": "DEF" },
-      { "number": 23, "name": "Jamie Carragher", "position": "DEF" },
-      { "number": 2, "name": "Steve Finnan", "position": "DEF" },
-      { "number": 7, "name": "Harry Kewell", "position": "MID" },
-      { "number": 14, "name": "Xabi Alonso", "position": "MID" },
-      { "number": 17, "name": "Steven Gerrard", "position": "MID" },
-      { "number": 10, "name": "Luis García", "position": "MID" },
-      { "number": 5, "name": "Milan Baroš", "position": "ATT" },
-      { "number": 9, "name": "Djibril Cissé", "position": "ATT" }
-    ]
+    "year": 2005,
+    "round": "Final",
+    "date": "2005-05-25",
+    "score": "3-3 (Liverpool win on pens)",
+    "significance": "Liverpool came back from 3-0 down at half-time to level and then win on penalties in the most dramatic Champions League final ever played.",
+    "home": {
+      "team": "Liverpool",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Jerzy Dudek", "position": "GK" },
+        { "number": 2, "name": "Steve Finnan", "position": "DEF" },
+        { "number": 4, "name": "Sami Hyypiä", "position": "DEF" },
+        { "number": 23, "name": "Jamie Carragher", "position": "DEF" },
+        { "number": 3, "name": "Djimi Traoré", "position": "DEF" },
+        { "number": 7, "name": "Harry Kewell", "position": "MID" },
+        { "number": 14, "name": "Xabi Alonso", "position": "MID" },
+        { "number": 17, "name": "Steven Gerrard", "position": "MID" },
+        { "number": 10, "name": "Luis García", "position": "MID" },
+        { "number": 5, "name": "Milan Baroš", "position": "ATT" },
+        { "number": 9, "name": "Djibril Cissé", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "AC Milan",
+      "formation": "4-3-1-2",
+      "lineup": [
+        { "number": 1, "name": "Dida", "position": "GK" },
+        { "number": 2, "name": "Cafu", "position": "DEF" },
+        { "number": 5, "name": "Jaap Stam", "position": "DEF" },
+        { "number": 13, "name": "Alessandro Nesta", "position": "DEF" },
+        { "number": 3, "name": "Paolo Maldini", "position": "DEF" },
+        { "number": 8, "name": "Gennaro Gattuso", "position": "MID" },
+        { "number": 21, "name": "Andrea Pirlo", "position": "MID" },
+        { "number": 10, "name": "Clarence Seedorf", "position": "MID" },
+        { "number": 22, "name": "Kaká", "position": "MID" },
+        { "number": 11, "name": "Hernán Crespo", "position": "ATT" },
+        { "number": 7, "name": "Andriy Shevchenko", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "cl-final-2009",
-    "title": "Champions League Final 2009",
-    "subtitle": "Pep's Perfect Night",
-    "teams": ["Barcelona", "Manchester United"],
-    "score": "2-0",
-    "date": "2009-05-27",
     "competition": "Champions League",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 1, "name": "Víctor Valdés", "position": "GK" },
-      { "number": 22, "name": "Dani Alves", "position": "DEF" },
-      { "number": 5, "name": "Carles Puyol", "position": "DEF" },
-      { "number": 24, "name": "Yaya Touré", "position": "DEF" },
-      { "number": 3, "name": "Éric Abidal", "position": "DEF" },
-      { "number": 16, "name": "Sergio Busquets", "position": "MID" },
-      { "number": 6, "name": "Xavi", "position": "MID" },
-      { "number": 8, "name": "Andrés Iniesta", "position": "MID" },
-      { "number": 17, "name": "Pedro", "position": "ATT" },
-      { "number": 9, "name": "Samuel Eto'o", "position": "ATT" },
-      { "number": 10, "name": "Lionel Messi", "position": "ATT" }
-    ]
+    "year": 2009,
+    "round": "Final",
+    "date": "2009-05-27",
+    "score": "2-0",
+    "significance": "Pep Guardiola's Barcelona dismantled Manchester United in Rome to complete a historic treble in his very first season as manager.",
+    "home": {
+      "team": "Barcelona",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 1, "name": "Víctor Valdés", "position": "GK" },
+        { "number": 22, "name": "Dani Alves", "position": "DEF" },
+        { "number": 5, "name": "Carles Puyol", "position": "DEF" },
+        { "number": 24, "name": "Yaya Touré", "position": "DEF" },
+        { "number": 3, "name": "Éric Abidal", "position": "DEF" },
+        { "number": 16, "name": "Sergio Busquets", "position": "MID" },
+        { "number": 6, "name": "Xavi", "position": "MID" },
+        { "number": 8, "name": "Andrés Iniesta", "position": "MID" },
+        { "number": 17, "name": "Pedro", "position": "ATT" },
+        { "number": 9, "name": "Samuel Eto'o", "position": "ATT" },
+        { "number": 10, "name": "Lionel Messi", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Manchester United",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Edwin van der Sar", "position": "GK" },
+        { "number": 22, "name": "John O'Shea", "position": "DEF" },
+        { "number": 5, "name": "Rio Ferdinand", "position": "DEF" },
+        { "number": 15, "name": "Nemanja Vidić", "position": "DEF" },
+        { "number": 3, "name": "Patrice Evra", "position": "DEF" },
+        { "number": 13, "name": "Ji-sung Park", "position": "MID" },
+        { "number": 16, "name": "Michael Carrick", "position": "MID" },
+        { "number": 8, "name": "Anderson", "position": "MID" },
+        { "number": 11, "name": "Ryan Giggs", "position": "MID" },
+        { "number": 7, "name": "Cristiano Ronaldo", "position": "ATT" },
+        { "number": 32, "name": "Carlos Tevez", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "cl-final-2014",
-    "title": "Champions League Final 2014",
-    "subtitle": "La Décima",
-    "teams": ["Real Madrid", "Atlético Madrid"],
-    "score": "4-1 (AET)",
-    "date": "2014-05-24",
     "competition": "Champions League",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 1, "name": "Iker Casillas", "position": "GK" },
-      { "number": 2, "name": "Dani Carvajal", "position": "DEF" },
-      { "number": 4, "name": "Sergio Ramos", "position": "DEF" },
-      { "number": 5, "name": "Raphaël Varane", "position": "DEF" },
-      { "number": 12, "name": "Marcelo", "position": "DEF" },
-      { "number": 22, "name": "Ángel Di María", "position": "MID" },
-      { "number": 10, "name": "Luka Modrić", "position": "MID" },
-      { "number": 14, "name": "Xabi Alonso", "position": "MID" },
-      { "number": 11, "name": "Gareth Bale", "position": "ATT" },
-      { "number": 9, "name": "Karim Benzema", "position": "ATT" },
-      { "number": 7, "name": "Cristiano Ronaldo", "position": "ATT" }
-    ]
+    "year": 2014,
+    "round": "Final",
+    "date": "2014-05-24",
+    "score": "4-1 (AET)",
+    "significance": "Real Madrid finally ended their 12-year wait for La Décima, scoring three times in extra time after Ramos's last-gasp header levelled it at 1-1.",
+    "home": {
+      "team": "Real Madrid",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 1, "name": "Iker Casillas", "position": "GK" },
+        { "number": 2, "name": "Dani Carvajal", "position": "DEF" },
+        { "number": 4, "name": "Sergio Ramos", "position": "DEF" },
+        { "number": 5, "name": "Raphaël Varane", "position": "DEF" },
+        { "number": 12, "name": "Marcelo", "position": "DEF" },
+        { "number": 22, "name": "Ángel Di María", "position": "MID" },
+        { "number": 10, "name": "Luka Modrić", "position": "MID" },
+        { "number": 14, "name": "Xabi Alonso", "position": "MID" },
+        { "number": 11, "name": "Gareth Bale", "position": "ATT" },
+        { "number": 9, "name": "Karim Benzema", "position": "ATT" },
+        { "number": 7, "name": "Cristiano Ronaldo", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Atlético Madrid",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 13, "name": "Thibaut Courtois", "position": "GK" },
+        { "number": 20, "name": "Juanfran", "position": "DEF" },
+        { "number": 2, "name": "Diego Godín", "position": "DEF" },
+        { "number": 4, "name": "Miranda", "position": "DEF" },
+        { "number": 3, "name": "Filipe Luís", "position": "DEF" },
+        { "number": 7, "name": "Raúl García", "position": "MID" },
+        { "number": 14, "name": "Gabi", "position": "MID" },
+        { "number": 5, "name": "Tiago", "position": "MID" },
+        { "number": 6, "name": "Koke", "position": "MID" },
+        { "number": 19, "name": "Diego Costa", "position": "ATT" },
+        { "number": 17, "name": "Adrián", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "cl-final-2019",
-    "title": "Champions League Final 2019",
-    "subtitle": "Alisson to Alexander-Arnold",
-    "teams": ["Liverpool", "Tottenham Hotspur"],
-    "score": "2-0",
-    "date": "2019-06-01",
     "competition": "Champions League",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 1, "name": "Alisson", "position": "GK" },
-      { "number": 66, "name": "Trent Alexander-Arnold", "position": "DEF" },
-      { "number": 32, "name": "Joel Matip", "position": "DEF" },
-      { "number": 4, "name": "Virgil van Dijk", "position": "DEF" },
-      { "number": 26, "name": "Andrew Robertson", "position": "DEF" },
-      { "number": 3, "name": "Fabinho", "position": "MID" },
-      { "number": 14, "name": "Jordan Henderson", "position": "MID" },
-      { "number": 5, "name": "Georginio Wijnaldum", "position": "MID" },
-      { "number": 11, "name": "Mohamed Salah", "position": "ATT" },
-      { "number": 9, "name": "Roberto Firmino", "position": "ATT" },
-      { "number": 19, "name": "Sadio Mané", "position": "ATT" }
-    ]
+    "year": 2019,
+    "round": "Final",
+    "date": "2019-06-01",
+    "score": "2-0",
+    "significance": "Liverpool claimed their sixth European Cup in Madrid, with a Salah penalty and late Origi goal securing Klopp's first Champions League title.",
+    "home": {
+      "team": "Liverpool",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 1, "name": "Alisson", "position": "GK" },
+        { "number": 66, "name": "Trent Alexander-Arnold", "position": "DEF" },
+        { "number": 32, "name": "Joel Matip", "position": "DEF" },
+        { "number": 4, "name": "Virgil van Dijk", "position": "DEF" },
+        { "number": 26, "name": "Andrew Robertson", "position": "DEF" },
+        { "number": 3, "name": "Fabinho", "position": "MID" },
+        { "number": 14, "name": "Jordan Henderson", "position": "MID" },
+        { "number": 5, "name": "Georginio Wijnaldum", "position": "MID" },
+        { "number": 11, "name": "Mohamed Salah", "position": "ATT" },
+        { "number": 9, "name": "Roberto Firmino", "position": "ATT" },
+        { "number": 19, "name": "Sadio Mané", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Tottenham Hotspur",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Hugo Lloris", "position": "GK" },
+        { "number": 2, "name": "Kieran Trippier", "position": "DEF" },
+        { "number": 4, "name": "Toby Alderweireld", "position": "DEF" },
+        { "number": 5, "name": "Jan Vertonghen", "position": "DEF" },
+        { "number": 3, "name": "Danny Rose", "position": "DEF" },
+        { "number": 17, "name": "Moussa Sissoko", "position": "MID" },
+        { "number": 8, "name": "Harry Winks", "position": "MID" },
+        { "number": 23, "name": "Christian Eriksen", "position": "MID" },
+        { "number": 20, "name": "Dele Alli", "position": "MID" },
+        { "number": 27, "name": "Lucas Moura", "position": "MID" },
+        { "number": 10, "name": "Harry Kane", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "cl-final-2023",
-    "title": "Champions League Final 2023",
-    "subtitle": "Gündogan's Brace",
-    "teams": ["Manchester City", "Inter Milan"],
-    "score": "1-0",
-    "date": "2023-06-10",
     "competition": "Champions League",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 31, "name": "Ederson", "position": "GK" },
-      { "number": 2, "name": "Kyle Walker", "position": "DEF" },
-      { "number": 5, "name": "Manuel Akanji", "position": "DEF" },
-      { "number": 3, "name": "Rúben Dias", "position": "DEF" },
-      { "number": 6, "name": "Nathan Aké", "position": "DEF" },
-      { "number": 20, "name": "Bernardo Silva", "position": "MID" },
-      { "number": 16, "name": "Rodri", "position": "MID" },
-      { "number": 17, "name": "Kevin De Bruyne", "position": "MID" },
-      { "number": 26, "name": "Riyad Mahrez", "position": "ATT" },
-      { "number": 9, "name": "Erling Haaland", "position": "ATT" },
-      { "number": 8, "name": "İlkay Gündoğan", "position": "ATT" }
-    ]
+    "year": 2023,
+    "round": "Final",
+    "date": "2023-06-10",
+    "score": "1-0",
+    "significance": "Rodri's deflected strike gave Manchester City a historic treble, completing the Premier League, FA Cup and Champions League in a single season under Guardiola.",
+    "home": {
+      "team": "Manchester City",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 31, "name": "Ederson", "position": "GK" },
+        { "number": 2, "name": "Kyle Walker", "position": "DEF" },
+        { "number": 5, "name": "Manuel Akanji", "position": "DEF" },
+        { "number": 3, "name": "Rúben Dias", "position": "DEF" },
+        { "number": 6, "name": "Nathan Aké", "position": "DEF" },
+        { "number": 20, "name": "Bernardo Silva", "position": "MID" },
+        { "number": 16, "name": "Rodri", "position": "MID" },
+        { "number": 17, "name": "Kevin De Bruyne", "position": "MID" },
+        { "number": 26, "name": "Riyad Mahrez", "position": "ATT" },
+        { "number": 9, "name": "Erling Haaland", "position": "ATT" },
+        { "number": 8, "name": "İlkay Gündoğan", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Inter Milan",
+      "formation": "3-5-2",
+      "lineup": [
+        { "number": 24, "name": "André Onana", "position": "GK" },
+        { "number": 36, "name": "Matteo Darmian", "position": "DEF" },
+        { "number": 15, "name": "Francesco Acerbi", "position": "DEF" },
+        { "number": 95, "name": "Alessandro Bastoni", "position": "DEF" },
+        { "number": 2, "name": "Denzel Dumfries", "position": "MID" },
+        { "number": 23, "name": "Nicolò Barella", "position": "MID" },
+        { "number": 77, "name": "Marcelo Brozović", "position": "MID" },
+        { "number": 20, "name": "Hakan Çalhanoğlu", "position": "MID" },
+        { "number": 32, "name": "Federico Dimarco", "position": "MID" },
+        { "number": 9, "name": "Edin Džeko", "position": "ATT" },
+        { "number": 10, "name": "Lautaro Martínez", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "cl-final-1999",
-    "title": "Champions League Final 1999",
-    "subtitle": "Two Goals in Stoppage Time",
-    "teams": ["Manchester United", "Bayern Munich"],
-    "score": "2-1",
-    "date": "1999-05-26",
     "competition": "Champions League",
-    "formation": "4-4-2",
-    "lineup": [
-      { "number": 1, "name": "Peter Schmeichel", "position": "GK" },
-      { "number": 2, "name": "Gary Neville", "position": "DEF" },
-      { "number": 6, "name": "Ronny Johnsen", "position": "DEF" },
-      { "number": 21, "name": "Jaap Stam", "position": "DEF" },
-      { "number": 3, "name": "Denis Irwin", "position": "DEF" },
-      { "number": 7, "name": "David Beckham", "position": "MID" },
-      { "number": 8, "name": "Nicky Butt", "position": "MID" },
-      { "number": 23, "name": "Phil Neville", "position": "MID" },
-      { "number": 15, "name": "Jesper Blomqvist", "position": "MID" },
-      { "number": 9, "name": "Andy Cole", "position": "ATT" },
-      { "number": 19, "name": "Dwight Yorke", "position": "ATT" }
-    ]
+    "year": 1999,
+    "round": "Final",
+    "date": "1999-05-26",
+    "score": "2-1",
+    "significance": "Manchester United scored twice in injury time through Sheringham and Solskjær to steal the trophy from Bayern Munich and complete an unprecedented treble.",
+    "home": {
+      "team": "Manchester United",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Peter Schmeichel", "position": "GK" },
+        { "number": 2, "name": "Gary Neville", "position": "DEF" },
+        { "number": 6, "name": "Ronny Johnsen", "position": "DEF" },
+        { "number": 21, "name": "Jaap Stam", "position": "DEF" },
+        { "number": 3, "name": "Denis Irwin", "position": "DEF" },
+        { "number": 7, "name": "David Beckham", "position": "MID" },
+        { "number": 8, "name": "Nicky Butt", "position": "MID" },
+        { "number": 23, "name": "Phil Neville", "position": "MID" },
+        { "number": 15, "name": "Jesper Blomqvist", "position": "MID" },
+        { "number": 9, "name": "Andy Cole", "position": "ATT" },
+        { "number": 19, "name": "Dwight Yorke", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Bayern Munich",
+      "formation": "3-5-2",
+      "lineup": [
+        { "number": 1, "name": "Oliver Kahn", "position": "GK" },
+        { "number": 10, "name": "Lothar Matthäus", "position": "DEF" },
+        { "number": 5, "name": "Thomas Linke", "position": "DEF" },
+        { "number": 25, "name": "Samuel Kuffour", "position": "DEF" },
+        { "number": 3, "name": "Markus Babbel", "position": "MID" },
+        { "number": 8, "name": "Stefan Effenberg", "position": "MID" },
+        { "number": 11, "name": "Jens Jeremies", "position": "MID" },
+        { "number": 17, "name": "Michael Tarnat", "position": "MID" },
+        { "number": 19, "name": "Thorsten Fink", "position": "MID" },
+        { "number": 27, "name": "Carsten Jancker", "position": "ATT" },
+        { "number": 24, "name": "Alexander Zickler", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "cl-final-2012",
-    "title": "Champions League Final 2012",
-    "subtitle": "Drogba's Header",
-    "teams": ["Chelsea", "Bayern Munich"],
-    "score": "1-1 (Chelsea win on pens)",
-    "date": "2012-05-19",
     "competition": "Champions League",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 1, "name": "Petr Čech", "position": "GK" },
-      { "number": 17, "name": "José Bosingwa", "position": "DEF" },
-      { "number": 24, "name": "Gary Cahill", "position": "DEF" },
-      { "number": 26, "name": "John Terry", "position": "DEF" },
-      { "number": 3, "name": "Ashley Cole", "position": "DEF" },
-      { "number": 12, "name": "John Obi Mikel", "position": "MID" },
-      { "number": 8, "name": "Frank Lampard", "position": "MID" },
-      { "number": 7, "name": "Ramires", "position": "MID" },
-      { "number": 10, "name": "Juan Mata", "position": "ATT" },
-      { "number": 11, "name": "Didier Drogba", "position": "ATT" },
-      { "number": 15, "name": "Florent Malouda", "position": "ATT" }
-    ]
+    "year": 2012,
+    "round": "Final",
+    "date": "2012-05-19",
+    "score": "1-1 (Chelsea win on pens)",
+    "significance": "Drogba's 88th-minute header forced extra time in Bayern's home stadium, and Chelsea won on penalties to claim the one trophy their billionaire owner had always craved.",
+    "home": {
+      "team": "Chelsea",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 1, "name": "Petr Čech", "position": "GK" },
+        { "number": 17, "name": "José Bosingwa", "position": "DEF" },
+        { "number": 24, "name": "Gary Cahill", "position": "DEF" },
+        { "number": 26, "name": "John Terry", "position": "DEF" },
+        { "number": 3, "name": "Ashley Cole", "position": "DEF" },
+        { "number": 12, "name": "John Obi Mikel", "position": "MID" },
+        { "number": 8, "name": "Frank Lampard", "position": "MID" },
+        { "number": 7, "name": "Ramires", "position": "MID" },
+        { "number": 10, "name": "Juan Mata", "position": "ATT" },
+        { "number": 11, "name": "Didier Drogba", "position": "ATT" },
+        { "number": 15, "name": "Florent Malouda", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Bayern Munich",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Manuel Neuer", "position": "GK" },
+        { "number": 21, "name": "Philipp Lahm", "position": "DEF" },
+        { "number": 17, "name": "Jérôme Boateng", "position": "DEF" },
+        { "number": 4, "name": "Dante", "position": "DEF" },
+        { "number": 27, "name": "David Alaba", "position": "DEF" },
+        { "number": 31, "name": "Bastian Schweinsteiger", "position": "MID" },
+        { "number": 39, "name": "Toni Kroos", "position": "MID" },
+        { "number": 10, "name": "Arjen Robben", "position": "MID" },
+        { "number": 25, "name": "Thomas Müller", "position": "MID" },
+        { "number": 7, "name": "Franck Ribéry", "position": "MID" },
+        { "number": 33, "name": "Mario Gomez", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "cl-final-2016",
-    "title": "Champions League Final 2016",
-    "subtitle": "Real Madrid's 11th",
-    "teams": ["Real Madrid", "Atlético Madrid"],
-    "score": "1-1 (Real Madrid win on pens)",
-    "date": "2016-05-28",
     "competition": "Champions League",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 13, "name": "Keylor Navas", "position": "GK" },
-      { "number": 2, "name": "Dani Carvajal", "position": "DEF" },
-      { "number": 4, "name": "Sergio Ramos", "position": "DEF" },
-      { "number": 5, "name": "Raphaël Varane", "position": "DEF" },
-      { "number": 12, "name": "Marcelo", "position": "DEF" },
-      { "number": 10, "name": "Luka Modrić", "position": "MID" },
-      { "number": 14, "name": "Casemiro", "position": "MID" },
-      { "number": 8, "name": "Toni Kroos", "position": "MID" },
-      { "number": 11, "name": "Gareth Bale", "position": "ATT" },
-      { "number": 9, "name": "Karim Benzema", "position": "ATT" },
-      { "number": 7, "name": "Cristiano Ronaldo", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "wc-final-1998",
-    "title": "World Cup Final 1998",
-    "subtitle": "Zidane's Two Headers",
-    "teams": ["France", "Brazil"],
-    "score": "3-0",
-    "date": "1998-07-12",
-    "competition": "World Cup",
-    "formation": "4-3-2-1",
-    "lineup": [
-      { "number": 16, "name": "Fabien Barthez", "position": "GK" },
-      { "number": 15, "name": "Lilian Thuram", "position": "DEF" },
-      { "number": 8, "name": "Marcel Desailly", "position": "DEF" },
-      { "number": 5, "name": "Frank Leboeuf", "position": "DEF" },
-      { "number": 3, "name": "Bixente Lizarazu", "position": "DEF" },
-      { "number": 7, "name": "Didier Deschamps", "position": "MID" },
-      { "number": 19, "name": "Christian Karembeu", "position": "MID" },
-      { "number": 17, "name": "Emmanuel Petit", "position": "MID" },
-      { "number": 10, "name": "Zinédine Zidane", "position": "MID" },
-      { "number": 11, "name": "Youri Djorkaeff", "position": "MID" },
-      { "number": 20, "name": "Stéphane Guivarc'h", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "wc-final-2002",
-    "title": "World Cup Final 2002",
-    "subtitle": "Ronaldo's Redemption",
-    "teams": ["Brazil", "Germany"],
-    "score": "2-0",
-    "date": "2002-06-30",
-    "competition": "World Cup",
-    "formation": "4-2-3-1",
-    "lineup": [
-      { "number": 1, "name": "Marcos", "position": "GK" },
-      { "number": 2, "name": "Cafu", "position": "DEF" },
-      { "number": 3, "name": "Lúcio", "position": "DEF" },
-      { "number": 5, "name": "Edmílson", "position": "DEF" },
-      { "number": 6, "name": "Roberto Carlos", "position": "DEF" },
-      { "number": 15, "name": "Gilberto Silva", "position": "MID" },
-      { "number": 8, "name": "Kléberson", "position": "MID" },
-      { "number": 11, "name": "Ronaldinho", "position": "MID" },
-      { "number": 10, "name": "Rivaldo", "position": "MID" },
-      { "number": 7, "name": "Edilson", "position": "MID" },
-      { "number": 9, "name": "Ronaldo", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "wc-final-2006",
-    "title": "World Cup Final 2006",
-    "subtitle": "Headbutt in Berlin",
-    "teams": ["Italy", "France"],
-    "score": "1-1 (Italy win on pens)",
-    "date": "2006-07-09",
-    "competition": "World Cup",
-    "formation": "4-4-2",
-    "lineup": [
-      { "number": 1, "name": "Gianluigi Buffon", "position": "GK" },
-      { "number": 19, "name": "Gianluca Zambrotta", "position": "DEF" },
-      { "number": 5, "name": "Fabio Cannavaro", "position": "DEF" },
-      { "number": 23, "name": "Marco Materazzi", "position": "DEF" },
-      { "number": 3, "name": "Fabio Grosso", "position": "DEF" },
-      { "number": 16, "name": "Mauro Camoranesi", "position": "MID" },
-      { "number": 8, "name": "Gennaro Gattuso", "position": "MID" },
-      { "number": 21, "name": "Andrea Pirlo", "position": "MID" },
-      { "number": 20, "name": "Simone Perrotta", "position": "MID" },
-      { "number": 10, "name": "Francesco Totti", "position": "ATT" },
-      { "number": 9, "name": "Luca Toni", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "wc-final-2010",
-    "title": "World Cup Final 2010",
-    "subtitle": "Iniesta in Extra Time",
-    "teams": ["Spain", "Netherlands"],
-    "score": "1-0 (AET)",
-    "date": "2010-07-11",
-    "competition": "World Cup",
-    "formation": "4-2-3-1",
-    "lineup": [
-      { "number": 1, "name": "Iker Casillas", "position": "GK" },
-      { "number": 15, "name": "Sergio Ramos", "position": "DEF" },
-      { "number": 3, "name": "Gerard Piqué", "position": "DEF" },
-      { "number": 5, "name": "Carles Puyol", "position": "DEF" },
-      { "number": 11, "name": "Joan Capdevila", "position": "DEF" },
-      { "number": 16, "name": "Sergio Busquets", "position": "MID" },
-      { "number": 14, "name": "Xabi Alonso", "position": "MID" },
-      { "number": 8, "name": "Xavi", "position": "MID" },
-      { "number": 21, "name": "David Silva", "position": "MID" },
-      { "number": 6, "name": "Andrés Iniesta", "position": "MID" },
-      { "number": 7, "name": "David Villa", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "wc-final-2014",
-    "title": "World Cup Final 2014",
-    "subtitle": "Götze's Extra Time Winner",
-    "teams": ["Germany", "Argentina"],
-    "score": "1-0 (AET)",
-    "date": "2014-07-13",
-    "competition": "World Cup",
-    "formation": "4-2-3-1",
-    "lineup": [
-      { "number": 1, "name": "Manuel Neuer", "position": "GK" },
-      { "number": 16, "name": "Philipp Lahm", "position": "DEF" },
-      { "number": 17, "name": "Jérôme Boateng", "position": "DEF" },
-      { "number": 5, "name": "Mats Hummels", "position": "DEF" },
-      { "number": 4, "name": "Benedikt Höwedes", "position": "DEF" },
-      { "number": 7, "name": "Bastian Schweinsteiger", "position": "MID" },
-      { "number": 23, "name": "Toni Kroos", "position": "MID" },
-      { "number": 13, "name": "Thomas Müller", "position": "MID" },
-      { "number": 8, "name": "Mesut Özil", "position": "MID" },
-      { "number": 18, "name": "André Schürrle", "position": "MID" },
-      { "number": 11, "name": "Miroslav Klose", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "wc-final-2018",
-    "title": "World Cup Final 2018",
-    "subtitle": "Les Bleus Win Again",
-    "teams": ["France", "Croatia"],
-    "score": "4-2",
-    "date": "2018-07-15",
-    "competition": "World Cup",
-    "formation": "4-2-3-1",
-    "lineup": [
-      { "number": 1, "name": "Hugo Lloris", "position": "GK" },
-      { "number": 2, "name": "Benjamin Pavard", "position": "DEF" },
-      { "number": 4, "name": "Raphaël Varane", "position": "DEF" },
-      { "number": 5, "name": "Samuel Umtiti", "position": "DEF" },
-      { "number": 21, "name": "Lucas Hernández", "position": "DEF" },
-      { "number": 13, "name": "N'Golo Kanté", "position": "MID" },
-      { "number": 6, "name": "Paul Pogba", "position": "MID" },
-      { "number": 11, "name": "Kylian Mbappé", "position": "MID" },
-      { "number": 7, "name": "Antoine Griezmann", "position": "MID" },
-      { "number": 14, "name": "Blaise Matuidi", "position": "MID" },
-      { "number": 9, "name": "Olivier Giroud", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "wc-final-2022",
-    "title": "World Cup Final 2022",
-    "subtitle": "Messi Lifts the Trophy",
-    "teams": ["Argentina", "France"],
-    "score": "3-3 (Argentina win on pens)",
-    "date": "2022-12-18",
-    "competition": "World Cup",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 23, "name": "Emiliano Martínez", "position": "GK" },
-      { "number": 26, "name": "Nahuel Molina", "position": "DEF" },
-      { "number": 13, "name": "Cristian Romero", "position": "DEF" },
-      { "number": 19, "name": "Nicolás Otamendi", "position": "DEF" },
-      { "number": 3, "name": "Nicolás Tagliafico", "position": "DEF" },
-      { "number": 7, "name": "Rodrigo De Paul", "position": "MID" },
-      { "number": 24, "name": "Enzo Fernández", "position": "MID" },
-      { "number": 20, "name": "Alexis Mac Allister", "position": "MID" },
-      { "number": 11, "name": "Ángel Di María", "position": "ATT" },
-      { "number": 10, "name": "Lionel Messi", "position": "ATT" },
-      { "number": 9, "name": "Julián Álvarez", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "pl-aguero-2012",
-    "title": "Manchester City vs QPR 2012",
-    "subtitle": "Agüero 93:20",
-    "teams": ["Manchester City", "QPR"],
-    "score": "3-2",
-    "date": "2012-05-13",
-    "competition": "Premier League",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 25, "name": "Joe Hart", "position": "GK" },
-      { "number": 5, "name": "Pablo Zabaleta", "position": "DEF" },
-      { "number": 4, "name": "Vincent Kompany", "position": "DEF" },
-      { "number": 6, "name": "Joleon Lescott", "position": "DEF" },
-      { "number": 22, "name": "Gaël Clichy", "position": "DEF" },
-      { "number": 42, "name": "Yaya Touré", "position": "MID" },
-      { "number": 8, "name": "Gareth Barry", "position": "MID" },
-      { "number": 21, "name": "David Silva", "position": "MID" },
-      { "number": 32, "name": "Carlos Tevez", "position": "ATT" },
-      { "number": 16, "name": "Sergio Agüero", "position": "ATT" },
-      { "number": 45, "name": "Mario Balotelli", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "pl-gerrard-slip-2014",
-    "title": "Chelsea vs Liverpool 2014",
-    "subtitle": "The Slip",
-    "teams": ["Chelsea", "Liverpool"],
-    "score": "2-0",
-    "date": "2014-04-27",
-    "competition": "Premier League",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 22, "name": "Simon Mignolet", "position": "GK" },
-      { "number": 2, "name": "Glen Johnson", "position": "DEF" },
-      { "number": 37, "name": "Martin Škrtel", "position": "DEF" },
-      { "number": 3, "name": "Mamadou Sakho", "position": "DEF" },
-      { "number": 34, "name": "Jon Flanagan", "position": "DEF" },
-      { "number": 20, "name": "Lucas Leiva", "position": "MID" },
-      { "number": 8, "name": "Steven Gerrard", "position": "MID" },
-      { "number": 14, "name": "Jordan Henderson", "position": "MID" },
-      { "number": 31, "name": "Raheem Sterling", "position": "ATT" },
-      { "number": 7, "name": "Luis Suárez", "position": "ATT" },
-      { "number": 15, "name": "Daniel Sturridge", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "pl-leicester-2016",
-    "title": "Chelsea vs Tottenham 2016",
-    "subtitle": "Leicester Win the Title",
-    "teams": ["Chelsea", "Tottenham Hotspur"],
-    "score": "2-2",
-    "date": "2016-05-02",
-    "competition": "Premier League",
-    "formation": "4-2-3-1",
-    "lineup": [
-      { "number": 1, "name": "Hugo Lloris", "position": "GK" },
-      { "number": 2, "name": "Kyle Walker", "position": "DEF" },
-      { "number": 4, "name": "Toby Alderweireld", "position": "DEF" },
-      { "number": 5, "name": "Jan Vertonghen", "position": "DEF" },
-      { "number": 33, "name": "Ben Davies", "position": "DEF" },
-      { "number": 19, "name": "Mousa Dembélé", "position": "MID" },
-      { "number": 15, "name": "Eric Dier", "position": "MID" },
-      { "number": 23, "name": "Christian Eriksen", "position": "MID" },
-      { "number": 20, "name": "Dele Alli", "position": "MID" },
-      { "number": 7, "name": "Heung-min Son", "position": "MID" },
-      { "number": 10, "name": "Harry Kane", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "el-clasico-2010",
-    "title": "El Clásico — November 2010",
-    "subtitle": "Barcelona 5-0 Real Madrid",
-    "teams": ["Barcelona", "Real Madrid"],
-    "score": "5-0",
-    "date": "2010-11-29",
-    "competition": "La Liga",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 1, "name": "Víctor Valdés", "position": "GK" },
-      { "number": 2, "name": "Dani Alves", "position": "DEF" },
-      { "number": 5, "name": "Carles Puyol", "position": "DEF" },
-      { "number": 3, "name": "Gerard Piqué", "position": "DEF" },
-      { "number": 22, "name": "Éric Abidal", "position": "DEF" },
-      { "number": 16, "name": "Sergio Busquets", "position": "MID" },
-      { "number": 6, "name": "Xavi", "position": "MID" },
-      { "number": 8, "name": "Andrés Iniesta", "position": "MID" },
-      { "number": 17, "name": "Pedro", "position": "ATT" },
-      { "number": 7, "name": "David Villa", "position": "ATT" },
-      { "number": 10, "name": "Lionel Messi", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "euro-2004-final",
-    "title": "Euro 2004 Final",
-    "subtitle": "Greece's Golden Moment",
-    "teams": ["Greece", "Portugal"],
-    "score": "1-0",
-    "date": "2004-07-04",
-    "competition": "Euro 2004",
-    "formation": "4-4-2",
-    "lineup": [
-      { "number": 1, "name": "Antonis Nikopolidis", "position": "GK" },
-      { "number": 2, "name": "Takis Fyssas", "position": "DEF" },
-      { "number": 5, "name": "Michalis Kapsis", "position": "DEF" },
-      { "number": 21, "name": "Traianos Dellas", "position": "DEF" },
-      { "number": 20, "name": "Giourkas Seitaridis", "position": "DEF" },
-      { "number": 14, "name": "Stelios Giannakopoulos", "position": "MID" },
-      { "number": 8, "name": "Theodoros Zagorakis", "position": "MID" },
-      { "number": 10, "name": "Angelos Basinas", "position": "MID" },
-      { "number": 15, "name": "Pantelis Kafes", "position": "MID" },
-      { "number": 9, "name": "Angelos Charisteas", "position": "ATT" },
-      { "number": 17, "name": "Zisis Vryzas", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "euro-2008-final",
-    "title": "Euro 2008 Final",
-    "subtitle": "Torres' Debut Header",
-    "teams": ["Spain", "Germany"],
-    "score": "1-0",
-    "date": "2008-06-29",
-    "competition": "Euro 2008",
-    "formation": "4-2-3-1",
-    "lineup": [
-      { "number": 1, "name": "Iker Casillas", "position": "GK" },
-      { "number": 15, "name": "Sergio Ramos", "position": "DEF" },
-      { "number": 5, "name": "Carles Puyol", "position": "DEF" },
-      { "number": 4, "name": "Carlos Marchena", "position": "DEF" },
-      { "number": 11, "name": "Joan Capdevila", "position": "DEF" },
-      { "number": 14, "name": "Xabi Alonso", "position": "MID" },
-      { "number": 16, "name": "Marcos Senna", "position": "MID" },
-      { "number": 21, "name": "David Silva", "position": "MID" },
-      { "number": 8, "name": "Xavi", "position": "MID" },
-      { "number": 7, "name": "David Villa", "position": "MID" },
-      { "number": 9, "name": "Fernando Torres", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "euro-2012-final",
-    "title": "Euro 2012 Final",
-    "subtitle": "Spain's Record Four",
-    "teams": ["Spain", "Italy"],
-    "score": "4-0",
-    "date": "2012-07-01",
-    "competition": "Euro 2012",
-    "formation": "4-2-3-1",
-    "lineup": [
-      { "number": 1, "name": "Iker Casillas", "position": "GK" },
-      { "number": 17, "name": "Álvaro Arbeloa", "position": "DEF" },
-      { "number": 3, "name": "Gerard Piqué", "position": "DEF" },
-      { "number": 15, "name": "Sergio Ramos", "position": "DEF" },
-      { "number": 18, "name": "Jordi Alba", "position": "DEF" },
-      { "number": 16, "name": "Sergio Busquets", "position": "MID" },
-      { "number": 14, "name": "Xabi Alonso", "position": "MID" },
-      { "number": 22, "name": "Navas", "position": "MID" },
-      { "number": 21, "name": "David Silva", "position": "MID" },
-      { "number": 6, "name": "Andrés Iniesta", "position": "MID" },
-      { "number": 10, "name": "Cesc Fàbregas", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "euro-2016-final",
-    "title": "Euro 2016 Final",
-    "subtitle": "Eder's Extra Time Winner",
-    "teams": ["Portugal", "France"],
-    "score": "1-0 (AET)",
-    "date": "2016-07-10",
-    "competition": "Euro 2016",
-    "formation": "4-4-2",
-    "lineup": [
-      { "number": 1, "name": "Rui Patrício", "position": "GK" },
-      { "number": 22, "name": "Cédric Soares", "position": "DEF" },
-      { "number": 4, "name": "Pepe", "position": "DEF" },
-      { "number": 5, "name": "José Fonte", "position": "DEF" },
-      { "number": 18, "name": "Raphaël Guerreiro", "position": "DEF" },
-      { "number": 8, "name": "João Moutinho", "position": "MID" },
-      { "number": 14, "name": "William Carvalho", "position": "MID" },
-      { "number": 10, "name": "João Mário", "position": "MID" },
-      { "number": 16, "name": "Renato Sanches", "position": "MID" },
-      { "number": 7, "name": "Cristiano Ronaldo", "position": "ATT" },
-      { "number": 17, "name": "Nani", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "euro-2020-final",
-    "title": "Euro 2020 Final",
-    "subtitle": "Italy Beat England on Pens",
-    "teams": ["Italy", "England"],
-    "score": "1-1 (Italy win on pens)",
-    "date": "2021-07-11",
-    "competition": "Euro 2020",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 21, "name": "Gianluigi Donnarumma", "position": "GK" },
-      { "number": 2, "name": "Giovanni Di Lorenzo", "position": "DEF" },
-      { "number": 19, "name": "Leonardo Bonucci", "position": "DEF" },
-      { "number": 3, "name": "Giorgio Chiellini", "position": "DEF" },
-      { "number": 8, "name": "Emerson Palmieri", "position": "DEF" },
-      { "number": 18, "name": "Nicolò Barella", "position": "MID" },
-      { "number": 16, "name": "Bryan Cristante", "position": "MID" },
-      { "number": 6, "name": "Marco Verratti", "position": "MID" },
-      { "number": 11, "name": "Domenico Berardi", "position": "ATT" },
-      { "number": 17, "name": "Ciro Immobile", "position": "ATT" },
-      { "number": 10, "name": "Lorenzo Insigne", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "wc-final-1994",
-    "title": "World Cup Final 1994",
-    "subtitle": "Baggio's Missed Penalty",
-    "teams": ["Brazil", "Italy"],
-    "score": "0-0 (Brazil win on pens)",
-    "date": "1994-07-17",
-    "competition": "World Cup",
-    "formation": "4-4-2",
-    "lineup": [
-      { "number": 1, "name": "Taffarel", "position": "GK" },
-      { "number": 2, "name": "Cafu", "position": "DEF" },
-      { "number": 3, "name": "Aldair", "position": "DEF" },
-      { "number": 4, "name": "Márcio Santos", "position": "DEF" },
-      { "number": 6, "name": "Branco", "position": "DEF" },
-      { "number": 5, "name": "Mauro Silva", "position": "MID" },
-      { "number": 8, "name": "Mazinho", "position": "MID" },
-      { "number": 10, "name": "Zinho", "position": "MID" },
-      { "number": 14, "name": "Raí", "position": "MID" },
-      { "number": 11, "name": "Romário", "position": "ATT" },
-      { "number": 7, "name": "Bebeto", "position": "ATT" }
-    ]
-  },
-  {
-    "id": "wc-semi-2014",
-    "title": "World Cup Semi-Final 2014",
-    "subtitle": "Germany 7-1 Brazil",
-    "teams": ["Germany", "Brazil"],
-    "score": "7-1",
-    "date": "2014-07-08",
-    "competition": "World Cup",
-    "formation": "4-2-3-1",
-    "lineup": [
-      { "number": 1, "name": "Manuel Neuer", "position": "GK" },
-      { "number": 16, "name": "Philipp Lahm", "position": "DEF" },
-      { "number": 17, "name": "Jérôme Boateng", "position": "DEF" },
-      { "number": 5, "name": "Mats Hummels", "position": "DEF" },
-      { "number": 4, "name": "Benedikt Höwedes", "position": "DEF" },
-      { "number": 7, "name": "Bastian Schweinsteiger", "position": "MID" },
-      { "number": 6, "name": "Sami Khedira", "position": "MID" },
-      { "number": 13, "name": "Thomas Müller", "position": "MID" },
-      { "number": 8, "name": "Mesut Özil", "position": "MID" },
-      { "number": 23, "name": "Toni Kroos", "position": "MID" },
-      { "number": 11, "name": "Miroslav Klose", "position": "ATT" }
-    ]
+    "year": 2016,
+    "round": "Final",
+    "date": "2016-05-28",
+    "score": "1-1 (Real Madrid win on pens)",
+    "significance": "Two city rivals met in a second final in three years, with Real Madrid winning on penalties after Sergio Ramos scored in normal time and Atlético equalised late on.",
+    "home": {
+      "team": "Real Madrid",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 13, "name": "Keylor Navas", "position": "GK" },
+        { "number": 2, "name": "Dani Carvajal", "position": "DEF" },
+        { "number": 4, "name": "Sergio Ramos", "position": "DEF" },
+        { "number": 5, "name": "Raphaël Varane", "position": "DEF" },
+        { "number": 12, "name": "Marcelo", "position": "DEF" },
+        { "number": 10, "name": "Luka Modrić", "position": "MID" },
+        { "number": 14, "name": "Casemiro", "position": "MID" },
+        { "number": 8, "name": "Toni Kroos", "position": "MID" },
+        { "number": 11, "name": "Gareth Bale", "position": "ATT" },
+        { "number": 9, "name": "Karim Benzema", "position": "ATT" },
+        { "number": 7, "name": "Cristiano Ronaldo", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Atlético Madrid",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 13, "name": "Jan Oblak", "position": "GK" },
+        { "number": 20, "name": "Juanfran", "position": "DEF" },
+        { "number": 2, "name": "Diego Godín", "position": "DEF" },
+        { "number": 15, "name": "Stefan Savić", "position": "DEF" },
+        { "number": 3, "name": "Filipe Luís", "position": "DEF" },
+        { "number": 8, "name": "Saúl Ñíguez", "position": "MID" },
+        { "number": 14, "name": "Gabi", "position": "MID" },
+        { "number": 5, "name": "Tiago", "position": "MID" },
+        { "number": 6, "name": "Koke", "position": "MID" },
+        { "number": 7, "name": "Antoine Griezmann", "position": "ATT" },
+        { "number": 9, "name": "Fernando Torres", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "cl-final-2003",
-    "title": "Champions League Final 2003",
-    "subtitle": "All-Italian Final",
-    "teams": ["AC Milan", "Juventus"],
-    "score": "0-0 (AC Milan win on pens)",
-    "date": "2003-05-28",
     "competition": "Champions League",
-    "formation": "4-3-2-1",
-    "lineup": [
-      { "number": 1, "name": "Dida", "position": "GK" },
-      { "number": 2, "name": "Cafu", "position": "DEF" },
-      { "number": 6, "name": "Alessandro Costacurta", "position": "DEF" },
-      { "number": 13, "name": "Alessandro Nesta", "position": "DEF" },
-      { "number": 3, "name": "Paolo Maldini", "position": "DEF" },
-      { "number": 8, "name": "Gennaro Gattuso", "position": "MID" },
-      { "number": 21, "name": "Andrea Pirlo", "position": "MID" },
-      { "number": 10, "name": "Clarence Seedorf", "position": "MID" },
-      { "number": 22, "name": "Kakà", "position": "MID" },
-      { "number": 7, "name": "Rui Costa", "position": "MID" },
-      { "number": 9, "name": "Filippo Inzaghi", "position": "ATT" }
-    ]
+    "year": 2003,
+    "round": "Final",
+    "date": "2003-05-28",
+    "score": "0-0 (AC Milan win on pens)",
+    "significance": "The only all-Italian Champions League final ended goalless before Shevchenko's decisive penalty gave Milan the trophy at Manchester United's Old Trafford.",
+    "home": {
+      "team": "AC Milan",
+      "formation": "4-3-2-1",
+      "lineup": [
+        { "number": 1, "name": "Dida", "position": "GK" },
+        { "number": 2, "name": "Cafu", "position": "DEF" },
+        { "number": 6, "name": "Alessandro Costacurta", "position": "DEF" },
+        { "number": 13, "name": "Alessandro Nesta", "position": "DEF" },
+        { "number": 3, "name": "Paolo Maldini", "position": "DEF" },
+        { "number": 8, "name": "Gennaro Gattuso", "position": "MID" },
+        { "number": 21, "name": "Andrea Pirlo", "position": "MID" },
+        { "number": 10, "name": "Clarence Seedorf", "position": "MID" },
+        { "number": 22, "name": "Kaká", "position": "MID" },
+        { "number": 7, "name": "Rui Costa", "position": "MID" },
+        { "number": 9, "name": "Filippo Inzaghi", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Juventus",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Gianluigi Buffon", "position": "GK" },
+        { "number": 21, "name": "Lilian Thuram", "position": "DEF" },
+        { "number": 3, "name": "Ciro Ferrara", "position": "DEF" },
+        { "number": 6, "name": "Pablo Montero", "position": "DEF" },
+        { "number": 19, "name": "Gianluca Zambrotta", "position": "DEF" },
+        { "number": 11, "name": "Pavel Nedvěd", "position": "MID" },
+        { "number": 16, "name": "Mauro Camoranesi", "position": "MID" },
+        { "number": 5, "name": "Edgar Davids", "position": "MID" },
+        { "number": 2, "name": "Alessio Birindelli", "position": "MID" },
+        { "number": 10, "name": "Alessandro Del Piero", "position": "ATT" },
+        { "number": 17, "name": "David Trezeguet", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "cl-final-2006",
-    "title": "Champions League Final 2006",
-    "subtitle": "Larsson Changes the Game",
-    "teams": ["Barcelona", "Arsenal"],
-    "score": "2-1",
-    "date": "2006-05-17",
     "competition": "Champions League",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 1, "name": "Víctor Valdés", "position": "GK" },
-      { "number": 20, "name": "Oleguer", "position": "DEF" },
-      { "number": 5, "name": "Carles Puyol", "position": "DEF" },
-      { "number": 4, "name": "Rafael Márquez", "position": "DEF" },
-      { "number": 3, "name": "Giovanni van Bronckhorst", "position": "DEF" },
-      { "number": 11, "name": "Deco", "position": "MID" },
-      { "number": 6, "name": "Edmílson", "position": "MID" },
-      { "number": 23, "name": "Mark van Bommel", "position": "MID" },
-      { "number": 8, "name": "Andrés Iniesta", "position": "ATT" },
-      { "number": 9, "name": "Samuel Eto'o", "position": "ATT" },
-      { "number": 10, "name": "Ronaldinho", "position": "ATT" }
-    ]
+    "year": 2006,
+    "round": "Final",
+    "date": "2006-05-17",
+    "score": "2-1",
+    "significance": "Arsenal's Jens Lehmann became the first goalkeeper sent off in a Champions League final, yet the ten men held out until late before Eto'o and Belletti broke their hearts.",
+    "home": {
+      "team": "Barcelona",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 1, "name": "Víctor Valdés", "position": "GK" },
+        { "number": 20, "name": "Oleguer", "position": "DEF" },
+        { "number": 5, "name": "Carles Puyol", "position": "DEF" },
+        { "number": 4, "name": "Rafael Márquez", "position": "DEF" },
+        { "number": 3, "name": "Giovanni van Bronckhorst", "position": "DEF" },
+        { "number": 11, "name": "Deco", "position": "MID" },
+        { "number": 6, "name": "Edmílson", "position": "MID" },
+        { "number": 23, "name": "Mark van Bommel", "position": "MID" },
+        { "number": 8, "name": "Andrés Iniesta", "position": "ATT" },
+        { "number": 9, "name": "Samuel Eto'o", "position": "ATT" },
+        { "number": 10, "name": "Ronaldinho", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Arsenal",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Jens Lehmann", "position": "GK" },
+        { "number": 12, "name": "Lauren", "position": "DEF" },
+        { "number": 23, "name": "Sol Campbell", "position": "DEF" },
+        { "number": 28, "name": "Kolo Touré", "position": "DEF" },
+        { "number": 3, "name": "Ashley Cole", "position": "DEF" },
+        { "number": 8, "name": "Freddie Ljungberg", "position": "MID" },
+        { "number": 19, "name": "Gilberto Silva", "position": "MID" },
+        { "number": 15, "name": "Cesc Fàbregas", "position": "MID" },
+        { "number": 7, "name": "Robert Pires", "position": "MID" },
+        { "number": 9, "name": "José Antonio Reyes", "position": "ATT" },
+        { "number": 14, "name": "Thierry Henry", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "cl-2019-semi-liverpool",
-    "title": "Champions League Semi-Final 2019",
-    "subtitle": "Liverpool 4-0 Barcelona",
-    "teams": ["Liverpool", "Barcelona"],
-    "score": "4-0 (4-3 agg)",
-    "date": "2019-05-07",
     "competition": "Champions League",
-    "formation": "4-3-3",
-    "lineup": [
-      { "number": 1, "name": "Alisson", "position": "GK" },
-      { "number": 66, "name": "Trent Alexander-Arnold", "position": "DEF" },
-      { "number": 32, "name": "Joel Matip", "position": "DEF" },
-      { "number": 4, "name": "Virgil van Dijk", "position": "DEF" },
-      { "number": 26, "name": "Andrew Robertson", "position": "DEF" },
-      { "number": 3, "name": "Fabinho", "position": "MID" },
-      { "number": 14, "name": "Jordan Henderson", "position": "MID" },
-      { "number": 5, "name": "Georginio Wijnaldum", "position": "MID" },
-      { "number": 23, "name": "Xherdan Shaqiri", "position": "ATT" },
-      { "number": 27, "name": "Divock Origi", "position": "ATT" },
-      { "number": 7, "name": "James Milner", "position": "ATT" }
-    ]
+    "year": 2019,
+    "round": "Semi-final",
+    "date": "2019-05-07",
+    "score": "4-0 (4-3 on agg)",
+    "significance": "Without Salah or Firmino, Liverpool produced one of the greatest comebacks in football history, with Wijnaldum scoring twice and a cheeky Alexander-Arnold corner catching Barcelona completely off guard.",
+    "home": {
+      "team": "Liverpool",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 1, "name": "Alisson", "position": "GK" },
+        { "number": 66, "name": "Trent Alexander-Arnold", "position": "DEF" },
+        { "number": 32, "name": "Joel Matip", "position": "DEF" },
+        { "number": 4, "name": "Virgil van Dijk", "position": "DEF" },
+        { "number": 26, "name": "Andrew Robertson", "position": "DEF" },
+        { "number": 3, "name": "Fabinho", "position": "MID" },
+        { "number": 14, "name": "Jordan Henderson", "position": "MID" },
+        { "number": 5, "name": "Georginio Wijnaldum", "position": "MID" },
+        { "number": 23, "name": "Xherdan Shaqiri", "position": "ATT" },
+        { "number": 27, "name": "Divock Origi", "position": "ATT" },
+        { "number": 7, "name": "James Milner", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Barcelona",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 1, "name": "Marc-André ter Stegen", "position": "GK" },
+        { "number": 20, "name": "Sergi Roberto", "position": "DEF" },
+        { "number": 3, "name": "Gerard Piqué", "position": "DEF" },
+        { "number": 15, "name": "Clément Lenglet", "position": "DEF" },
+        { "number": 18, "name": "Jordi Alba", "position": "DEF" },
+        { "number": 4, "name": "Ivan Rakitić", "position": "MID" },
+        { "number": 5, "name": "Sergio Busquets", "position": "MID" },
+        { "number": 8, "name": "Arthur", "position": "MID" },
+        { "number": 14, "name": "Philippe Coutinho", "position": "ATT" },
+        { "number": 9, "name": "Luis Suárez", "position": "ATT" },
+        { "number": 10, "name": "Lionel Messi", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "wc-final-1994",
+    "competition": "World Cup",
+    "year": 1994,
+    "round": "Final",
+    "date": "1994-07-17",
+    "score": "0-0 (Brazil win on pens)",
+    "significance": "The first World Cup final decided by penalties ended in heartbreak for Roberto Baggio, whose decisive spot-kick sailed over the bar to hand Brazil their fourth title.",
+    "home": {
+      "team": "Brazil",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Taffarel", "position": "GK" },
+        { "number": 2, "name": "Cafu", "position": "DEF" },
+        { "number": 3, "name": "Aldair", "position": "DEF" },
+        { "number": 4, "name": "Márcio Santos", "position": "DEF" },
+        { "number": 6, "name": "Branco", "position": "DEF" },
+        { "number": 5, "name": "Mauro Silva", "position": "MID" },
+        { "number": 8, "name": "Mazinho", "position": "MID" },
+        { "number": 10, "name": "Zinho", "position": "MID" },
+        { "number": 14, "name": "Raí", "position": "MID" },
+        { "number": 11, "name": "Romário", "position": "ATT" },
+        { "number": 7, "name": "Bebeto", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Italy",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 12, "name": "Gianluca Pagliuca", "position": "GK" },
+        { "number": 17, "name": "Roberto Mussi", "position": "DEF" },
+        { "number": 6, "name": "Franco Baresi", "position": "DEF" },
+        { "number": 3, "name": "Paolo Maldini", "position": "DEF" },
+        { "number": 11, "name": "Antonio Benarrivo", "position": "DEF" },
+        { "number": 8, "name": "Roberto Donadoni", "position": "MID" },
+        { "number": 4, "name": "Demetrio Albertini", "position": "MID" },
+        { "number": 15, "name": "Dino Baggio", "position": "MID" },
+        { "number": 16, "name": "Nicola Berti", "position": "MID" },
+        { "number": 10, "name": "Roberto Baggio", "position": "ATT" },
+        { "number": 21, "name": "Daniele Massaro", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "wc-final-1998",
+    "competition": "World Cup",
+    "year": 1998,
+    "round": "Final",
+    "date": "1998-07-12",
+    "score": "3-0",
+    "significance": "France won their first World Cup on home soil as a mysteriously ill Ronaldo started but contributed little, while Zidane headed in twice to inspire a crushing victory.",
+    "home": {
+      "team": "France",
+      "formation": "4-3-2-1",
+      "lineup": [
+        { "number": 16, "name": "Fabien Barthez", "position": "GK" },
+        { "number": 15, "name": "Lilian Thuram", "position": "DEF" },
+        { "number": 8, "name": "Marcel Desailly", "position": "DEF" },
+        { "number": 5, "name": "Frank Leboeuf", "position": "DEF" },
+        { "number": 3, "name": "Bixente Lizarazu", "position": "DEF" },
+        { "number": 7, "name": "Didier Deschamps", "position": "MID" },
+        { "number": 19, "name": "Christian Karembeu", "position": "MID" },
+        { "number": 17, "name": "Emmanuel Petit", "position": "MID" },
+        { "number": 10, "name": "Zinédine Zidane", "position": "MID" },
+        { "number": 11, "name": "Youri Djorkaeff", "position": "MID" },
+        { "number": 20, "name": "Stéphane Guivarc'h", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Brazil",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Taffarel", "position": "GK" },
+        { "number": 2, "name": "Cafu", "position": "DEF" },
+        { "number": 3, "name": "Aldair", "position": "DEF" },
+        { "number": 4, "name": "Júnior Baiano", "position": "DEF" },
+        { "number": 6, "name": "Roberto Carlos", "position": "DEF" },
+        { "number": 10, "name": "Rivaldo", "position": "MID" },
+        { "number": 5, "name": "César Sampaio", "position": "MID" },
+        { "number": 21, "name": "Leonardo", "position": "MID" },
+        { "number": 19, "name": "Bebeto", "position": "MID" },
+        { "number": 9, "name": "Ronaldo", "position": "ATT" },
+        { "number": 18, "name": "Émerson", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "wc-final-2002",
+    "competition": "World Cup",
+    "year": 2002,
+    "round": "Final",
+    "date": "2002-06-30",
+    "score": "2-0",
+    "significance": "Ronaldo scored twice to exorcise the demons of 1998 and win Brazil an unprecedented fifth World Cup, silencing a tournament that had already knocked out France, Argentina and Portugal.",
+    "home": {
+      "team": "Brazil",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Marcos", "position": "GK" },
+        { "number": 2, "name": "Cafu", "position": "DEF" },
+        { "number": 3, "name": "Lúcio", "position": "DEF" },
+        { "number": 5, "name": "Edmílson", "position": "DEF" },
+        { "number": 6, "name": "Roberto Carlos", "position": "DEF" },
+        { "number": 15, "name": "Gilberto Silva", "position": "MID" },
+        { "number": 8, "name": "Kléberson", "position": "MID" },
+        { "number": 11, "name": "Ronaldinho", "position": "MID" },
+        { "number": 10, "name": "Rivaldo", "position": "MID" },
+        { "number": 7, "name": "Edilson", "position": "MID" },
+        { "number": 9, "name": "Ronaldo", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Germany",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Oliver Kahn", "position": "GK" },
+        { "number": 5, "name": "Thomas Linke", "position": "DEF" },
+        { "number": 6, "name": "Christoph Metzelder", "position": "DEF" },
+        { "number": 21, "name": "Carsten Ramelow", "position": "DEF" },
+        { "number": 22, "name": "Torsten Frings", "position": "DEF" },
+        { "number": 7, "name": "Bernd Schneider", "position": "MID" },
+        { "number": 4, "name": "Dietmar Hamann", "position": "MID" },
+        { "number": 23, "name": "Jens Jeremies", "position": "MID" },
+        { "number": 11, "name": "Gerald Asamoah", "position": "MID" },
+        { "number": 13, "name": "Michael Ballack", "position": "ATT" },
+        { "number": 11, "name": "Miroslav Klose", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "wc-final-2006",
+    "competition": "World Cup",
+    "year": 2006,
+    "round": "Final",
+    "date": "2006-07-09",
+    "score": "1-1 (Italy win on pens)",
+    "significance": "Zidane's final act in professional football was a headbutt on Materazzi, earning a red card in extra time before Italy converted the decisive penalty to win their fourth World Cup.",
+    "home": {
+      "team": "Italy",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Gianluigi Buffon", "position": "GK" },
+        { "number": 19, "name": "Gianluca Zambrotta", "position": "DEF" },
+        { "number": 5, "name": "Fabio Cannavaro", "position": "DEF" },
+        { "number": 23, "name": "Marco Materazzi", "position": "DEF" },
+        { "number": 3, "name": "Fabio Grosso", "position": "DEF" },
+        { "number": 16, "name": "Mauro Camoranesi", "position": "MID" },
+        { "number": 8, "name": "Gennaro Gattuso", "position": "MID" },
+        { "number": 21, "name": "Andrea Pirlo", "position": "MID" },
+        { "number": 20, "name": "Simone Perrotta", "position": "MID" },
+        { "number": 10, "name": "Francesco Totti", "position": "ATT" },
+        { "number": 9, "name": "Luca Toni", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "France",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 16, "name": "Fabien Barthez", "position": "GK" },
+        { "number": 15, "name": "Willy Sagnol", "position": "DEF" },
+        { "number": 5, "name": "Lilian Thuram", "position": "DEF" },
+        { "number": 8, "name": "William Gallas", "position": "DEF" },
+        { "number": 3, "name": "Éric Abidal", "position": "DEF" },
+        { "number": 7, "name": "Franck Ribéry", "position": "MID" },
+        { "number": 4, "name": "Patrick Vieira", "position": "MID" },
+        { "number": 6, "name": "Claude Makélélé", "position": "MID" },
+        { "number": 10, "name": "Zinédine Zidane", "position": "MID" },
+        { "number": 11, "name": "Florent Malouda", "position": "ATT" },
+        { "number": 12, "name": "Thierry Henry", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "wc-final-2010",
+    "competition": "World Cup",
+    "year": 2010,
+    "round": "Final",
+    "date": "2010-07-11",
+    "score": "1-0 (AET)",
+    "significance": "Iniesta's extra-time winner gave Spain their first ever World Cup trophy, completing a golden era of tiki-taka that also delivered back-to-back European Championships.",
+    "home": {
+      "team": "Spain",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Iker Casillas", "position": "GK" },
+        { "number": 15, "name": "Sergio Ramos", "position": "DEF" },
+        { "number": 3, "name": "Gerard Piqué", "position": "DEF" },
+        { "number": 5, "name": "Carles Puyol", "position": "DEF" },
+        { "number": 11, "name": "Joan Capdevila", "position": "DEF" },
+        { "number": 16, "name": "Sergio Busquets", "position": "MID" },
+        { "number": 14, "name": "Xabi Alonso", "position": "MID" },
+        { "number": 8, "name": "Xavi", "position": "MID" },
+        { "number": 21, "name": "David Silva", "position": "MID" },
+        { "number": 6, "name": "Andrés Iniesta", "position": "MID" },
+        { "number": 7, "name": "David Villa", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Netherlands",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Maarten Stekelenburg", "position": "GK" },
+        { "number": 22, "name": "Gregory van der Wiel", "position": "DEF" },
+        { "number": 3, "name": "John Heitinga", "position": "DEF" },
+        { "number": 4, "name": "Joris Mathijsen", "position": "DEF" },
+        { "number": 5, "name": "Giovanni van Bronckhorst", "position": "DEF" },
+        { "number": 8, "name": "Mark van Bommel", "position": "MID" },
+        { "number": 6, "name": "Nigel de Jong", "position": "MID" },
+        { "number": 11, "name": "Arjen Robben", "position": "MID" },
+        { "number": 10, "name": "Wesley Sneijder", "position": "MID" },
+        { "number": 7, "name": "Dirk Kuyt", "position": "MID" },
+        { "number": 9, "name": "Robin van Persie", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "wc-final-2014",
+    "competition": "World Cup",
+    "year": 2014,
+    "round": "Final",
+    "date": "2014-07-13",
+    "score": "1-0 (AET)",
+    "significance": "Götze's extra-time chest and volley ended Argentina's 24-year wait for a third title and gave Germany their fourth, cementing a generation of Bundesliga-bred talent as world champions.",
+    "home": {
+      "team": "Germany",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Manuel Neuer", "position": "GK" },
+        { "number": 16, "name": "Philipp Lahm", "position": "DEF" },
+        { "number": 17, "name": "Jérôme Boateng", "position": "DEF" },
+        { "number": 5, "name": "Mats Hummels", "position": "DEF" },
+        { "number": 4, "name": "Benedikt Höwedes", "position": "DEF" },
+        { "number": 7, "name": "Bastian Schweinsteiger", "position": "MID" },
+        { "number": 23, "name": "Toni Kroos", "position": "MID" },
+        { "number": 13, "name": "Thomas Müller", "position": "MID" },
+        { "number": 8, "name": "Mesut Özil", "position": "MID" },
+        { "number": 18, "name": "André Schürrle", "position": "MID" },
+        { "number": 11, "name": "Miroslav Klose", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Argentina",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Sergio Romero", "position": "GK" },
+        { "number": 4, "name": "Pablo Zabaleta", "position": "DEF" },
+        { "number": 2, "name": "Martín Demichelis", "position": "DEF" },
+        { "number": 5, "name": "Ezequiel Garay", "position": "DEF" },
+        { "number": 16, "name": "Marcos Rojo", "position": "DEF" },
+        { "number": 15, "name": "Lucas Biglia", "position": "MID" },
+        { "number": 14, "name": "Javier Mascherano", "position": "MID" },
+        { "number": 22, "name": "Ezequiel Lavezzi", "position": "MID" },
+        { "number": 10, "name": "Lionel Messi", "position": "MID" },
+        { "number": 7, "name": "Ángel Di María", "position": "MID" },
+        { "number": 9, "name": "Gonzalo Higuaín", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "wc-final-2018",
+    "competition": "World Cup",
+    "year": 2018,
+    "round": "Final",
+    "date": "2018-07-15",
+    "score": "4-2",
+    "significance": "France became world champions for the second time with a thrilling win that featured an own goal, a VAR penalty and a stunning Mbappé strike as Croatia's fairytale run finally ended.",
+    "home": {
+      "team": "France",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Hugo Lloris", "position": "GK" },
+        { "number": 2, "name": "Benjamin Pavard", "position": "DEF" },
+        { "number": 4, "name": "Raphaël Varane", "position": "DEF" },
+        { "number": 5, "name": "Samuel Umtiti", "position": "DEF" },
+        { "number": 21, "name": "Lucas Hernández", "position": "DEF" },
+        { "number": 13, "name": "N'Golo Kanté", "position": "MID" },
+        { "number": 6, "name": "Paul Pogba", "position": "MID" },
+        { "number": 11, "name": "Kylian Mbappé", "position": "MID" },
+        { "number": 7, "name": "Antoine Griezmann", "position": "MID" },
+        { "number": 14, "name": "Blaise Matuidi", "position": "MID" },
+        { "number": 9, "name": "Olivier Giroud", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Croatia",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 23, "name": "Danijel Subašić", "position": "GK" },
+        { "number": 2, "name": "Šime Vrsaljko", "position": "DEF" },
+        { "number": 6, "name": "Dejan Lovren", "position": "DEF" },
+        { "number": 21, "name": "Domagoj Vida", "position": "DEF" },
+        { "number": 3, "name": "Ivan Strinić", "position": "DEF" },
+        { "number": 11, "name": "Marcelo Brozović", "position": "MID" },
+        { "number": 10, "name": "Luka Modrić", "position": "MID" },
+        { "number": 18, "name": "Ante Rebić", "position": "MID" },
+        { "number": 7, "name": "Ivan Rakitić", "position": "MID" },
+        { "number": 4, "name": "Ivan Perišić", "position": "MID" },
+        { "number": 17, "name": "Mario Mandžukić", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "wc-final-2022",
+    "competition": "World Cup",
+    "year": 2022,
+    "round": "Final",
+    "date": "2022-12-18",
+    "score": "3-3 (Argentina win on pens)",
+    "significance": "Messi finally won the World Cup in a breathtaking final where Mbappé scored a hat-trick to force extra time, yet Argentina held on in the shootout to end their 36-year wait.",
+    "home": {
+      "team": "Argentina",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 23, "name": "Emiliano Martínez", "position": "GK" },
+        { "number": 26, "name": "Nahuel Molina", "position": "DEF" },
+        { "number": 13, "name": "Cristian Romero", "position": "DEF" },
+        { "number": 19, "name": "Nicolás Otamendi", "position": "DEF" },
+        { "number": 3, "name": "Nicolás Tagliafico", "position": "DEF" },
+        { "number": 7, "name": "Rodrigo De Paul", "position": "MID" },
+        { "number": 24, "name": "Enzo Fernández", "position": "MID" },
+        { "number": 20, "name": "Alexis Mac Allister", "position": "MID" },
+        { "number": 11, "name": "Ángel Di María", "position": "ATT" },
+        { "number": 10, "name": "Lionel Messi", "position": "ATT" },
+        { "number": 9, "name": "Julián Álvarez", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "France",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Hugo Lloris", "position": "GK" },
+        { "number": 5, "name": "Jules Koundé", "position": "DEF" },
+        { "number": 4, "name": "Raphaël Varane", "position": "DEF" },
+        { "number": 15, "name": "Dayot Upamecano", "position": "DEF" },
+        { "number": 22, "name": "Theo Hernández", "position": "DEF" },
+        { "number": 8, "name": "Aurélien Tchouaméni", "position": "MID" },
+        { "number": 14, "name": "Adrien Rabiot", "position": "MID" },
+        { "number": 11, "name": "Ousmane Dembélé", "position": "MID" },
+        { "number": 7, "name": "Antoine Griezmann", "position": "MID" },
+        { "number": 10, "name": "Kylian Mbappé", "position": "ATT" },
+        { "number": 9, "name": "Olivier Giroud", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "wc-semi-2014",
+    "competition": "World Cup",
+    "year": 2014,
+    "round": "Semi-final",
+    "date": "2014-07-08",
+    "score": "7-1",
+    "significance": "The Mineirazo — Germany's 7-1 demolition of host nation Brazil — was the most humiliating result in World Cup semi-final history, with five goals scored in an astonishing 18-minute spell.",
+    "home": {
+      "team": "Germany",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Manuel Neuer", "position": "GK" },
+        { "number": 16, "name": "Philipp Lahm", "position": "DEF" },
+        { "number": 17, "name": "Jérôme Boateng", "position": "DEF" },
+        { "number": 5, "name": "Mats Hummels", "position": "DEF" },
+        { "number": 4, "name": "Benedikt Höwedes", "position": "DEF" },
+        { "number": 7, "name": "Bastian Schweinsteiger", "position": "MID" },
+        { "number": 6, "name": "Sami Khedira", "position": "MID" },
+        { "number": 13, "name": "Thomas Müller", "position": "MID" },
+        { "number": 8, "name": "Mesut Özil", "position": "MID" },
+        { "number": 23, "name": "Toni Kroos", "position": "MID" },
+        { "number": 11, "name": "Miroslav Klose", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Brazil",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 12, "name": "Júlio César", "position": "GK" },
+        { "number": 4, "name": "Maicon", "position": "DEF" },
+        { "number": 2, "name": "David Luiz", "position": "DEF" },
+        { "number": 13, "name": "Dante", "position": "DEF" },
+        { "number": 6, "name": "Marcelo", "position": "DEF" },
+        { "number": 17, "name": "Luiz Gustavo", "position": "MID" },
+        { "number": 5, "name": "Fernandinho", "position": "MID" },
+        { "number": 7, "name": "Bernard", "position": "MID" },
+        { "number": 11, "name": "Oscar", "position": "MID" },
+        { "number": 9, "name": "Hulk", "position": "ATT" },
+        { "number": 20, "name": "Fred", "position": "ATT" }
+      ]
+    }
   },
   {
     "id": "wc-semi-2010",
-    "title": "World Cup Semi-Final 2010",
-    "subtitle": "Puyol's Header",
-    "teams": ["Spain", "Germany"],
-    "score": "1-0",
-    "date": "2010-07-07",
     "competition": "World Cup",
-    "formation": "4-2-3-1",
-    "lineup": [
-      { "number": 1, "name": "Iker Casillas", "position": "GK" },
-      { "number": 15, "name": "Sergio Ramos", "position": "DEF" },
-      { "number": 3, "name": "Gerard Piqué", "position": "DEF" },
-      { "number": 5, "name": "Carles Puyol", "position": "DEF" },
-      { "number": 11, "name": "Joan Capdevila", "position": "DEF" },
-      { "number": 16, "name": "Sergio Busquets", "position": "MID" },
-      { "number": 14, "name": "Xabi Alonso", "position": "MID" },
-      { "number": 22, "name": "Jesús Navas", "position": "MID" },
-      { "number": 8, "name": "Xavi", "position": "MID" },
-      { "number": 21, "name": "David Silva", "position": "MID" },
-      { "number": 7, "name": "David Villa", "position": "ATT" }
-    ]
+    "year": 2010,
+    "round": "Semi-final",
+    "date": "2010-07-07",
+    "score": "1-0",
+    "significance": "Puyol's towering header gave Spain victory over Germany in the semi-final, putting the tiki-taka masters into their first ever World Cup final.",
+    "home": {
+      "team": "Spain",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Iker Casillas", "position": "GK" },
+        { "number": 15, "name": "Sergio Ramos", "position": "DEF" },
+        { "number": 3, "name": "Gerard Piqué", "position": "DEF" },
+        { "number": 5, "name": "Carles Puyol", "position": "DEF" },
+        { "number": 11, "name": "Joan Capdevila", "position": "DEF" },
+        { "number": 16, "name": "Sergio Busquets", "position": "MID" },
+        { "number": 14, "name": "Xabi Alonso", "position": "MID" },
+        { "number": 22, "name": "Jesús Navas", "position": "MID" },
+        { "number": 8, "name": "Xavi", "position": "MID" },
+        { "number": 21, "name": "David Silva", "position": "MID" },
+        { "number": 7, "name": "David Villa", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Germany",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Manuel Neuer", "position": "GK" },
+        { "number": 16, "name": "Philipp Lahm", "position": "DEF" },
+        { "number": 17, "name": "Per Mertesacker", "position": "DEF" },
+        { "number": 5, "name": "Arne Friedrich", "position": "DEF" },
+        { "number": 3, "name": "Marcell Jansen", "position": "DEF" },
+        { "number": 6, "name": "Sami Khedira", "position": "MID" },
+        { "number": 7, "name": "Bastian Schweinsteiger", "position": "MID" },
+        { "number": 10, "name": "Mesut Özil", "position": "MID" },
+        { "number": 13, "name": "Thomas Müller", "position": "MID" },
+        { "number": 11, "name": "Lukas Podolski", "position": "MID" },
+        { "number": 8, "name": "Miroslav Klose", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "euro-2004-final",
+    "competition": "European Championship",
+    "year": 2004,
+    "round": "Final",
+    "date": "2004-07-04",
+    "score": "1-0",
+    "significance": "Greece produced one of the greatest upsets in football history, beating tournament hosts Portugal twice — including the final — with Charisteas's header sealing an extraordinary triumph.",
+    "home": {
+      "team": "Greece",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Antonis Nikopolidis", "position": "GK" },
+        { "number": 2, "name": "Takis Fyssas", "position": "DEF" },
+        { "number": 5, "name": "Mihalis Kapsis", "position": "DEF" },
+        { "number": 21, "name": "Traianos Dellas", "position": "DEF" },
+        { "number": 20, "name": "Giourkas Seitaridis", "position": "DEF" },
+        { "number": 14, "name": "Stylianos Giannakopoulos", "position": "MID" },
+        { "number": 8, "name": "Theodoros Zagorakis", "position": "MID" },
+        { "number": 10, "name": "Angelos Basinas", "position": "MID" },
+        { "number": 15, "name": "Panagiotis Kafes", "position": "MID" },
+        { "number": 9, "name": "Angelos Charisteas", "position": "ATT" },
+        { "number": 17, "name": "Zisis Vryzas", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Portugal",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 1, "name": "Ricardo", "position": "GK" },
+        { "number": 21, "name": "Paulo Ferreira", "position": "DEF" },
+        { "number": 4, "name": "Jorge Andrade", "position": "DEF" },
+        { "number": 16, "name": "Ricardo Carvalho", "position": "DEF" },
+        { "number": 14, "name": "Nuno Valente", "position": "DEF" },
+        { "number": 8, "name": "Costinha", "position": "MID" },
+        { "number": 18, "name": "Maniche", "position": "MID" },
+        { "number": 7, "name": "Luís Figo", "position": "MID" },
+        { "number": 10, "name": "Deco", "position": "ATT" },
+        { "number": 17, "name": "Cristiano Ronaldo", "position": "ATT" },
+        { "number": 9, "name": "Pauleta", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "euro-2008-final",
+    "competition": "European Championship",
+    "year": 2008,
+    "round": "Final",
+    "date": "2008-06-29",
+    "score": "1-0",
+    "significance": "Fernando Torres's clinical finish midway through the first half was enough for Spain to end their 44-year wait for a European Championship and launch a golden era of dominance.",
+    "home": {
+      "team": "Spain",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Iker Casillas", "position": "GK" },
+        { "number": 15, "name": "Sergio Ramos", "position": "DEF" },
+        { "number": 5, "name": "Carles Puyol", "position": "DEF" },
+        { "number": 4, "name": "Carlos Marchena", "position": "DEF" },
+        { "number": 11, "name": "Joan Capdevila", "position": "DEF" },
+        { "number": 14, "name": "Xabi Alonso", "position": "MID" },
+        { "number": 16, "name": "Marcos Senna", "position": "MID" },
+        { "number": 21, "name": "David Silva", "position": "MID" },
+        { "number": 8, "name": "Xavi", "position": "MID" },
+        { "number": 7, "name": "David Villa", "position": "MID" },
+        { "number": 9, "name": "Fernando Torres", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Germany",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Jens Lehmann", "position": "GK" },
+        { "number": 16, "name": "Philipp Lahm", "position": "DEF" },
+        { "number": 17, "name": "Per Mertesacker", "position": "DEF" },
+        { "number": 5, "name": "Arne Friedrich", "position": "DEF" },
+        { "number": 3, "name": "Marcell Jansen", "position": "DEF" },
+        { "number": 20, "name": "Torsten Frings", "position": "MID" },
+        { "number": 8, "name": "Thomas Hitzlsperger", "position": "MID" },
+        { "number": 11, "name": "Lukas Podolski", "position": "MID" },
+        { "number": 13, "name": "Michael Ballack", "position": "MID" },
+        { "number": 7, "name": "Bastian Schweinsteiger", "position": "MID" },
+        { "number": 8, "name": "Miroslav Klose", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "euro-2012-final",
+    "competition": "European Championship",
+    "year": 2012,
+    "round": "Final",
+    "date": "2012-07-01",
+    "score": "4-0",
+    "significance": "Spain's 4-0 demolition of Italy confirmed them as the greatest international side of their generation, becoming the first team ever to win three consecutive major international tournaments.",
+    "home": {
+      "team": "Spain",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Iker Casillas", "position": "GK" },
+        { "number": 17, "name": "Álvaro Arbeloa", "position": "DEF" },
+        { "number": 3, "name": "Gerard Piqué", "position": "DEF" },
+        { "number": 15, "name": "Sergio Ramos", "position": "DEF" },
+        { "number": 18, "name": "Jordi Alba", "position": "DEF" },
+        { "number": 16, "name": "Sergio Busquets", "position": "MID" },
+        { "number": 14, "name": "Xabi Alonso", "position": "MID" },
+        { "number": 22, "name": "Jesús Navas", "position": "MID" },
+        { "number": 21, "name": "David Silva", "position": "MID" },
+        { "number": 6, "name": "Andrés Iniesta", "position": "MID" },
+        { "number": 10, "name": "Cesc Fàbregas", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Italy",
+      "formation": "4-3-1-2",
+      "lineup": [
+        { "number": 1, "name": "Gianluigi Buffon", "position": "GK" },
+        { "number": 15, "name": "Christian Maggio", "position": "DEF" },
+        { "number": 19, "name": "Leonardo Bonucci", "position": "DEF" },
+        { "number": 3, "name": "Giorgio Chiellini", "position": "DEF" },
+        { "number": 5, "name": "Andrea Barzagli", "position": "DEF" },
+        { "number": 16, "name": "Daniele De Rossi", "position": "MID" },
+        { "number": 21, "name": "Andrea Pirlo", "position": "MID" },
+        { "number": 8, "name": "Claudio Marchisio", "position": "MID" },
+        { "number": 18, "name": "Riccardo Montolivo", "position": "MID" },
+        { "number": 9, "name": "Mario Balotelli", "position": "ATT" },
+        { "number": 7, "name": "Antonio Cassano", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "euro-2016-final",
+    "competition": "European Championship",
+    "year": 2016,
+    "round": "Final",
+    "date": "2016-07-10",
+    "score": "1-0 (AET)",
+    "significance": "Eder's stunning extra-time strike gave Portugal their first ever major international trophy despite Ronaldo going off injured early on, in a tournament where they'd drawn all three group games.",
+    "home": {
+      "team": "Portugal",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 1, "name": "Rui Patrício", "position": "GK" },
+        { "number": 22, "name": "Cédric Soares", "position": "DEF" },
+        { "number": 4, "name": "Pepe", "position": "DEF" },
+        { "number": 5, "name": "José Fonte", "position": "DEF" },
+        { "number": 18, "name": "Raphaël Guerreiro", "position": "DEF" },
+        { "number": 8, "name": "João Moutinho", "position": "MID" },
+        { "number": 14, "name": "William Carvalho", "position": "MID" },
+        { "number": 10, "name": "João Mário", "position": "MID" },
+        { "number": 16, "name": "Renato Sanches", "position": "MID" },
+        { "number": 7, "name": "Cristiano Ronaldo", "position": "ATT" },
+        { "number": 17, "name": "Nani", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "France",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Hugo Lloris", "position": "GK" },
+        { "number": 2, "name": "Bacary Sagna", "position": "DEF" },
+        { "number": 21, "name": "Laurent Koscielny", "position": "DEF" },
+        { "number": 17, "name": "Adil Rami", "position": "DEF" },
+        { "number": 3, "name": "Patrice Evra", "position": "DEF" },
+        { "number": 14, "name": "Blaise Matuidi", "position": "MID" },
+        { "number": 6, "name": "Paul Pogba", "position": "MID" },
+        { "number": 11, "name": "Dimitri Payet", "position": "MID" },
+        { "number": 7, "name": "Antoine Griezmann", "position": "MID" },
+        { "number": 12, "name": "Moussa Sissoko", "position": "MID" },
+        { "number": 9, "name": "Olivier Giroud", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "euro-2020-final",
+    "competition": "European Championship",
+    "year": 2021,
+    "round": "Final",
+    "date": "2021-07-11",
+    "score": "1-1 (Italy win on pens)",
+    "significance": "Italy won their first European Championship in 53 years by defeating England on penalties at Wembley, after Bonucci equalised to cancel out Luke Shaw's early opener.",
+    "home": {
+      "team": "Italy",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 21, "name": "Gianluigi Donnarumma", "position": "GK" },
+        { "number": 2, "name": "Giovanni Di Lorenzo", "position": "DEF" },
+        { "number": 19, "name": "Leonardo Bonucci", "position": "DEF" },
+        { "number": 3, "name": "Giorgio Chiellini", "position": "DEF" },
+        { "number": 8, "name": "Emerson Palmieri", "position": "DEF" },
+        { "number": 18, "name": "Nicolò Barella", "position": "MID" },
+        { "number": 16, "name": "Bryan Cristante", "position": "MID" },
+        { "number": 6, "name": "Marco Verratti", "position": "MID" },
+        { "number": 11, "name": "Domenico Berardi", "position": "ATT" },
+        { "number": 17, "name": "Ciro Immobile", "position": "ATT" },
+        { "number": 10, "name": "Lorenzo Insigne", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "England",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Jordan Pickford", "position": "GK" },
+        { "number": 2, "name": "Kyle Walker", "position": "DEF" },
+        { "number": 5, "name": "John Stones", "position": "DEF" },
+        { "number": 6, "name": "Harry Maguire", "position": "DEF" },
+        { "number": 3, "name": "Luke Shaw", "position": "DEF" },
+        { "number": 4, "name": "Declan Rice", "position": "MID" },
+        { "number": 14, "name": "Kalvin Phillips", "position": "MID" },
+        { "number": 12, "name": "Kieran Trippier", "position": "MID" },
+        { "number": 19, "name": "Mason Mount", "position": "MID" },
+        { "number": 10, "name": "Raheem Sterling", "position": "MID" },
+        { "number": 9, "name": "Harry Kane", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "pl-aguero-2012",
+    "competition": "Premier League",
+    "year": 2012,
+    "round": "Title decider, final day",
+    "date": "2012-05-13",
+    "score": "3-2",
+    "significance": "Agüero's 94th-minute winner against QPR — announced by Martin Tyler's immortal commentary — gave Manchester City their first league title in 44 years on goal difference from United.",
+    "home": {
+      "team": "Manchester City",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 25, "name": "Joe Hart", "position": "GK" },
+        { "number": 5, "name": "Pablo Zabaleta", "position": "DEF" },
+        { "number": 4, "name": "Vincent Kompany", "position": "DEF" },
+        { "number": 6, "name": "Joleon Lescott", "position": "DEF" },
+        { "number": 22, "name": "Gaël Clichy", "position": "DEF" },
+        { "number": 42, "name": "Yaya Touré", "position": "MID" },
+        { "number": 8, "name": "Gareth Barry", "position": "MID" },
+        { "number": 21, "name": "David Silva", "position": "MID" },
+        { "number": 32, "name": "Carlos Tevez", "position": "ATT" },
+        { "number": 16, "name": "Sergio Agüero", "position": "ATT" },
+        { "number": 45, "name": "Mario Balotelli", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "QPR",
+      "formation": "4-4-2",
+      "lineup": [
+        { "number": 21, "name": "Paddy Kenny", "position": "GK" },
+        { "number": 5, "name": "Nedum Onuoha", "position": "DEF" },
+        { "number": 6, "name": "Anton Ferdinand", "position": "DEF" },
+        { "number": 24, "name": "Clint Hill", "position": "DEF" },
+        { "number": 33, "name": "Taye Taiwo", "position": "DEF" },
+        { "number": 23, "name": "Shaun Wright-Phillips", "position": "MID" },
+        { "number": 8, "name": "Joey Barton", "position": "MID" },
+        { "number": 7, "name": "Shaun Derry", "position": "MID" },
+        { "number": 27, "name": "Jamie Mackie", "position": "MID" },
+        { "number": 10, "name": "Djibril Cissé", "position": "ATT" },
+        { "number": 9, "name": "Bobby Zamora", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "pl-gerrard-slip-2014",
+    "competition": "Premier League",
+    "year": 2014,
+    "round": "Matchday 36",
+    "date": "2014-04-27",
+    "score": "2-0",
+    "significance": "Gerrard's infamous slip let Demba Ba in for the first goal, effectively ending Liverpool's title challenge and handing the initiative to Manchester City in one of the most gut-wrenching moments in Premier League history.",
+    "home": {
+      "team": "Chelsea",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 23, "name": "Mark Schwarzer", "position": "GK" },
+        { "number": 2, "name": "Branislav Ivanović", "position": "DEF" },
+        { "number": 24, "name": "Gary Cahill", "position": "DEF" },
+        { "number": 26, "name": "John Terry", "position": "DEF" },
+        { "number": 3, "name": "Ashley Cole", "position": "DEF" },
+        { "number": 12, "name": "John Obi Mikel", "position": "MID" },
+        { "number": 8, "name": "Frank Lampard", "position": "MID" },
+        { "number": 7, "name": "Ramires", "position": "MID" },
+        { "number": 22, "name": "Willian", "position": "ATT" },
+        { "number": 29, "name": "Demba Ba", "position": "ATT" },
+        { "number": 17, "name": "Eden Hazard", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Liverpool",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 22, "name": "Simon Mignolet", "position": "GK" },
+        { "number": 2, "name": "Glen Johnson", "position": "DEF" },
+        { "number": 37, "name": "Martin Škrtel", "position": "DEF" },
+        { "number": 3, "name": "Mamadou Sakho", "position": "DEF" },
+        { "number": 34, "name": "Jon Flanagan", "position": "DEF" },
+        { "number": 20, "name": "Lucas Leiva", "position": "MID" },
+        { "number": 8, "name": "Steven Gerrard", "position": "MID" },
+        { "number": 14, "name": "Jordan Henderson", "position": "MID" },
+        { "number": 31, "name": "Raheem Sterling", "position": "ATT" },
+        { "number": 7, "name": "Luis Suárez", "position": "ATT" },
+        { "number": 15, "name": "Daniel Sturridge", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "pl-leicester-2016",
+    "competition": "Premier League",
+    "year": 2016,
+    "round": "Title decider, final day",
+    "date": "2016-05-02",
+    "score": "2-2",
+    "significance": "Tottenham's failure to beat Chelsea confirmed Leicester City as Premier League champions at odds of 5000-1, completing the most improbable title win in the history of top-flight English football.",
+    "home": {
+      "team": "Chelsea",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 13, "name": "Asmir Begović", "position": "GK" },
+        { "number": 2, "name": "Branislav Ivanović", "position": "DEF" },
+        { "number": 24, "name": "Gary Cahill", "position": "DEF" },
+        { "number": 26, "name": "John Terry", "position": "DEF" },
+        { "number": 23, "name": "Baba Rahman", "position": "DEF" },
+        { "number": 4, "name": "Cesc Fàbregas", "position": "MID" },
+        { "number": 12, "name": "John Obi Mikel", "position": "MID" },
+        { "number": 7, "name": "Ramires", "position": "MID" },
+        { "number": 22, "name": "Willian", "position": "ATT" },
+        { "number": 19, "name": "Diego Costa", "position": "ATT" },
+        { "number": 10, "name": "Eden Hazard", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Tottenham Hotspur",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Hugo Lloris", "position": "GK" },
+        { "number": 2, "name": "Kyle Walker", "position": "DEF" },
+        { "number": 4, "name": "Toby Alderweireld", "position": "DEF" },
+        { "number": 5, "name": "Jan Vertonghen", "position": "DEF" },
+        { "number": 33, "name": "Ben Davies", "position": "DEF" },
+        { "number": 19, "name": "Mousa Dembélé", "position": "MID" },
+        { "number": 15, "name": "Eric Dier", "position": "MID" },
+        { "number": 23, "name": "Christian Eriksen", "position": "MID" },
+        { "number": 20, "name": "Dele Alli", "position": "MID" },
+        { "number": 7, "name": "Heung-min Son", "position": "MID" },
+        { "number": 10, "name": "Harry Kane", "position": "ATT" }
+      ]
+    }
+  },
+  {
+    "id": "el-clasico-2010",
+    "competition": "La Liga",
+    "year": 2010,
+    "round": "Matchday 13",
+    "date": "2010-11-29",
+    "score": "5-0",
+    "significance": "Pep Guardiola's Barcelona delivered the most emphatic El Clásico humiliation of the modern era, with Mourinho's Real Madrid — then second in the table — left utterly dismantled at the Camp Nou.",
+    "home": {
+      "team": "Barcelona",
+      "formation": "4-3-3",
+      "lineup": [
+        { "number": 1, "name": "Víctor Valdés", "position": "GK" },
+        { "number": 2, "name": "Dani Alves", "position": "DEF" },
+        { "number": 5, "name": "Carles Puyol", "position": "DEF" },
+        { "number": 3, "name": "Gerard Piqué", "position": "DEF" },
+        { "number": 22, "name": "Éric Abidal", "position": "DEF" },
+        { "number": 16, "name": "Sergio Busquets", "position": "MID" },
+        { "number": 6, "name": "Xavi", "position": "MID" },
+        { "number": 8, "name": "Andrés Iniesta", "position": "MID" },
+        { "number": 17, "name": "Pedro", "position": "ATT" },
+        { "number": 7, "name": "David Villa", "position": "ATT" },
+        { "number": 10, "name": "Lionel Messi", "position": "ATT" }
+      ]
+    },
+    "away": {
+      "team": "Real Madrid",
+      "formation": "4-2-3-1",
+      "lineup": [
+        { "number": 1, "name": "Iker Casillas", "position": "GK" },
+        { "number": 4, "name": "Sergio Ramos", "position": "DEF" },
+        { "number": 30, "name": "Ricardo Carvalho", "position": "DEF" },
+        { "number": 3, "name": "Pepe", "position": "DEF" },
+        { "number": 12, "name": "Marcelo", "position": "DEF" },
+        { "number": 14, "name": "Xabi Alonso", "position": "MID" },
+        { "number": 24, "name": "Lassana Diarra", "position": "MID" },
+        { "number": 22, "name": "Ángel Di María", "position": "MID" },
+        { "number": 23, "name": "Mesut Özil", "position": "MID" },
+        { "number": 7, "name": "Cristiano Ronaldo", "position": "ATT" },
+        { "number": 9, "name": "Karim Benzema", "position": "ATT" }
+      ]
+    }
   }
 ]
