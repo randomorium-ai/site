@@ -14,7 +14,7 @@ export async function GET() {
 
   // Filter to iconic players with long enough careers to make connections possible
   const pool = PLAYERS.filter(
-    p => p.popularity_score > 500_000 && (p.career_clubs?.length ?? 0) >= 3
+    p => p.popularity_score > 1_500_000 && (p.career_clubs?.length ?? 0) >= 3
   )
 
   // Date-seeded LCG to pick two distinct players
