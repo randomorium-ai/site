@@ -18,6 +18,12 @@ interface ChainStep {
   evidence: string    // returned by validate-link
 }
 
+interface OptimalPathStep {
+  player: Player
+  entity: string
+  evidence: string
+}
+
 interface GameStorage {
   streak: number
   lastDate: string
@@ -149,6 +155,16 @@ export default function SixDegreesGame({ date }: { date?: string }) {
   const [isValidating, setIsValidating] = useState(false)
   const [lastError, setLastError] = useState<string | null>(null)
 
+  // Feedback flash
+  const [flashResult, setFlashResult] = useState<{ type: 'correct'; evidence: string } | { type: 'incorrect' } | null>(null)
+
+  // Rewind
+  const [showRewindConfirm, setShowRewindConfirm] = useState(false)
+
+  // Optimal path (fetched at game end)
+  const [optimalPath, setOptimalPath] = useState<OptimalPathStep[] | null>(null)
+  const [isLoadingOptimal, setIsLoadingOptimal] = useState(false)
+
   const entityDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const playerDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const playerSearchCache = useRef(new Map<string, Player[]>())
@@ -169,6 +185,25 @@ export default function SixDegreesGame({ date }: { date?: string }) {
       })
       .catch(() => setPhase('error'))
   }, [])
+
+  // ── Auto-dismiss error banner ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!lastError) return
+    const t = setTimeout(() => setLastError(null), 4000)
+    return () => clearTimeout(t)
+  }, [lastError])
+
+  // ── Fetch optimal path at game end ─────────────────────────────────────────
+  useEffect(() => {
+    if ((phase !== 'won' && phase !== 'failed') || !aPlayer || !bPlayer) return
+    setIsLoadingOptimal(true)
+    fetch(`/api/football/optimal-path?aId=${aPlayer.id}&bId=${bPlayer.id}`)
+      .then(r => r.json())
+      .then(data => setOptimalPath(data.path ?? null))
+      .catch(() => setOptimalPath(null))
+      .finally(() => setIsLoadingOptimal(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
 
   // ── Entity search ──────────────────────────────────────────────────────────
   const runEntitySearch = useCallback(async (q: string, lt: LinkType) => {
@@ -320,6 +355,24 @@ export default function SixDegreesGame({ date }: { date?: string }) {
     setTimeout(() => playerInputRef.current?.focus(), 50)
   }
 
+  // ── Rewind ─────────────────────────────────────────────────────────────────
+  function confirmRewind() {
+    const newStrikes = strikes + 1
+    const newChain = chain.slice(0, -1)
+    setChain(newChain)
+    setStrikes(newStrikes)
+    setShowRewindConfirm(false)
+    setWizardStep('type')
+    setPendingEntity('')
+    setPendingPlayer(null)
+    setLastError(null)
+    setFlashResult(null)
+    if (newStrikes >= MAX_STRIKES) {
+      if (!isArchive) { const next = saveStorage(dateStr, newChain.length, newStrikes); setStorage(next) }
+      setPhase('failed')
+    }
+  }
+
   // ── Derived state ──────────────────────────────────────────────────────────
   const currentPlayer = chain.length === 0 ? aPlayer : chain[chain.length - 1].player
   const usedNames = new Set<string>([
@@ -355,6 +408,8 @@ export default function SixDegreesGame({ date }: { date?: string }) {
         const newStrikes = strikes + 1
         setStrikes(newStrikes)
         setLastError(data.reason ?? `No ${LINK_LABELS[pendingLinkType].toLowerCase()} connection found`)
+        setFlashResult({ type: 'incorrect' })
+        setTimeout(() => setFlashResult(null), 2000)
         // Stay on current step so user can try again
         if (newStrikes >= MAX_STRIKES) {
           if (!isArchive) { const next = saveStorage(dateStr, chain.length, newStrikes); setStorage(next) }
@@ -371,6 +426,8 @@ export default function SixDegreesGame({ date }: { date?: string }) {
       }
       const newChain = [...chain, step]
       setChain(newChain)
+      setFlashResult({ type: 'correct', evidence: data.evidence ?? entity })
+      setTimeout(() => setFlashResult(null), 2000)
 
       if (willWin) {
         if (!isArchive) { const next = saveStorage(dateStr, newChain.length, strikes); setStorage(next) }
@@ -467,13 +524,42 @@ export default function SixDegreesGame({ date }: { date?: string }) {
 
           {/* Chain */}
           {chain.length > 0 && (
-            <div className="bg-white border border-[#e5e5e5] rounded-xl overflow-hidden mb-5">
+            <div className="bg-white border border-[#e5e5e5] rounded-xl overflow-hidden mb-4">
               <div className="px-4 pt-3 pb-1">
                 <div className="text-xs text-[#999] font-mono uppercase tracking-widest">Your chain</div>
               </div>
               <ChainTimeline aPlayer={aPlayer} bPlayer={bPlayer} chain={chain} won={won} />
             </div>
           )}
+
+          {/* Optimal route */}
+          <div className="bg-white border border-[#e5e5e5] rounded-xl overflow-hidden mb-5">
+            <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+              <div className="text-xs text-[#999] font-mono uppercase tracking-widest">
+                Optimal route
+                {optimalPath && (
+                  <span className="ml-1.5 text-[#1a7a3e] font-black">
+                    ({optimalPath.length} step{optimalPath.length === 1 ? '' : 's'})
+                  </span>
+                )}
+              </div>
+              {chain.length > 0 && optimalPath && optimalPath.length === chain.length && won && (
+                <span className="text-[10px] font-bold text-[#1a7a3e] bg-[#f0f7f3] px-2 py-0.5 rounded-full">Perfect!</span>
+              )}
+            </div>
+            {isLoadingOptimal ? (
+              <div className="px-4 pb-3 text-xs text-[#999] font-mono">Finding shortest path…</div>
+            ) : optimalPath ? (
+              <ChainTimeline
+                aPlayer={aPlayer}
+                bPlayer={bPlayer}
+                chain={optimalPath.map(s => ({ ...s, linkType: 'club' as LinkType }))}
+                won={true}
+              />
+            ) : (
+              <div className="px-4 pb-3 text-xs text-[#999]">No route found within 6 steps</div>
+            )}
+          </div>
 
           <div className="flex gap-2">
             <button
@@ -557,13 +643,49 @@ export default function SixDegreesGame({ date }: { date?: string }) {
       {chain.length > 0 && (
         <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] max-h-44 overflow-y-auto">
           <div className="max-w-xl mx-auto px-4 py-2">
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-[9px] text-[#ccc] font-mono uppercase tracking-widest">Chain</div>
+              {!showRewindConfirm ? (
+                <button
+                  onClick={() => setShowRewindConfirm(true)}
+                  className="text-[10px] font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                >
+                  ↩ Undo last
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">
+                  <span className="text-[10px] text-amber-700 font-medium">Costs 1 life.</span>
+                  <button onClick={confirmRewind} className="text-[10px] font-black text-rose-600 hover:text-rose-700">Confirm</button>
+                  <button onClick={() => setShowRewindConfirm(false)} className="text-[10px] text-[#999] hover:text-[#666]">Cancel</button>
+                </div>
+              )}
+            </div>
             <ChainTimeline aPlayer={aPlayer} bPlayer={null} chain={chain} won={false} compact />
           </div>
         </div>
       )}
 
-      {/* Strike error banner */}
-      {lastError && (
+      {/* Result flash banners */}
+      {flashResult?.type === 'correct' && (
+        <div className="flex-shrink-0 bg-[#f0f7f3] border-b border-[#1a7a3e]/30 px-4 py-2.5 animate-pulse">
+          <div className="max-w-xl mx-auto flex items-center gap-2">
+            <span className="text-lg">✅</span>
+            <div className="text-sm font-bold text-[#1a7a3e]">Connected!</div>
+            <div className="text-xs text-[#1a7a3e]/70 truncate">{flashResult.evidence}</div>
+          </div>
+        </div>
+      )}
+      {flashResult?.type === 'incorrect' && (
+        <div className="flex-shrink-0 bg-rose-50 border-b border-rose-300 px-4 py-2.5 animate-pulse">
+          <div className="max-w-xl mx-auto flex items-center gap-2">
+            <span className="text-lg">❌</span>
+            <div className="text-sm font-bold text-rose-600">Strike! {MAX_STRIKES - strikes} life{MAX_STRIKES - strikes === 1 ? '' : 's'} left</div>
+          </div>
+        </div>
+      )}
+
+      {/* Error detail (auto-dismisses) */}
+      {lastError && !flashResult && (
         <div className="flex-shrink-0 bg-rose-50 border-b border-rose-200 px-4 py-2">
           <div className="max-w-xl mx-auto flex items-center gap-2">
             <span className="text-rose-500 text-sm">❌</span>
