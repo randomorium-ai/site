@@ -21,16 +21,28 @@ interface GameStorage { streak: number; lastDate: string; history: StoredEntry[]
 
 // ─── Daily puzzle ─────────────────────────────────────────────────────────────
 
+function lcg(s: number): number {
+  return (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0)
+}
+
 function getDailyPuzzle() {
   const now = new Date()
   const dateStr = now.toISOString().split('T')[0]
   let s = parseInt(dateStr.replace(/-/g, ''), 10)
-  s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0)
-  s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0)
+  s = lcg(s); s = lcg(s)
   const theme = GAME_THEMES[s % GAME_THEMES.length]
-  s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0)
+  s = lcg(s)
   const target = theme.targetMin + (s % (theme.targetMax - theme.targetMin))
   return { theme, target, dateStr }
+}
+
+function getPuzzleFromSeed(seed: number) {
+  let s = seed
+  s = lcg(s); s = lcg(s)
+  const theme = GAME_THEMES[s % GAME_THEMES.length]
+  s = lcg(s)
+  const target = theme.targetMin + (s % (theme.targetMax - theme.targetMin))
+  return { theme, target }
 }
 
 function calcScore(total: number, target: number): number {
@@ -79,8 +91,18 @@ function buildShareText(dateStr: string, theme: GameTheme, target: number, picks
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function TheNumberGame() {
-  const puzzle = useMemo(() => getDailyPuzzle(), [])
-  const { theme, target, dateStr } = puzzle
+  const daily = useMemo(() => getDailyPuzzle(), [])
+  const [rerollSeed, setRerollSeed] = useState<number | null>(null)
+
+  const { theme, target, dateStr } = useMemo(() => {
+    if (rerollSeed !== null) {
+      const { theme, target } = getPuzzleFromSeed(rerollSeed)
+      return { theme, target, dateStr: daily.dateStr }
+    }
+    return daily
+  }, [rerollSeed, daily])
+
+  const isReroll = rerollSeed !== null
 
   const [phase, setPhase] = useState<Phase>('setup')
   const [mode, setMode] = useState<Mode>('solo')
@@ -165,10 +187,18 @@ export default function TheNumberGame() {
   function reveal() {
     if (!picksComplete) return
     setPhase('revealed')
-    if (isSolo) { const next = updateStreak(dateStr, p1Score, 'solo'); setStorage(next) }
+    if (isSolo && !isReroll) { const next = updateStreak(dateStr, p1Score, 'solo'); setStorage(next) }
   }
 
   function reset() {
+    setPhase('setup')
+    setP1Picks([]); setP2Picks([])
+    setTurnIdx(0); setSearch(''); setPosTab('ALL')
+    setApiResults([])
+  }
+
+  function reroll() {
+    setRerollSeed(Math.floor(Math.random() * 1e9))
     setPhase('setup')
     setP1Picks([]); setP2Picks([])
     setTurnIdx(0); setSearch(''); setPosTab('ALL')
@@ -203,7 +233,10 @@ export default function TheNumberGame() {
           </div>
 
           <div className="bg-white border border-[#e5e5e5] rounded-xl p-5 mb-5">
-            <div className="text-xs text-[#999] uppercase tracking-widest font-mono mb-3">Today</div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs text-[#999] uppercase tracking-widest font-mono">{isReroll ? 'Practice' : 'Today'}</div>
+              {isReroll && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">No streak</span>}
+            </div>
             <div className="text-sm font-medium text-[#666] mb-1">{theme.label}</div>
             <div className="text-5xl font-black tabular-nums text-[#1a1a1a] leading-none mb-1">{target}</div>
             <div className="text-xs text-[#aaa] font-mono">{theme.unit}</div>
@@ -225,9 +258,15 @@ export default function TheNumberGame() {
 
           <button
             onClick={() => setPhase('picking')}
-            className="w-full py-4 bg-[#1a7a3e] hover:bg-[#155f30] text-white rounded-lg font-black text-sm uppercase tracking-widest transition-colors"
+            className="w-full py-4 bg-[#1a7a3e] hover:bg-[#155f30] text-white rounded-lg font-black text-sm uppercase tracking-widest transition-colors mb-2"
           >
             Start
+          </button>
+          <button
+            onClick={reroll}
+            className="w-full py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-[#999] hover:text-[#666] hover:border-[#ccc] transition-colors"
+          >
+            🎲 Try different puzzle
           </button>
         </div>
       </div>
@@ -466,8 +505,8 @@ export default function TheNumberGame() {
               {copied ? '✓ Copied' : '↗ Share'}
             </button>
           )}
-          <button onClick={reset} className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-[#1a1a1a] hover:border-[#ccc] transition-colors">
-            Play again
+          <button onClick={() => isReroll ? reroll() : reset()} className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-[#1a1a1a] hover:border-[#ccc] transition-colors">
+            {isReroll ? '🎲 Different puzzle' : 'Play again'}
           </button>
           <Link href="/apps/football-games" className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-[#1a1a1a] hover:border-[#ccc] transition-colors text-center">
             All games

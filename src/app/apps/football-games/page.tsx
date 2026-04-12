@@ -95,9 +95,6 @@ export default function FootballGamesHub() {
 
       {/* ── Game cards ── */}
       <div className="max-w-2xl mx-auto px-5 py-6 space-y-2">
-        <Link href="/apps/football-games/archive" className="block text-right text-xs font-mono text-[#999] hover:text-[#666] transition-colors mb-1">
-          📅 Archive →
-        </Link>
         {GAMES.map((game) => (
           game.status === 'live' ? (
             <Link

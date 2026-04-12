@@ -306,7 +306,7 @@ export default function PlayerWordleGame({ date }: { date?: string }) {
             <Link href="/apps/football-games" className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-center hover:border-[#ccc] transition-colors">
               All games
             </Link>
-            <Link href="/apps/football-games/archive" className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-center hover:border-[#ccc] transition-colors">
+            <Link href="/apps/football-games/player-wordle/archive" className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-center hover:border-[#ccc] transition-colors">
               📅 Archive
             </Link>
           </div>
@@ -330,7 +330,10 @@ export default function PlayerWordleGame({ date }: { date?: string }) {
       {/* Top bar */}
       <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-3">
         <div className="max-w-xl mx-auto flex items-center justify-between">
-          <Link href="/apps/football-games" className="text-blue-500 text-sm font-medium hover:underline">← Back</Link>
+          <div className="flex flex-col items-start gap-0.5">
+            <Link href="/apps/football-games" className="text-blue-500 text-sm font-medium hover:underline">← Back</Link>
+            <Link href="/apps/football-games/player-wordle/archive" className="text-[10px] font-mono text-[#bbb] hover:text-rose-400 transition-colors">📅 archive</Link>
+          </div>
           <div className="text-center">
             <div className="text-[10px] text-[#999] font-mono uppercase tracking-widest">Player Wordle</div>
             <div className="text-xs font-bold text-[#1a1a1a] mt-0.5">{guesses.length}/{MAX_GUESSES} guesses</div>
