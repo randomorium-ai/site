@@ -16,9 +16,12 @@ export async function GET(request: Request) {
     : new Date().toISOString().split("T")[0]
 
   // Filter to iconic players with long enough careers to make connections possible
-  const pool = PLAYERS.filter(
-    p => p.popularity_score > 1_500_000 && (p.career_clubs?.length ?? 0) >= 3
-  )
+  // Must have been active in at least one season from 2000 onwards (21st century)
+  const pool = PLAYERS.filter(p => {
+    if (p.popularity_score <= 1_500_000) return false
+    if ((p.career_clubs?.length ?? 0) < 3) return false
+    return p.career_clubs.some(c => (c.to ?? 9999) >= 2000)
+  })
 
   // Date-seeded LCG to pick two distinct players
   let seed = parseInt(dateStr.replace(/-/g, ""), 10)

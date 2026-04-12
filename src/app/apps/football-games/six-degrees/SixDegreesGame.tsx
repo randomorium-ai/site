@@ -488,6 +488,12 @@ export default function SixDegreesGame({ date }: { date?: string }) {
             >
               All games
             </Link>
+            <Link
+              href="/apps/football-games/archive"
+              className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-[#1a1a1a] hover:border-[#ccc] transition-colors text-center"
+            >
+              📅 Archive
+            </Link>
           </div>
         </div>
       </div>

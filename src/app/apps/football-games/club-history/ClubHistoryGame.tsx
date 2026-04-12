@@ -230,6 +230,9 @@ export default function ClubHistoryGame({ date }: { date?: string }) {
             <Link href="/apps/football-games" className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-center hover:border-[#ccc] transition-colors">
               All games
             </Link>
+            <Link href="/apps/football-games/archive" className="flex-1 py-3 bg-white border border-[#e5e5e5] rounded-lg text-sm font-bold text-center hover:border-[#ccc] transition-colors">
+              📅 Archive
+            </Link>
           </div>
         </div>
       </div>
