@@ -1121,9 +1121,9 @@ const EUROPEAN_LEAGUES = [
     flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     clubs: [
       'Arsenal', 'Aston Villa', 'Bournemouth', 'Brentford', 'Brighton & Hove Albion',
-      'Chelsea', 'Crystal Palace', 'Everton', 'Fulham', 'Ipswich Town',
-      'Leicester City', 'Liverpool', 'Manchester City', 'Manchester United',
-      'Newcastle United', 'Nottingham Forest', 'Southampton', 'Tottenham Hotspur',
+      'Burnley', 'Chelsea', 'Crystal Palace', 'Everton', 'Fulham',
+      'Leeds United', 'Liverpool', 'Manchester City', 'Manchester United',
+      'Newcastle United', 'Nottingham Forest', 'Sunderland', 'Tottenham Hotspur',
       'West Ham United', 'Wolverhampton Wanderers',
     ],
   },
@@ -1132,9 +1132,9 @@ const EUROPEAN_LEAGUES = [
     flag: '🇪🇸',
     clubs: [
       'Alavés', 'Athletic Club', 'Atlético Madrid', 'Barcelona', 'Celta Vigo',
-      'Espanyol', 'Getafe', 'Girona', 'Las Palmas', 'Leganés',
+      'Elche', 'Espanyol', 'Getafe', 'Girona', 'Levante',
       'Mallorca', 'Osasuna', 'Rayo Vallecano', 'Real Betis', 'Real Madrid',
-      'Real Sociedad', 'Real Valladolid', 'Sevilla', 'Valencia', 'Villarreal',
+      'Real Oviedo', 'Real Sociedad', 'Sevilla', 'Valencia', 'Villarreal',
     ],
   },
   {
@@ -1143,9 +1143,8 @@ const EUROPEAN_LEAGUES = [
     clubs: [
       'Augsburg', 'Bayer Leverkusen', 'Bayern Munich', 'Borussia Dortmund',
       'Borussia Mönchengladbach', 'Eintracht Frankfurt', 'FC St. Pauli',
-      'Freiburg', 'Hoffenheim', 'Holstein Kiel', 'Mainz 05',
-      'RB Leipzig', 'Union Berlin', 'VfB Stuttgart', 'VfL Bochum',
-      'VfL Wolfsburg', 'Werder Bremen', 'Heidenheim',
+      'Freiburg', 'Hamburger SV', 'Heidenheim', 'Hoffenheim', '1. FC Köln', 'Mainz 05',
+      'RB Leipzig', 'Union Berlin', 'VfB Stuttgart', 'VfL Wolfsburg', 'Werder Bremen',
     ],
   },
   {
@@ -1153,9 +1152,9 @@ const EUROPEAN_LEAGUES = [
     flag: '🇮🇹',
     clubs: [
       'AC Milan', 'AS Roma', 'Atalanta', 'Bologna', 'Cagliari',
-      'Como', 'Empoli', 'Fiorentina', 'Genoa', 'Hellas Verona',
-      'Inter Milan', 'Juventus', 'Lazio', 'Lecce', 'Monza',
-      'Napoli', 'Parma', 'Torino', 'Udinese', 'Venezia',
+      'Como', 'Cremonese', 'Fiorentina', 'Genoa', 'Hellas Verona',
+      'Inter Milan', 'Juventus', 'Lazio', 'Lecce', 'Napoli',
+      'Parma', 'Pisa', 'Sassuolo', 'Torino', 'Udinese',
     ],
   },
   {
@@ -1163,9 +1162,9 @@ const EUROPEAN_LEAGUES = [
     flag: '🇫🇷',
     clubs: [
       'Angers', 'AS Monaco', 'Auxerre', 'Brest', 'Le Havre',
-      'Lens', 'Lille', 'Lyon', 'Marseille', 'Montpellier',
-      'Nantes', 'Nice', 'Paris Saint-Germain', 'Reims', 'Rennes',
-      'Saint-Étienne', 'Strasbourg', 'Toulouse',
+      'Lens', 'Lille', 'Lorient', 'Lyon', 'Marseille',
+      'Metz', 'Nantes', 'Nice', 'Paris FC', 'Paris Saint-Germain',
+      'Rennes', 'Strasbourg', 'Toulouse',
     ],
   },
 ]
