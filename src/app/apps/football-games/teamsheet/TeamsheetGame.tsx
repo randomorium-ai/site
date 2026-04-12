@@ -97,90 +97,109 @@ const POS_BG: Record<string, string> = {
   ATT: 'bg-red-600',
 }
 
-// ─── Pitch component ──────────────────────────────────────────────────────────
+// ─── Combined pitch component ─────────────────────────────────────────────────
+// Home team occupies the bottom half (attacking up), away team the top half
+// (attacking down / mirrored). Positions from getFormationPositions are
+// compressed into each respective half.
 
-interface PitchProps {
-  sheet: TeamSheet
+function halfY(originalY: number, side: 'home' | 'away'): number {
+  // original: 0 = attack end, 100 = GK end
+  // home: GK at bottom → map to [53, 96]
+  // away: GK at top (flipped) → map to [4, 47]
+  if (side === 'home') return 53 + (originalY / 100) * 43
+  return 47 - (originalY / 100) * 43
+}
+
+interface CombinedPitchProps {
+  home: TeamSheet
+  away: TeamSheet
   correct: Set<SlotKey>
   hints: Map<SlotKey, SlotHints>
   wrongFlash: SlotKey | null
   selectedSlot: SlotKey | null
-  teamSide: 'home' | 'away'
   onSlotClick: (key: SlotKey) => void
-  accentColor: string
 }
 
-function Pitch({ sheet, correct, hints, wrongFlash, selectedSlot, teamSide, onSlotClick, accentColor }: PitchProps) {
-  const positions = getFormationPositions(sheet.formation)
+function CombinedPitch({ home, away, correct, hints, wrongFlash, selectedSlot, onSlotClick }: CombinedPitchProps) {
+  const homePositions = getFormationPositions(home.formation)
+  const awayPositions = getFormationPositions(away.formation)
+
+  function renderTeam(sheet: TeamSheet, positions: ReturnType<typeof getFormationPositions>, side: 'home' | 'away') {
+    return sheet.lineup.map((player, idx) => {
+      const pos = positions[idx]
+      if (!pos) return null
+      const key: SlotKey = `${side}-${idx}`
+      const isCorrect = correct.has(key)
+      const isWrong = wrongFlash === key
+      const isSelected = selectedSlot === key
+      const slotHints = hints.get(key) ?? { firstLetter: false, nationality: false }
+      const mappedY = halfY(pos.y, side)
+
+      return (
+        <button
+          key={key}
+          onClick={() => onSlotClick(key)}
+          disabled={isCorrect}
+          style={{ left: `${pos.x}%`, top: `${mappedY}%`, transform: 'translate(-50%, -50%)' }}
+          className={`absolute flex flex-col items-center gap-0.5 transition-all z-10 ${isCorrect ? 'cursor-default' : 'cursor-pointer hover:scale-110 active:scale-95'}`}
+        >
+          <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-black transition-colors ${
+            isCorrect ? 'bg-white border-white text-[#1a7a3e]' :
+            isWrong ? 'bg-red-500 border-red-300 text-white animate-pulse' :
+            isSelected ? 'bg-yellow-400 border-yellow-200 text-[#1a1a1a]' :
+            side === 'home' ? 'bg-white/25 border-white/60 text-white hover:bg-white/40' :
+            'bg-black/30 border-white/40 text-white hover:bg-black/45'
+          }`}>
+            {isCorrect ? (
+              <span className="leading-tight text-center px-0.5 truncate w-full" style={{ fontSize: '6px', fontWeight: 900 }}>
+                {player.name.split(' ').pop()}
+              </span>
+            ) : slotHints.firstLetter ? (
+              <span style={{ fontSize: '8px' }}>{player.name.split(' ').pop()![0].toUpperCase()}…</span>
+            ) : (
+              <span style={{ fontSize: '10px' }}>{player.number}</span>
+            )}
+          </div>
+          {isCorrect ? null : slotHints.nationality && player.nationality ? (
+            <span className="text-xs leading-none">{nationalityFlag(player.nationality)}</span>
+          ) : (
+            <span className="text-[7px] font-bold text-white/70">{player.position}</span>
+          )}
+        </button>
+      )
+    })
+  }
 
   return (
     <div
       className="relative w-full rounded-xl overflow-hidden border border-[#c8e6c9]"
-      style={{ background: 'linear-gradient(180deg, #2d8a4e 0%, #1a7a3e 100%)', aspectRatio: '0.68' }}
+      style={{ background: 'linear-gradient(180deg, #2d8a4e 0%, #1a7a3e 100%)', aspectRatio: '0.62' }}
     >
       {/* Pitch markings */}
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 70 100" preserveAspectRatio="none" aria-hidden>
         <rect x="5" y="3" width="60" height="94" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
-        <line x1="5" y1="50" x2="65" y2="50" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
+        <line x1="5" y1="50" x2="65" y2="50" stroke="white" strokeOpacity="0.25" strokeWidth="0.7" />
         <circle cx="35" cy="50" r="9" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
+        <circle cx="35" cy="50" r="0.8" fill="white" fillOpacity="0.25" />
+        {/* Top penalty area */}
         <rect x="18" y="3" width="34" height="14" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
-        <rect x="18" y="83" width="34" height="14" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
         <rect x="26" y="3" width="18" height="7" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
+        {/* Bottom penalty area */}
+        <rect x="18" y="83" width="34" height="14" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
         <rect x="26" y="90" width="18" height="7" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.6" />
       </svg>
 
-      {/* Team label on pitch */}
-      <div className={`absolute top-2 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest text-white/60 z-10`}>
-        {sheet.team}
+      {/* Team labels */}
+      <div className="absolute top-1.5 left-1/2 -translate-x-1/2 text-[8px] font-black uppercase tracking-widest text-white/50 z-10 whitespace-nowrap">
+        {away.team}
+      </div>
+      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[8px] font-black uppercase tracking-widest text-white/50 z-10 whitespace-nowrap">
+        {home.team}
       </div>
 
-      {/* Player slots */}
-      {sheet.lineup.map((player, idx) => {
-        const pos = positions[idx]
-        if (!pos) return null
-        const key: SlotKey = `${teamSide}-${idx}`
-        const isCorrect = correct.has(key)
-        const isWrong = wrongFlash === key
-        const isSelected = selectedSlot === key
-        const slotHints = hints.get(key) ?? { firstLetter: false, nationality: false }
-
-        return (
-          <button
-            key={idx}
-            onClick={() => onSlotClick(key)}
-            disabled={isCorrect}
-            style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}
-            className={`absolute flex flex-col items-center gap-0.5 transition-all ${isCorrect ? 'cursor-default' : 'cursor-pointer hover:scale-110 active:scale-95'}`}
-          >
-            <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-black transition-colors ${
-              isCorrect ? 'bg-white border-white text-[#1a7a3e]' :
-              isWrong ? 'bg-red-500 border-red-300 text-white animate-pulse' :
-              isSelected ? `bg-yellow-400 border-yellow-200 text-[#1a1a1a]` :
-              'bg-white/20 border-white/50 text-white hover:bg-white/30'
-            }`}>
-              {isCorrect ? (
-                <span className="leading-tight text-center px-0.5 truncate w-full" style={{ fontSize: '7px', fontWeight: 900 }}>
-                  {player.name.split(' ').pop()}
-                </span>
-              ) : slotHints.firstLetter ? (
-                <span style={{ fontSize: '9px' }}>{player.name.split(' ').pop()![0].toUpperCase()}…</span>
-              ) : (
-                <span style={{ fontSize: '11px' }}>{player.number}</span>
-              )}
-            </div>
-            {isCorrect ? null : slotHints.nationality && player.nationality ? (
-              <span className="text-sm leading-none">{nationalityFlag(player.nationality)}</span>
-            ) : (
-              <span className={`text-[8px] font-bold text-white/70`}>{player.position}</span>
-            )}
-          </button>
-        )
-      })}
-
-      {/* Formation label */}
-      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[8px] font-mono text-white/40">
-        {sheet.formation}
-      </div>
+      {/* Players */}
+      {renderTeam(away, awayPositions, 'away')}
+      {renderTeam(home, homePositions, 'home')}
     </div>
   )
 }
@@ -197,7 +216,6 @@ export default function TeamsheetGame() {
   const [wrongFlash, setWrongFlash] = useState<SlotKey | null>(null)
   const [score, setScore] = useState(0)
 
-  const [activeTeam, setActiveTeam] = useState<'home' | 'away'>('home')
   const [selectedSlot, setSelectedSlot] = useState<SlotKey | null>(null)
 
   const [searchValue, setSearchValue] = useState('')
@@ -260,8 +278,6 @@ export default function TeamsheetGame() {
 
   function handleSlotClick(key: SlotKey) {
     if (correct.has(key) || phase === 'won') return
-    const [team] = key.split('-') as ['home' | 'away', string]
-    if (team !== activeTeam) setActiveTeam(team)
     setSelectedSlot(key)
     setSearchValue('')
     setSearchResults([])
@@ -328,9 +344,6 @@ export default function TeamsheetGame() {
   const selectedPlayer = (selectedTeam !== null && selectedIdx !== null) ? match[selectedTeam].lineup[selectedIdx] : null
   const selectedHints = selectedSlot ? (hints.get(selectedSlot) ?? { firstLetter: false, nationality: false }) : null
 
-  const homeFound = match.home.lineup.filter((_, i) => correct.has(`home-${i}`)).length
-  const awayFound = match.away.lineup.filter((_, i) => correct.has(`away-${i}`)).length
-
   // ── Won screen ────────────────────────────────────────────────────────────────
   if (phase === 'won') {
     const label = scoreLabel(score, maxScore)
@@ -387,7 +400,6 @@ export default function TeamsheetGame() {
 
   // ── Playing ───────────────────────────────────────────────────────────────────
   const allFound = correct.size === totalPlayers
-  const activeSheet = match[activeTeam]
 
   return (
     <div className="flex flex-col h-[100dvh] bg-[#fafafa]">
@@ -421,42 +433,17 @@ export default function TeamsheetGame() {
         </div>
       </div>
 
-      {/* Team tabs */}
-      <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4">
-        <div className="max-w-xl mx-auto flex">
-          {(['home', 'away'] as const).map(side => {
-            const sheet = match[side]
-            const found = side === 'home' ? homeFound : awayFound
-            const total = sheet.lineup.length
-            const isActive = activeTeam === side
-            return (
-              <button
-                key={side}
-                onClick={() => { setActiveTeam(side); setSelectedSlot(null) }}
-                className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${
-                  isActive ? 'border-[#1a7a3e] text-[#1a7a3e]' : 'border-transparent text-[#999] hover:text-[#666]'
-                }`}
-              >
-                {sheet.team}
-                <span className={`ml-1.5 text-[10px] font-mono ${isActive ? 'text-[#1a7a3e]' : 'text-[#bbb]'}`}>{found}/{total}</span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Pitch */}
+      {/* Combined pitch */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-xl mx-auto px-4 py-3">
-          <Pitch
-            sheet={activeSheet}
+          <CombinedPitch
+            home={match.home}
+            away={match.away}
             correct={correct}
             hints={hints}
             wrongFlash={wrongFlash}
             selectedSlot={selectedSlot}
-            teamSide={activeTeam}
             onSlotClick={handleSlotClick}
-            accentColor="#1a7a3e"
           />
         </div>
       </div>
