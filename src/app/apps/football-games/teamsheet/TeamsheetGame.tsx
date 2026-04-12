@@ -206,7 +206,8 @@ function CombinedPitch({ home, away, correct, hints, wrongFlash, selectedSlot, o
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function TeamsheetGame() {
+export default function TeamsheetGame({ date }: { date?: string }) {
+  const isArchive = Boolean(date)
   const [match, setMatch] = useState<Match | null>(null)
   const [dateStr, setDateStr] = useState('')
   const [phase, setPhase] = useState<'loading' | 'playing' | 'won' | 'error'>('loading')
@@ -229,7 +230,7 @@ export default function TeamsheetGame() {
 
   useEffect(() => {
     storageRef.current = getStorage()
-    fetch('/api/football/teamsheet/daily')
+    fetch(`/api/football/teamsheet/daily${date ? `?date=${date}` : ''}`)
       .then(r => r.json())
       .then(({ match: m, dateStr: d }: { match: Match; dateStr: string }) => {
         setMatch(m)
@@ -302,9 +303,11 @@ export default function TeamsheetGame() {
       setSearchValue('')
       setSearchResults([])
       if (newCorrect.size === totalPlayers) {
-        const stored = saveStorage(dateStr, newScore)
-        storageRef.current = stored
-        setStreak(stored.streak)
+        if (!isArchive) {
+          const stored = saveStorage(dateStr, newScore)
+          storageRef.current = stored
+          setStreak(stored.streak)
+        }
         setPhase('won')
       }
     } else {
@@ -403,6 +406,14 @@ export default function TeamsheetGame() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-[#fafafa]">
+
+      {/* Archive banner */}
+      {isArchive && (
+        <div className="flex-shrink-0 bg-amber-50 border-b border-amber-200 px-4 py-2 text-center">
+          <span className="text-xs font-bold text-amber-700">📅 Archive — {dateStr}</span>
+          <span className="text-xs text-amber-600 ml-2">Results won&apos;t affect your streak</span>
+        </div>
+      )}
 
       {/* Top bar */}
       <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-3">

@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: 'Name every player in a famous match formation.',
 }
 
-export default function TeamsheetPage() {
-  return <TeamsheetGame />
+interface Props { searchParams: Promise<{ date?: string }> }
+
+export default async function TeamsheetPage({ searchParams }: Props) {
+  const { date } = await searchParams
+  return <TeamsheetGame date={date} />
 }

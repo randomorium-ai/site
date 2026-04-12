@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: 'Connect two players through shared clubs in 6 transfers or fewer.',
 }
 
-export default function SixDegreesPage() {
-  return <SixDegreesGame />
+interface Props { searchParams: Promise<{ date?: string }> }
+
+export default async function SixDegreesPage({ searchParams }: Props) {
+  const { date } = await searchParams
+  return <SixDegreesGame date={date} />
 }

@@ -67,7 +67,8 @@ function clubYears(c: CareerClub, currentClub: string): string {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function ClubHistoryGame() {
+export default function ClubHistoryGame({ date }: { date?: string }) {
+  const isArchive = Boolean(date)
   const [data, setData] = useState<ApiResponse | null>(null)
   const [phase, setPhase] = useState<'loading' | 'playing' | 'won' | 'lost' | 'error'>('loading')
 
@@ -84,7 +85,7 @@ export default function ClubHistoryGame() {
 
   useEffect(() => {
     storageRef.current = getStorage()
-    fetch('/api/football/club-history/daily')
+    fetch(`/api/football/club-history/daily${date ? `?date=${date}` : ''}`)
       .then(r => r.json())
       .then((d: ApiResponse) => {
         setData(d)
@@ -141,9 +142,7 @@ export default function ClubHistoryGame() {
       const newGuessesUsed = wrongGuesses.length + newFound.size
       if (newFound.size === totalClubs) {
         const s = calcScore(newFound.size, totalClubs, newGuessesUsed)
-        const stored = saveStorage(dateStr, s)
-        storageRef.current = stored
-        setStreak(stored.streak)
+        if (!isArchive) { const stored = saveStorage(dateStr, s); storageRef.current = stored; setStreak(stored.streak) }
         setPhase('won')
       }
     } else {
@@ -157,7 +156,7 @@ export default function ClubHistoryGame() {
       const newGuessesUsed = newWrong.length + found.size
       if (newGuessesUsed >= MAX_GUESSES) {
         const s = calcScore(found.size, totalClubs, MAX_GUESSES)
-        storageRef.current = saveStorage(dateStr, s)
+        if (!isArchive) storageRef.current = saveStorage(dateStr, s)
         setPhase('lost')
       }
     }
@@ -240,6 +239,14 @@ export default function ClubHistoryGame() {
   // ── Playing ─────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-[100dvh] bg-[#fafafa]">
+
+      {/* Archive banner */}
+      {isArchive && (
+        <div className="flex-shrink-0 bg-amber-50 border-b border-amber-200 px-4 py-2 text-center">
+          <span className="text-xs font-bold text-amber-700">📅 Archive — {dateStr}</span>
+          <span className="text-xs text-amber-600 ml-2">Results won&apos;t affect your streak</span>
+        </div>
+      )}
 
       {/* Top bar */}
       <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-3">

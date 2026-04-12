@@ -115,7 +115,8 @@ function buildShareText(
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function SixDegreesGame() {
+export default function SixDegreesGame({ date }: { date?: string }) {
+  const isArchive = Boolean(date)
   const [dateStr, setDateStr] = useState('')
   const [aPlayer, setAPlayer] = useState<Player | null>(null)
   const [bPlayer, setBPlayer] = useState<Player | null>(null)
@@ -158,7 +159,7 @@ export default function SixDegreesGame() {
   // ── Load daily puzzle ──────────────────────────────────────────────────────
   useEffect(() => {
     setStorage(getStorage())
-    fetch('/api/football/daily-puzzle')
+    fetch(`/api/football/daily-puzzle${date ? `?date=${date}` : ''}`)
       .then(r => r.json())
       .then(({ aPlayer: a, bPlayer: b, dateStr: d }: { aPlayer: Player; bPlayer: Player; dateStr: string }) => {
         setAPlayer(a)
@@ -356,8 +357,7 @@ export default function SixDegreesGame() {
         setLastError(data.reason ?? `No ${LINK_LABELS[pendingLinkType].toLowerCase()} connection found`)
         // Stay on current step so user can try again
         if (newStrikes >= MAX_STRIKES) {
-          const next = saveStorage(dateStr, chain.length, newStrikes)
-          setStorage(next)
+          if (!isArchive) { const next = saveStorage(dateStr, chain.length, newStrikes); setStorage(next) }
           setPhase('failed')
         }
         return
@@ -373,12 +373,10 @@ export default function SixDegreesGame() {
       setChain(newChain)
 
       if (willWin) {
-        const next = saveStorage(dateStr, newChain.length, strikes)
-        setStorage(next)
+        if (!isArchive) { const next = saveStorage(dateStr, newChain.length, strikes); setStorage(next) }
         setPhase('won')
       } else if (newChain.length >= MAX_STEPS) {
-        const next = saveStorage(dateStr, newChain.length, strikes)
-        setStorage(next)
+        if (!isArchive) { const next = saveStorage(dateStr, newChain.length, strikes); setStorage(next) }
         setPhase('failed')
       } else {
         // Reset wizard to type step for next link
@@ -499,6 +497,14 @@ export default function SixDegreesGame() {
   // ── Playing ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-[100dvh] bg-[#fafafa]">
+
+      {/* Archive banner */}
+      {isArchive && (
+        <div className="flex-shrink-0 bg-amber-50 border-b border-amber-200 px-4 py-2 text-center">
+          <span className="text-xs font-bold text-amber-700">📅 Archive — {dateStr}</span>
+          <span className="text-xs text-amber-600 ml-2">Results won&apos;t affect your streak</span>
+        </div>
+      )}
 
       {/* Top bar */}
       <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-3">
@@ -1100,54 +1106,60 @@ const TOURNAMENT_GROUPS: TournamentGroup[] = (() => {
 
 // ─── European leagues for club browsing ───────────────────────────────────────
 
+// ⚠️  UPDATE EACH SEASON — verify clubs against Wikipedia 2025–26 season pages.
+// Last updated: 2025-26 season (April 2026).
+// Source: https://en.wikipedia.org/wiki/2025%E2%80%9326_Premier_League etc.
 const EUROPEAN_LEAGUES = [
   {
     name: 'Premier League',
     flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     clubs: [
-      'Arsenal', 'Aston Villa', 'Chelsea', 'Everton', 'Leeds United',
+      'Arsenal', 'Aston Villa', 'Bournemouth', 'Brentford', 'Brighton & Hove Albion',
+      'Chelsea', 'Crystal Palace', 'Everton', 'Fulham', 'Ipswich Town',
       'Leicester City', 'Liverpool', 'Manchester City', 'Manchester United',
-      'Newcastle United', 'Tottenham Hotspur', 'West Ham United',
-      'Blackburn Rovers', 'Middlesbrough', 'Bolton Wanderers', 'Sunderland',
-      'Fulham', 'Nottingham Forest', 'Sheffield United', 'Wolves',
+      'Newcastle United', 'Nottingham Forest', 'Southampton', 'Tottenham Hotspur',
+      'West Ham United', 'Wolverhampton Wanderers',
     ],
   },
   {
     name: 'La Liga',
     flag: '🇪🇸',
     clubs: [
-      'Athletic Club', 'Atlético Madrid', 'Barcelona', 'Celta Vigo',
-      'Deportivo La Coruña', 'Real Betis', 'Real Madrid', 'Real Sociedad',
-      'Sevilla', 'Valencia', 'Villarreal', 'Espanyol', 'Getafe',
-      'Osasuna', 'Málaga', 'Racing Santander',
+      'Alavés', 'Athletic Club', 'Atlético Madrid', 'Barcelona', 'Celta Vigo',
+      'Espanyol', 'Getafe', 'Girona', 'Las Palmas', 'Leganés',
+      'Mallorca', 'Osasuna', 'Rayo Vallecano', 'Real Betis', 'Real Madrid',
+      'Real Sociedad', 'Real Valladolid', 'Sevilla', 'Valencia', 'Villarreal',
     ],
   },
   {
     name: 'Bundesliga',
     flag: '🇩🇪',
     clubs: [
-      'Bayer Leverkusen', 'Bayern Munich', 'Borussia Dortmund',
-      'Borussia Mönchengladbach', 'Eintracht Frankfurt', 'Hamburger SV',
-      'Hertha BSC', 'RB Leipzig', 'Schalke 04', 'VfB Stuttgart',
-      'VfL Wolfsburg', 'Werder Bremen', 'Bochum', 'Karlsruher SC',
+      'Augsburg', 'Bayer Leverkusen', 'Bayern Munich', 'Borussia Dortmund',
+      'Borussia Mönchengladbach', 'Eintracht Frankfurt', 'FC St. Pauli',
+      'Freiburg', 'Hoffenheim', 'Holstein Kiel', 'Mainz 05',
+      'RB Leipzig', 'Union Berlin', 'VfB Stuttgart', 'VfL Bochum',
+      'VfL Wolfsburg', 'Werder Bremen', 'Heidenheim',
     ],
   },
   {
     name: 'Serie A',
     flag: '🇮🇹',
     clubs: [
-      'AC Milan', 'AS Roma', 'Atalanta', 'Fiorentina', 'Inter Milan',
-      'Juventus', 'Lazio', 'Napoli', 'Parma', 'Sampdoria',
-      'Torino', 'Udinese', 'Bologna', 'Cagliari', 'Genoa',
+      'AC Milan', 'AS Roma', 'Atalanta', 'Bologna', 'Cagliari',
+      'Como', 'Empoli', 'Fiorentina', 'Genoa', 'Hellas Verona',
+      'Inter Milan', 'Juventus', 'Lazio', 'Lecce', 'Monza',
+      'Napoli', 'Parma', 'Torino', 'Udinese', 'Venezia',
     ],
   },
   {
     name: 'Ligue 1',
     flag: '🇫🇷',
     clubs: [
-      'Bordeaux', 'Lens', 'Lille', 'Lyon', 'Marseille',
-      'Monaco', 'Montpellier', 'Nice', 'Paris Saint-Germain',
-      'Rennes', 'Saint-Étienne', 'Strasbourg',
+      'Angers', 'AS Monaco', 'Auxerre', 'Brest', 'Le Havre',
+      'Lens', 'Lille', 'Lyon', 'Marseille', 'Montpellier',
+      'Nantes', 'Nice', 'Paris Saint-Germain', 'Reims', 'Rennes',
+      'Saint-Étienne', 'Strasbourg', 'Toulouse',
     ],
   },
 ]

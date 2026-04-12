@@ -8,9 +8,12 @@ function lcg(seed: number): number {
   return (Math.imul(seed ^ (seed >>> 16), 0x45d9f3b) >>> 0)
 }
 
-export async function GET() {
-  const now = new Date()
-  const dateStr = now.toISOString().split("T")[0]
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const dateParam = searchParams.get('date')
+  const dateStr = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)
+    ? dateParam
+    : new Date().toISOString().split("T")[0]
 
   // Filter to iconic players with long enough careers to make connections possible
   const pool = PLAYERS.filter(

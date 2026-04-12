@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: 'Name every club a player has represented. Any era.',
 }
 
-export default function ClubHistoryPage() {
-  return <ClubHistoryGame />
+interface Props { searchParams: Promise<{ date?: string }> }
+
+export default async function ClubHistoryPage({ searchParams }: Props) {
+  const { date } = await searchParams
+  return <ClubHistoryGame date={date} />
 }

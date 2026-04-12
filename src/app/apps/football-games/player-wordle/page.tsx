@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: 'Guess the mystery footballer in 6 clues.',
 }
 
-export default function PlayerWordlePage() {
-  return <PlayerWordleGame />
+interface Props { searchParams: Promise<{ date?: string }> }
+
+export default async function PlayerWordlePage({ searchParams }: Props) {
+  const { date } = await searchParams
+  return <PlayerWordleGame date={date} />
 }
