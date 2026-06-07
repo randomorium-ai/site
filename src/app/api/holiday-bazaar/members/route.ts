@@ -43,26 +43,17 @@ export async function POST(req: NextRequest) {
     let resolvedMemberId: string
 
     if (member_id) {
-      // Update existing member — verify it belongs to this trip
-      const { data: existing, error: lookupErr } = await supabase
-        .from("members")
-        .select("id")
-        .eq("id", member_id)
-        .eq("trip_id", trip_id)
-        .single()
-
-      if (lookupErr || !existing) {
-        return NextResponse.json({ error: "Member not found" }, { status: 404 })
-      }
-
-      const { error: updateErr } = await supabase
+      // Update existing member — .eq("trip_id") verifies ownership in the same query
+      const { data: updated, error: updateErr } = await supabase
         .from("members")
         .update({ name: name.trim(), al_budget, departure_airports })
         .eq("id", member_id)
+        .eq("trip_id", trip_id)
+        .select("id")
+        .single()
 
-      if (updateErr) {
-        console.error("members update error", updateErr)
-        return NextResponse.json({ error: "Failed to update member" }, { status: 500 })
+      if (updateErr || !updated) {
+        return NextResponse.json({ error: "Member not found" }, { status: 404 })
       }
 
       // Replace date ranges

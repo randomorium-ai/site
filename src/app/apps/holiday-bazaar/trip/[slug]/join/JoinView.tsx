@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/holiday-bazaar/supabase";
-import { searchAirports } from "@/lib/holiday-bazaar/airports";
+import { searchAirports, getAirport } from "@/lib/holiday-bazaar/airports";
 import type { Airport } from "@/lib/holiday-bazaar/airports";
 import type {
   Trip,
@@ -568,12 +568,12 @@ function JoinViewInner({ slug }: { slug: string }) {
         if (me) {
           setIsOrganiser(true);
           setName(me.name);
+          setStep("al");
           if (me.al_budget !== null) setAlDays(me.al_budget);
           if (me.departure_airports.length > 0) {
-            const { searchAirports } = await import("@/lib/holiday-bazaar/airports");
             const populated = me.departure_airports
-              .map((iata) => searchAirports(iata).find((a) => a.iata === iata))
-              .filter(Boolean) as import("@/lib/holiday-bazaar/airports").Airport[];
+              .map((iata) => getAirport(iata))
+              .filter(Boolean) as Airport[];
             if (populated.length > 0) setAirports(populated);
           }
         }
@@ -827,30 +827,42 @@ function JoinViewInner({ slug }: { slug: string }) {
           margin: "0 auto",
         }}
       >
-        <button
-          onClick={
-            stepIndex > 0
-              ? prevStep
-              : () => router.push(`/apps/holiday-bazaar/trip/${slug}`)
-          }
-          style={{
-            background: "none",
-            border: "none",
-            color: C.muted,
-            fontSize: "0.8rem",
-            cursor: "pointer",
-            fontFamily: C.fontMono,
-            letterSpacing: "0.05em",
-            padding: "0.5rem 0",
-            minHeight: "44px",
-            display: "flex",
-            alignItems: "center",
-            WebkitTapHighlightColor: "transparent",
-            touchAction: "manipulation",
-          }}
-        >
-          ← {stepIndex > 0 ? "back" : "trip"}
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <a
+            href="/apps/holiday-bazaar"
+            style={{
+              fontSize: "0.75rem",
+              fontFamily: C.fontMono,
+              color: C.muted,
+              textDecoration: "none",
+              letterSpacing: "0.05em",
+            }}
+          >
+            ← bazaar
+          </a>
+          {stepIndex > 0 && (
+            <button
+              onClick={prevStep}
+              style={{
+                background: "none",
+                border: "none",
+                color: C.muted,
+                fontSize: "0.8rem",
+                cursor: "pointer",
+                fontFamily: C.fontMono,
+                letterSpacing: "0.05em",
+                padding: "0.5rem 0",
+                minHeight: "44px",
+                display: "flex",
+                alignItems: "center",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+              }}
+            >
+              ← back
+            </button>
+          )}
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <ThemeToggle />
           <span
